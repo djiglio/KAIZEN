@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#3a5a3a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#06060a" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#5a8a5a" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#5a8a5a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- Sfondo -->
+  <rect width="256" height="256" fill="#06060a"/>
+  <circle cx="128" cy="110" r="100" fill="url(#bg)"/>
+  <circle cx="128" cy="110" r="80" fill="url(#glow)" filter="url(#blur)"/>
+
+  <!-- Cerchio decorativo -->
+  <circle cx="128" cy="128" r="118" fill="none" stroke="#5a8a5a" stroke-width="1" stroke-opacity="0.3"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#5a8a5a" stroke-width="0.5" stroke-opacity="0.15"/>
+
+  <!-- Simbolo testuale centrato -->
+  <text x="128" y="145" text-anchor="middle" dominant-baseline="middle"
+        font-size="80" font-family="serif">👹</text>
+
+  <!-- Label categoria in basso -->
+  <rect x="44" y="200" width="168" height="28" rx="4"
+        fill="#3a5a3a" fill-opacity="0.5" stroke="#5a8a5a" stroke-width="0.8" stroke-opacity="0.4"/>
+  <text x="128" y="218" text-anchor="middle" dominant-baseline="middle"
+        font-size="13" font-family="monospace" fill="#5a8a5a" letter-spacing="2"
+        font-weight="bold">TROLL</text>
+</svg>
