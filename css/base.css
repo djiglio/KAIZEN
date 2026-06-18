@@ -1,0 +1,63 @@
+/* ============================================================
+   base.css — CSS variables, reset, body
+   KAIZEN v6.0
+   ============================================================ */
+
+:root {
+  --primary:      #4ecca3;
+  --bg:           #06060a;
+  --card:         rgba(18, 18, 24, 0.85);
+  --card-solid:   #121218;
+  --text:         #e2e8f0;
+  --danger:       #dc2626;
+  --gold:         #d4a017;
+  --gold-light:   #f5c842;
+  --aura-color:   #4ecca3;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.6);
+
+  --sat: env(safe-area-inset-top,    0px);
+  --sar: env(safe-area-inset-right,  0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left,   0px);
+
+  --header-h: 62px;
+  --page-pad: 15px;
+  --card-r:   14px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100dvh;
+  padding-bottom: calc(var(--sab) + 12px);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(78,204,163,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(212,160,23,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(153,27,27,0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgShift 20s ease-in-out infinite alternate;
+}
+
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }

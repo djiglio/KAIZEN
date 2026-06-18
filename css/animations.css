@@ -1,0 +1,65 @@
+/* ============================================================
+   animations.css — keyframes, particelle, aure
+   KAIZEN v6.0
+   ============================================================ */
+
+@keyframes bgShift {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1;   }
+  100% { opacity: 0.6; }
+}
+
+@keyframes floatParticle {
+  0%   { opacity: 0; transform: translateY(100vh) scale(0); }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+}
+
+  to   { transform: rotate(360deg); }
+}
+
+  50%       { transform: scale(1.15); opacity: 0.08; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes combatLine {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes hpCritical {
+  from { opacity: 0.8; }
+  to   { opacity: 1; box-shadow: 0 0 14px rgba(239,68,68,0.7); }
+}
+
+@keyframes xpFill {
+  from { width: 0; }
+}
+
+/* ── Particelle ── */
+.ambient-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: floatParticle linear infinite;
+}
+

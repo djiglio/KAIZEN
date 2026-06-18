@@ -1,0 +1,232 @@
+/* ============================================================
+   layout.css — header, sidebar, overlay, pages, avatar
+   KAIZEN v6.0
+   ============================================================ */
+
+/* ── Header ── */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: calc(var(--header-h) + var(--sat));
+  padding-top: var(--sat);
+  padding-left:  calc(var(--page-pad) + var(--sal));
+  padding-right: calc(var(--page-pad) + var(--sar));
+  background: rgba(6,6,10,0.92);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  border-bottom: 1px solid var(--glass-border);
+}
+.header-logo {
+  font-family: "Cinzel", serif;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.header-logo::before { content: "⚜"; font-size: 14px; opacity: 0.6; }
+
+.menu-btn {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.menu-btn:active {
+  background: rgba(212,160,23,0.1);
+  border-color: rgba(212,160,23,0.3);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed;
+  top: 0; right: -100%;
+  width: min(300px, 82vw);
+  height: 100%;
+  background: linear-gradient(180deg, #0c0c12 0%, #08080e 100%);
+  z-index: 2000;
+  transition: right 0.38s cubic-bezier(0.4,0,0.2,1), visibility 0.38s;
+  padding-top:    calc(var(--sat) + 24px);
+  padding-left:   18px;
+  padding-right:  18px;
+  padding-bottom: calc(var(--sab) + 24px);
+  overflow-y: auto;
+  visibility: hidden;
+  box-shadow: -20px 0 60px rgba(0,0,0,0.9);
+  border-left: 1px solid var(--glass-border);
+  overscroll-behavior: contain;
+}
+.sidebar.open { right: 0; visibility: visible; }
+.sidebar::-webkit-scrollbar       { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.3); border-radius: 2px; }
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  z-index: 1999;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.sidebar-title {
+  font-family: "Cinzel", serif;
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(212,160,23,0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 14px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  color: #94a3b8;
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.22s;
+  min-height: 44px;
+}
+.nav-btn:active {
+  background: rgba(212,160,23,0.08);
+  border-color: rgba(212,160,23,0.2);
+  color: var(--text);
+  transform: translateX(-3px);
+}
+.nav-btn.active {
+  background: linear-gradient(135deg, rgba(212,160,23,0.15), rgba(212,160,23,0.05));
+  color: var(--gold-light);
+  border-color: rgba(212,160,23,0.3);
+}
+
+/* ── Pages ── */
+.page {
+  display: none;
+  padding-top:    calc(var(--header-h) + var(--sat) + 14px);
+  padding-left:   calc(var(--page-pad) + var(--sal));
+  padding-right:  calc(var(--page-pad) + var(--sar));
+  padding-bottom: 40px;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.4s cubic-bezier(0.4,0,0.2,1);
+  overflow-x: hidden;
+}
+.page.active { display: block; }
+
+/* Sub-page (rank list) */
+#p-ranks {
+  display: none;
+  padding-top:    calc(var(--header-h) + var(--sat) + 14px);
+  padding-left:   calc(var(--page-pad) + var(--sal));
+  padding-right:  calc(var(--page-pad) + var(--sar));
+  padding-bottom: 40px;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.4s cubic-bezier(0.4,0,0.2,1);
+  overflow-x: hidden;
+}
+#p-ranks.active { display: block; }
+
+/* ── Section headers ── */
+.section-header {
+  font-family: "Cinzel", serif;
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 2px;
+}
+.section-header::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--glass-border), transparent);
+}
+
+/* ── Modal overlay generico ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 3500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-overlay.show { display: flex; animation: fadeIn 0.22s ease; }
+
+.modal-box {
+  background: linear-gradient(135deg, #0e0e18, #0a0a12);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 22px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-heavy);
+  position: relative;
+}
+.modal-title {
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.modal-close-btn {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  border-radius: 10px;
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  margin-top: 14px;
+}
+.modal-close-btn:active { background: rgba(255,255,255,0.07); }

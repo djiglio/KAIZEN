@@ -1,0 +1,237 @@
+
+/* ══════════════════════════════════════════
+   AREA TABS — selettore zone mondo esterno
+══════════════════════════════════════════ */
+.area-tabs-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px 10px;
+  padding: 0 4px;
+}
+.area-tabs {
+  display: flex;
+  gap: 6px;
+  padding-bottom: 4px;
+  min-width: max-content;
+}
+.area-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .18s;
+}
+.area-tab:hover { border-color: var(--primary); color: var(--text); }
+.area-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+.area-tab.locked {
+  opacity: .4;
+  cursor: default;
+  pointer-events: none;
+}
+.area-tab-prog {
+  font-size: 9px;
+  opacity: .75;
+  margin-left: 2px;
+}
+
+/* ── Info bar area ── */
+.area-info-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.area-info-name  { font-weight: 700; color: var(--primary); flex: 1; min-width: 120px; }
+.area-info-range { color: var(--muted); font-size: 11px; }
+.area-info-cost  { color: var(--accent); font-size: 11px; }
+.area-info-prog  { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+/* ── Missioni area ── */
+.world-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin: 10px 0 6px;
+}
+.area-quests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.area-quest-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+}
+.area-quest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.area-quest-title { font-size: 12px; font-weight: 600; color: var(--text); }
+.area-quest-prog  { font-size: 11px; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+.area-quest-desc  { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.area-quest-bar-bg {
+  background: var(--border);
+  border-radius: 3px;
+  height: 4px;
+  overflow: hidden;
+}
+.area-quest-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width .3s;
+}
+.area-all-done {
+  text-align: center;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 0 2px;
+}
+
+/* ── Pulsante spedizione ── */
+.btn-expedition {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin: 10px 0 4px;
+  transition: opacity .2s;
+}
+.btn-expedition:hover { opacity: .88; }
+.btn-expedition small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  opacity: .8;
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+
+/* ── Risorse PV/PA/Denari ── */
+.world-resources { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.world-res-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.world-res-row > span:first-child { width: 42px; flex-shrink: 0; }
+.world-res-bar-bg {
+  flex: 1;
+  background: var(--border);
+  border-radius: 4px;
+  height: 7px;
+  overflow: hidden;
+}
+.world-res-bar { height: 100%; border-radius: 4px; transition: width .4s; }
+.world-res-bar.pv { background: #ef4444; }
+.world-res-bar.pa { background: #3b82f6; }
+.world-res-row > span:last-child { width: 60px; text-align: right; font-family: 'JetBrains Mono', monospace; }
+.denari-row { justify-content: space-between; }
+.denari-row strong { color: #f59e0b; font-family: 'JetBrains Mono', monospace; }
+
+/* ── Log missioni ── */
+.mission-log { display: flex; flex-direction: column; gap: 4px; }
+.mission-log-row {
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: var(--card-bg);
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mission-log-row.win   { border-color: var(--accent); color: var(--text); }
+.mission-log-row.lose  { border-color: #ef4444; }
+.mission-log-row.treasure { border-color: #f59e0b; }
+.mission-log-row.relic { border-color: #8b5cf6; }
+.log-gold { color: #f59e0b; font-weight: 700; margin-left: auto; }
+
+/* ══════════════════════════════════════════
+   EMPIREO — pannello divinità
+══════════════════════════════════════════ */
+.empireo-panel {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2a1a00 100%);
+  border: 1px solid #5c3a00;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.empireo-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFD700;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.empireo-gods-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.empireo-god {
+  text-align: center;
+  font-size: 11px;
+  padding: 5px 3px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.empireo-god.alive {
+  background: rgba(255,215,0,.12);
+  border: 1px solid #5c3a00;
+  color: #FFD700;
+}
+.empireo-god.dead {
+  background: rgba(100,100,100,.15);
+  border: 1px solid #333;
+  color: #555;
+  text-decoration: line-through;
+}
+.empireo-note {
+  font-size: 10px;
+  color: #a07030;
+  text-align: center;
+}
