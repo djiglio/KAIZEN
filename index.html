@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>KAIZEN v6.1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Metamorphous&display=swap" rel="stylesheet"/>
+  <style>
+/* === base.css === */
+/* ============================================================
+   base.css — CSS variables, reset, body
+   KAIZEN v6.1
+   ============================================================ */
+
+:root {
+  --primary:      #4ecca3;
+  --bg:           #06060a;
+  --card:         rgba(18, 18, 24, 0.85);
+  --card-solid:   #121218;
+  --text:         #e2e8f0;
+  --danger:       #dc2626;
+  --gold:         #d4a017;
+  --gold-light:   #f5c842;
+  --aura-color:   #4ecca3;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.6);
+
+  --sat: env(safe-area-inset-top,    0px);
+  --sar: env(safe-area-inset-right,  0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left,   0px);
+
+  --header-h: 62px;
+  --page-pad: 15px;
+  --card-r:   14px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100dvh;
+  padding-bottom: calc(var(--sab) + 12px);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(78,204,163,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(212,160,23,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(153,27,27,0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgShift 20s ease-in-out infinite alternate;
+}
+
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
+
+
+/* === animations.css === */
+/* ============================================================
+   animations.css — keyframes, particelle, aure
+   KAIZEN v6.1
+   ============================================================ */
+
+@keyframes bgShift {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1;   }
+  100% { opacity: 0.6; }
+}
+
+@keyframes floatParticle {
+  0%   { opacity: 0; transform: translateY(100vh) scale(0); }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+}
+
+  to   { transform: rotate(360deg); }
+}
+
+  50%       { transform: scale(1.15); opacity: 0.08; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes combatLine {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes hpCritical {
+  from { opacity: 0.8; }
+  to   { opacity: 1; box-shadow: 0 0 14px rgba(239,68,68,0.7); }
+}
+
+@keyframes xpFill {
+  from { width: 0; }
+}
+
+/* ── Particelle ── */
+.ambient-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: floatParticle linear infinite;
+}
+
+
+
+/* === layout.css === */
+/* ============================================================
+   layout.css — header, sidebar, overlay, pages, avatar
+   KAIZEN v6.1
+   ============================================================ */
+
+/* ── Header ── */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: calc(var(--header-h) + var(--sat));
+  padding-top: var(--sat);
+  padding-left:  calc(var(--page-pad) + var(--sal));
+  padding-right: calc(var(--page-pad) + var(--sar));
+  background: rgba(6,6,10,0.92);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  border-bottom: 1px solid var(--glass-border);
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+.header-logo img {
+  height: 44px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.menu-btn {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.menu-btn:active {
+  background: rgba(212,160,23,0.1);
+  border-color: rgba(212,160,23,0.3);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed;
+  top: 0; right: -100%;
+  width: min(300px, 82vw);
+  height: 100%;
+  background: linear-gradient(180deg, #0c0c12 0%, #08080e 100%);
+  z-index: 2000;
+  transition: right 0.38s cubic-bezier(0.4,0,0.2,1), visibility 0.38s;
+  padding-top:    calc(var(--sat) + 24px);
+  padding-left:   18px;
+  padding-right:  18px;
+  padding-bottom: calc(var(--sab) + 24px);
+  overflow-y: auto;
+  visibility: hidden;
+  box-shadow: -20px 0 60px rgba(0,0,0,0.9);
+  border-left: 1px solid var(--glass-border);
+  overscroll-behavior: contain;
+}
+.sidebar.open { right: 0; visibility: visible; }
+.sidebar::-webkit-scrollbar       { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.3); border-radius: 2px; }
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  z-index: 1999;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.sidebar-title {
+  font-family: "Cinzel", serif;
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(212,160,23,0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 14px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  color: #94a3b8;
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.22s;
+  min-height: 44px;
+}
+.nav-btn:active {
+  background: rgba(212,160,23,0.08);
+  border-color: rgba(212,160,23,0.2);
+  color: var(--text);
+  transform: translateX(-3px);
+}
+.nav-btn.active {
+  background: linear-gradient(135deg, rgba(212,160,23,0.15), rgba(212,160,23,0.05));
+  color: var(--gold-light);
+  border-color: rgba(212,160,23,0.3);
+}
+
+/* ── Pages ── */
+.page {
+  display: none;
+  padding-top:    calc(var(--header-h) + var(--sat) + 14px);
+  padding-left:   calc(var(--page-pad) + var(--sal));
+  padding-right:  calc(var(--page-pad) + var(--sar));
+  padding-bottom: 40px;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.4s cubic-bezier(0.4,0,0.2,1);
+  overflow-x: hidden;
+}
+.page.active { display: block; }
+
+/* Sub-page (rank list) */
+#p-ranks {
+  display: none;
+  padding-top:    calc(var(--header-h) + var(--sat) + 14px);
+  padding-left:   calc(var(--page-pad) + var(--sal));
+  padding-right:  calc(var(--page-pad) + var(--sar));
+  padding-bottom: 40px;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.4s cubic-bezier(0.4,0,0.2,1);
+  overflow-x: hidden;
+}
+#p-ranks.active { display: block; }
+
+/* ── Section headers ── */
+.section-header {
+  font-family: "Cinzel", serif;
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 2px;
+}
+.section-header::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--glass-border), transparent);
+}
+
+/* ── Modal overlay generico ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 3500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-overlay.show { display: flex; animation: fadeIn 0.22s ease; }
+
+.modal-box {
+  background: linear-gradient(135deg, #0e0e18, #0a0a12);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 22px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-heavy);
+  position: relative;
+}
+.modal-title {
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.modal-close-btn {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  border-radius: 10px;
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  margin-top: 14px;
+}
+.modal-close-btn:active { background: rgba(255,255,255,0.07); }
+
+
+/* === components.css === */
+/* ============================================================
+   components.css — tutti i componenti UI
+   KAIZEN v6.1
+   ============================================================ */
+
+/* ══════════════════════════════════════
+   GENERIC CARD
+══════════════════════════════════════ */
+.card {
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--card-r);
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-heavy);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+}
+.card-title {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2.5px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, currentColor, transparent);
+  opacity: 0.15;
+}
+
+/* ══════════════════════════════════════
+   HABIT ROW v6
+══════════════════════════════════════ */
+.habit-row {
+  background: rgba(0,0,0,0.35);
+  padding: 13px 13px 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--primary);
+  transition: opacity 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.habit-row.done { opacity: 0.32; }
+
+.habit-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 7px;
+}
+.habit-label {
+  font-family: "Metamorphous", "Cinzel", serif;
+  font-weight: 400;
+  letter-spacing: 0.4px;
+  font-size: 13px;
+  color: #c8d0dc;
+}
+.habit-level-badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--gold);
+  background: rgba(212,160,23,0.1);
+  border: 1px solid rgba(212,160,23,0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+/* Tick/X completamento abitudine */
+.habit-result-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  margin-left: 7px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.habit-result-done {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 7px rgba(78,204,163,0.35);
+}
+.habit-result-failed {
+  background: transparent;
+  border: 2px solid var(--danger);
+  color: var(--danger);
+  box-shadow: 0 0 7px rgba(220,38,38,0.35);
+}
+
+/* XP bar under habit */
+.habit-xp-bar-wrap {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 9px;
+}
+.habit-xp-bar {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--primary), #38b090);
+  box-shadow: 0 0 6px rgba(78,204,163,0.4);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.habit-xp-text {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+  color: #64748b;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: 8px; }
+.btn-up, .btn-down {
+  cursor: pointer;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  min-height: 44px;
+  font-size: 16px;
+  transition: all 0.18s;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.btn-up {
+  background: rgba(78,204,163,0.06);
+  border: 1px solid rgba(78,204,163,0.35);
+  color: var(--primary);
+  box-shadow: none;
+}
+.btn-up:active:not(:disabled) { background: rgba(78,204,163,0.14); transform: translateY(1px); }
+.btn-up:disabled { background: rgba(78,204,163,0.04); border-color: rgba(78,204,163,0.15); color: rgba(78,204,163,0.3); cursor: default; }
+.btn-down {
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.28);
+  color: var(--danger);
+}
+.btn-down:active:not(:disabled) { background: rgba(220,38,38,0.16); transform: translateY(1px); }
+.btn-down:disabled { opacity: 0.28; cursor: default; }
+
+/* ══════════════════════════════════════
+   HERO STATS GRID
+══════════════════════════════════════ */
+.stats-grid {
+  display: block;
+  margin-bottom: 22px;
+}
+.stat-card {
+  background: rgba(0,0,0,0.4);
+  padding: 12px 10px;
+  border-radius: 11px;
+  border: 1px solid var(--glass-border);
+  position: relative;
+  overflow: hidden;
+}
+.stat-icon {
+  font-size: 16px;
+  margin-bottom: 4px;
+  display: block;
+}
+.stat-label {
+  font-size: 7px;
+  opacity: 0.45;
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-family: "JetBrains Mono", monospace;
+  display: block;
+  margin-bottom: 2px;
+}
+.stat-value {
+  font-family: "Cinzel", serif;
+  font-size: 18px;
+  font-weight: 900;
+  display: block;
+  margin-bottom: 1px;
+}
+.stat-desc {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 7px;
+  color: #64748b;
+  line-height: 1.3;
+}
+.stat-source {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 7px;
+  color: #374151;
+  margin-top: 3px;
+}
+
+/* ══════════════════════════════════════
+   CHARACTER NAME & RANK
+══════════════════════════════════════ */
+.char-name {
+  font-family: "Cinzel", serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 40px currentColor;
+}
+.char-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 3px;
+  margin-top: 6px;
+  padding: 5px 13px;
+  border: 1px solid rgba(212,160,23,0.2);
+  border-radius: 20px;
+  background: rgba(212,160,23,0.05);
+  cursor: pointer;
+  transition: all 0.22s;
+  min-height: 30px;
+}
+.char-rank-badge:active { background: rgba(212,160,23,0.12); border-color: rgba(212,160,23,0.5); transform: scale(1.04); }
+.char-rank-badge::after { content: " ▸"; font-size: 8px; opacity: 0.6; }
+
+/* ══════════════════════════════════════
+   RANK LIST
+══════════════════════════════════════ */
+.rank-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 18px;
+  transition: color 0.2s;
+  min-height: 36px;
+}
+.rank-back-btn:active { color: var(--gold); }
+.rank-list { display: flex; flex-direction: column; gap: 4px; }
+.rank-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+.rank-entry.rank-past { background: rgba(78,204,163,0.04); border-color: rgba(78,204,163,0.1); }
+.rank-entry.rank-past .rank-title-text  { color: #3a7a65; }
+.rank-entry.rank-past .rank-badge-label { color: #2d6655; border-color: rgba(78,204,163,0.15); background: rgba(78,204,163,0.05); }
+.rank-entry.rank-current {
+  background: linear-gradient(135deg, rgba(212,160,23,0.12), rgba(212,160,23,0.04));
+  border-color: rgba(212,160,23,0.35);
+  box-shadow: 0 0 24px rgba(212,160,23,0.08);
+}
+.rank-entry.rank-current::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--gold), var(--gold-light));
+  border-radius: 0 2px 2px 0;
+}
+.rank-entry.rank-current .rank-title-text { color: var(--gold-light); font-size: 13px; text-shadow: 0 0 20px rgba(245,200,66,0.3); }
+.rank-entry.rank-current .rank-badge-label { color: var(--gold); background: rgba(212,160,23,0.1); border-color: rgba(212,160,23,0.3); }
+.rank-entry.rank-future { background: rgba(100,120,200,0.03); border-color: rgba(100,120,200,0.08); }
+.rank-entry.rank-future .rank-title-text  { color: #2e3a5a; }
+.rank-entry.rank-future .rank-badge-label { color: #252f48; border-color: rgba(100,120,200,0.12); background: rgba(100,120,200,0.04); }
+.rank-title-text { font-family: "Cinzel", serif; font-weight: 700; font-size: 12px; letter-spacing: 2px; flex: 1; }
+.rank-badge-label { font-family: "JetBrains Mono", monospace; font-size: 7px; font-weight: 800; letter-spacing: 2px; padding: 2px 7px; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; flex-shrink: 0; }
+.rank-current-indicator { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.7; animation: pulse 2s ease-in-out infinite; }
+.rank-section-divider { text-align: center; font-family: "JetBrains Mono", monospace; font-size: 8px; color: #1e2535; letter-spacing: 3px; padding: 5px 0; }
+
+/* ══════════════════════════════════════
+   QUEST / MISSION CARDS
+══════════════════════════════════════ */
+.quest-card {
+  background: var(--card);
+  border-radius: var(--card-r);
+  padding: 15px;
+  margin-bottom: 12px;
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--gold);
+  position: relative;
+  overflow: hidden;
+}
+.quest-card.completed { border-left-color: var(--primary); opacity: 0.68; }
+.quest-card.completed::after {
+  content: "✦ COMPLETATA";
+  position: absolute;
+  top: 10px; right: 10px;
+  font-size: 7px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 2px;
+  font-family: "JetBrains Mono", monospace;
+  background: rgba(78,204,163,0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.quest-card.world-quest { border-left-color: #8b5cf6; }
+.quest-card.world-quest.completed { border-left-color: var(--primary); }
+
+.quest-type-badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.quest-type-badge.evo  { background: rgba(212,160,23,0.12); color: var(--gold); }
+.quest-type-badge.world { background: rgba(139,92,246,0.12); color: #a78bfa; }
+
+.quest-title { font-family: "Cinzel", serif; font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+.quest-desc  { font-size: 10px; opacity: 0.5; margin-bottom: 11px; }
+.quest-progress-text { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #64748b; text-align: right; margin-bottom: 4px; }
+.q-progress-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.04); border-radius: 3px; overflow: hidden; }
+.q-progress-bar { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 8px currentColor; }
+
+/* ══════════════════════════════════════
+   BACHECA — 3 TAB
+══════════════════════════════════════ */
+.tab-bar {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 18px;
+  background: rgba(0,0,0,0.3);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+}
+.tab-btn {
+  flex: 1;
+  padding: 9px 4px;
+  border: none;
+  border-radius: 7px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.22s;
+  background: transparent;
+  color: #64748b;
+  min-height: 36px;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, rgba(212,160,23,0.2), rgba(212,160,23,0.07));
+  color: var(--gold-light);
+  box-shadow: 0 0 14px rgba(212,160,23,0.1);
+}
+.tab-panel        { display: none; }
+.tab-panel.active { display: block; animation: fadeIn 0.28s ease; }
+
+/* Trophy grid */
+.trophy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.trophy-card {
+  background: var(--card);
+  padding: 15px 11px;
+  border-radius: 13px;
+  text-align: center;
+  border: 1px solid var(--glass-border);
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.trophy-card:active { transform: scale(0.97); }
+.trophy-card.locked { opacity: 0.2; filter: grayscale(1); cursor: default; }
+.trophy-icon  { font-size: 24px; margin-bottom: 7px; display: block; }
+.trophy-name  { font-family: "Cinzel", serif; font-size: 9px; font-weight: 700; color: var(--gold); letter-spacing: 0.8px; margin-bottom: 4px; line-height: 1.3; }
+.trophy-count { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #64748b; font-weight: 700; }
+
+/* Bestiario / Tesori grid */
+.discovery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.discovery-card {
+  background: rgba(0,0,0,0.4);
+  padding: 12px 9px;
+  border-radius: 11px;
+  text-align: center;
+  border: 1px solid var(--glass-border);
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  cursor: pointer;
+}
+.discovery-card.locked  { opacity: 0.26; filter: grayscale(1); cursor: default; }
+.discovery-card.unlocked { border-color: rgba(212,160,23,0.12); }
+.discovery-card.unlocked:active { transform: scale(0.97); }
+.discovery-icon { font-size: 20px; margin-bottom: 5px; display: block; }
+.discovery-name {
+  font-family: "Cinzel", serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-bottom: 3px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.discovery-sub  { font-family: "JetBrains Mono", monospace; font-size: 7px; color: #64748b; }
+.discovery-tier {
+  position: absolute;
+  top: 5px; right: 5px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 7px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+.tier-1 { background: rgba(80,140,80,.15);  color: #4a9060; }
+.tier-2 { background: rgba(80,120,180,.15); color: #4a70b0; }
+.tier-3 { background: rgba(150,80,180,.15); color: #9060b0; }
+.tier-4 { background: rgba(200,120,40,.15); color: #c07830; }
+.tier-5 { background: rgba(200,40,40,.15);  color: #c03030; }
+
+/* Bacheca stats row */
+.bacheca-stats { display: flex; gap: 7px; margin-bottom: 16px; }
+.bacheca-stat { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 10px; padding: 11px 6px; text-align: center; min-width: 0; }
+.bacheca-stat-num { font-family: "Cinzel", serif; font-size: 18px; font-weight: 900; color: var(--gold); }
+.bacheca-stat-lbl { font-family: "JetBrains Mono", monospace; font-size: 7px; color: #64748b; letter-spacing: 1px; margin-top: 2px; }
+
+/* ══════════════════════════════════════
+   LOG & COUNTDOWN
+══════════════════════════════════════ */
+.log-entry {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: #4b5563;
+  line-height: 1.5;
+}
+.log-date { color: var(--gold); font-weight: 800; display: block; margin-bottom: 2px; font-size: 8px; letter-spacing: 0.5px; }
+.countdown-container {
+  text-align: center;
+  margin-top: 22px;
+  padding: 16px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  color: #374151;
+  letter-spacing: 2px;
+  border-top: 1px solid rgba(255,255,255,0.03);
+}
+.countdown-timer { display: block; font-size: 18px; font-weight: 700; color: #4b5563; margin-top: 6px; letter-spacing: 4px; }
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-solid);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 5000;
+  transition: bottom 0.38s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+  white-space: nowrap;
+  letter-spacing: 0.4px;
+  max-width: calc(100vw - 30px);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toast.show { bottom: calc(var(--sab) + 22px); }
+
+/* ══════════════════════════════════════
+   MONDO ESTERNO
+══════════════════════════════════════ */
+.world-status {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-r);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.world-status-row { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+.world-status-row:last-child { margin-bottom: 0; }
+.ws-icon  { font-size: 15px; flex-shrink: 0; width: 20px; text-align: center; }
+.ws-label { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #64748b; letter-spacing: 1px; min-width: 54px; flex-shrink: 0; }
+.ws-value { font-family: "Cinzel", serif; font-size: 15px; font-weight: 700; color: var(--gold); }
+.ws-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; min-width: 0; }
+.ws-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; box-shadow: 0 0 8px currentColor; }
+.ws-bar-hp      { background: linear-gradient(90deg, #dc2626, #ef4444); }
+.ws-bar-hp.high { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.ws-bar-hp.mid  { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.ws-bar-pa      { background: linear-gradient(90deg, #6d28d9, #8b5cf6); }
+.ws-regen-txt   { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #374151; letter-spacing: 0.8px; }
+
+/* Relic badge */
+.relic-badge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(212,160,23,0.06);
+  border: 1px solid rgba(212,160,23,0.2);
+  border-radius: 10px;
+  padding: 10px 11px;
+  margin-top: 10px;
+}
+.relic-badge.empty { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05); }
+.relic-icon  { font-size: 18px; flex-shrink: 0; }
+.relic-name  { font-family: "Cinzel", serif; font-size: 11px; color: var(--gold-light); }
+.relic-bonus { font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--primary); margin-top: 2px; }
+.relic-empty { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #374151; letter-spacing: 1px; }
+
+/* Mission button */
+.mission-btn-wrap { margin: 14px 0; }
+.mission-btn {
+  width: 100%;
+  padding: 17px 16px;
+  border-radius: var(--card-r);
+  border: none;
+  cursor: pointer;
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  transition: all 0.28s;
+  position: relative;
+  overflow: hidden;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.mission-btn.ready {
+  background: linear-gradient(135deg, rgba(212,160,23,0.22), rgba(212,160,23,0.08));
+  border: 1px solid rgba(212,160,23,0.4);
+  color: var(--gold-light);
+  box-shadow: 0 0 28px rgba(212,160,23,0.1);
+}
+.mission-btn.ready:active { transform: translateY(1px); box-shadow: 0 0 16px rgba(212,160,23,0.08); }
+.mission-btn.disabled-hp    { background: rgba(220,38,38,0.05);  border: 1px solid rgba(220,38,38,0.18);  color: #64748b; cursor: default; }
+.mission-btn.disabled-gold  { background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.07); color: #374151; cursor: default; }
+.mission-btn.disabled-pa    { background: rgba(109,40,217,0.05); border: 1px solid rgba(109,40,217,0.18); color: #64748b; cursor: default; }
+.mission-btn-sub { font-family: "JetBrains Mono", monospace; font-size: 9px; opacity: 0.55; letter-spacing: 0.8px; }
+
+/* Mission log */
+.world-log-title { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #374151; letter-spacing: 2px; margin-bottom: 9px; text-transform: uppercase; }
+.mission-log { display: flex; flex-direction: column; gap: 6px; }
+.mission-log-entry {
+  background: rgba(0,0,0,0.35);
+  border-radius: 9px;
+  padding: 9px 11px;
+  border-left: 3px solid transparent;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+}
+.mission-log-entry.win      { border-left-color: var(--primary); }
+.mission-log-entry.treasure { border-left-color: var(--gold); }
+.mission-log-entry.relic    { border-left-color: #b8a0d0; }
+.mission-log-entry.lose     { border-left-color: var(--danger); }
+.mission-log-entry.empty    { border-left-color: #374151; }
+.mission-log-entry.equip    { border-left-color: #8faacc; }
+.mission-log-entry.fled     { border-left-color: #f59e0b; }
+.mle-title { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+.mle-title.win      { color: var(--primary); }
+.mle-title.treasure { color: var(--gold); }
+.mle-title.relic    { color: #b8a0d0; }
+.mle-title.lose     { color: var(--danger); }
+.mle-title.empty    { color: #4b5563; }
+.mle-title.equip    { color: #8faacc; }
+.mle-title.fled     { color: #f59e0b; }
+.mle-sub { color: #374151; font-size: 8px; }
+
+/* ══════════════════════════════════════
+   COMBAT OVERLAY
+══════════════════════════════════════ */
+.combat-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.96);
+  z-index: 3000;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top:    calc(var(--sat) + 18px);
+  padding-left:   calc(var(--page-pad) + var(--sal));
+  padding-right:  calc(var(--page-pad) + var(--sar));
+  padding-bottom: calc(var(--sab) + 18px);
+}
+.combat-overlay.show { display: flex; animation: fadeIn 0.25s ease; }
+.combat-inner { max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1; }
+
+.combat-header { font-family: "Cinzel", serif; font-size: 15px; font-weight: 900; color: var(--gold); letter-spacing: 3px; text-align: center; margin-bottom: 3px; }
+.combat-sub    { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #64748b; text-align: center; letter-spacing: 2px; margin-bottom: 14px; }
+
+/* Pre-combat: flee panel */
+.flee-panel {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.flee-title { font-family: "Cinzel", serif; font-size: 12px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; }
+.flee-text  { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5; }
+.flee-btns  { display: flex; gap: 8px; }
+.flee-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 9px;
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  border: none;
+}
+.flee-btn.fight {
+  background: linear-gradient(135deg, rgba(220,38,38,0.25), rgba(220,38,38,0.1));
+  border: 1px solid rgba(220,38,38,0.4);
+  color: #fca5a5;
+}
+.flee-btn.flee {
+  background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.07));
+  border: 1px solid rgba(245,158,11,0.35);
+  color: var(--gold-light);
+}
+.flee-btn:active { transform: scale(0.97); }
+
+/* HP bars */
+.combat-hp-panel { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
+.combat-hp-block { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.combat-hp-label { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font-family: "Cinzel", serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+.combat-hp-nums  { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #94a3b8; font-weight: 700; flex-shrink: 0; transition: color 0.2s; }
+.combat-hp-bar-bg { width: 100%; height: 10px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+.combat-hp-bar { height: 100%; border-radius: 5px; transition: width 0.45s cubic-bezier(0.4,0,0.2,1); }
+.hero-hp-bar   { background: linear-gradient(90deg, #16a34a, #22c55e); box-shadow: 0 0 8px rgba(34,197,94,0.4); }
+.hero-hp-bar.mid { background: linear-gradient(90deg, #d97706, #f59e0b); box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+.hero-hp-bar.low { background: linear-gradient(90deg, #dc2626, #ef4444); box-shadow: 0 0 8px rgba(239,68,68,0.5); animation: hpCritical 0.8s ease-in-out infinite alternate; }
+.enemy-hp-bar { background: linear-gradient(90deg, #991b1b, #dc2626); box-shadow: 0 0 8px rgba(220,38,38,0.35); }
+.combat-hp-stats { font-family: "JetBrains Mono", monospace; font-size: 7px; color: #4b5563; letter-spacing: 0.5px; }
+.combat-hp-vs    { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; color: #374151; padding-top: 4px; gap: 2px; }
+.combat-ini-odds { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #4b5563; letter-spacing: 1px; }
+
+/* Enemy equip */
+.combat-enemy-equip { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #8faacc; background: rgba(143,170,204,0.06); border: 1px solid rgba(143,170,204,0.15); border-radius: 7px; padding: 6px 10px; margin-bottom: 10px; line-height: 1.5; }
+
+/* Combat log */
+.combat-log { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; flex: 1; }
+.combat-line { font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; line-height: 1.45; animation: combatLine 0.25s ease; }
+.combat-line.hero    { background: rgba(78,204,163,.06);  border-left: 2px solid var(--primary); color: #a0e8d0; }
+.combat-line.enemy   { background: rgba(220,38,38,.06);   border-left: 2px solid var(--danger);  color: #f0a0a0; }
+.combat-line.system  { background: rgba(212,160,23,.04);  border-left: 2px solid var(--gold);    color: #c8a050; font-style: italic; }
+.combat-line.dodge   { background: rgba(99,102,241,.06);  border-left: 2px solid #6366f1; color: #a5b4fc; }
+.combat-line.critical { background: rgba(245,158,11,.08); border-left: 2px solid #f59e0b; color: #fcd34d; }
+.combat-line.result-win  { background: rgba(78,204,163,.1);  border: 1px solid rgba(78,204,163,.3);  color: var(--primary); text-align: center; font-size: 11px; padding: 10px; }
+.combat-line.result-lose { background: rgba(220,38,38,.1);   border: 1px solid rgba(220,38,38,.3);   color: var(--danger);  text-align: center; font-size: 11px; padding: 10px; }
+.combat-line.result-fled { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); color: #fcd34d;        text-align: center; font-size: 11px; padding: 10px; }
+
+.combat-close-btn {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  border-radius: 10px;
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 50px;
+  margin-top: 6px;
+}
+.combat-close-btn:active { background: rgba(255,255,255,0.08); }
+
+/* Inline badges */
+.combat-double { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 7px; font-weight: 800; letter-spacing: 1px; color: var(--gold); background: rgba(212,160,23,0.12); border: 1px solid rgba(212,160,23,0.25); border-radius: 4px; padding: 1px 5px; margin-right: 4px; vertical-align: middle; }
+.combat-def    { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 7px; font-weight: 800; letter-spacing: 0.5px; color: #0e7490; background: rgba(14,116,144,0.1); border: 1px solid rgba(14,116,144,0.2); border-radius: 4px; padding: 1px 5px; margin-left: 3px; vertical-align: middle; }
+.combat-crit   { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 7px; font-weight: 800; color: #f59e0b; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25); border-radius: 4px; padding: 1px 5px; margin-right: 4px; vertical-align: middle; }
+.combat-hp-inline { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #4b5563; margin-left: 4px; opacity: 0.8; }
+
+/* ══════════════════════════════════════
+   NEGOZIO
+══════════════════════════════════════ */
+.shop-balance { display: flex; align-items: center; gap: 10px; background: rgba(212,160,23,.07); border: 1px solid rgba(212,160,23,.2); border-radius: 12px; padding: 13px 15px; margin-bottom: 20px; }
+.shop-balance-icon { font-size: 20px; }
+.shop-balance-val  { font-family: "Cinzel", serif; font-size: 22px; font-weight: 900; color: var(--gold); }
+.shop-balance-lbl  { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #64748b; letter-spacing: 1px; }
+.shop-discount-badge { font-family: "JetBrains Mono", monospace; font-size: 8px; color: var(--primary); background: rgba(78,204,163,0.1); border: 1px solid rgba(78,204,163,0.2); padding: 2px 7px; border-radius: 4px; margin-left: auto; }
+
+.shop-section-title { font-family: "Cinzel", serif; font-weight: 700; font-size: 13px; letter-spacing: 2px; color: var(--gold); margin-bottom: 4px; margin-top: 4px; }
+.shop-section-note  { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #374151; letter-spacing: 1px; margin-bottom: 12px; }
+.shop-section-label { font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 800; letter-spacing: 2px; color: #64748b; text-transform: uppercase; margin: 14px 0 7px; padding-left: 2px; }
+
+.shop-item { display: flex; align-items: center; gap: 11px; background: rgba(0,0,0,.35); border: 1px solid var(--glass-border); border-radius: 11px; padding: 12px 13px; margin-bottom: 8px; transition: border-color .2s; }
+.shop-item-active { border-color: rgba(78,204,163,.25); background: rgba(78,204,163,.04); }
+.shop-item-icon   { font-size: 22px; flex-shrink: 0; width: 28px; text-align: center; }
+.shop-item-body   { flex: 1; min-width: 0; }
+.shop-item-name   { font-family: "Cinzel", serif; font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shop-item-desc   { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #64748b; line-height: 1.4; }
+
+.shop-buy-btn {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(212,160,23,.2), rgba(212,160,23,.08));
+  border: 1px solid rgba(212,160,23,.35);
+  color: var(--gold-light);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s;
+  min-height: 40px;
+  white-space: nowrap;
+  letter-spacing: .5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.shop-buy-btn:active:not(.disabled) { transform: scale(.96); background: rgba(212,160,23,.28); }
+.shop-buy-btn.disabled { background: rgba(255,255,255,.02); border-color: rgba(255,255,255,.06); color: #374151; cursor: default; }
+.shop-original-price { font-size: 8px; text-decoration: line-through; opacity: 0.5; }
+
+/* ══════════════════════════════════════
+   EQUIPAGGIAMENTO (profilo eroe)
+══════════════════════════════════════ */
+.equip-totals { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.equip-total-box { flex: 1; min-width: 60px; background: rgba(0,0,0,.4); border: 1px solid var(--glass-border); border-radius: 10px; padding: 11px 8px; text-align: center; }
+.equip-total-val { font-family: "Cinzel", serif; font-size: 18px; font-weight: 900; }
+.equip-total-lbl { font-family: "JetBrains Mono", monospace; font-size: 7px; color: #64748b; letter-spacing: 1px; margin-top: 2px; }
+
+.equip-slots { display: flex; flex-direction: column; gap: 7px; margin-bottom: 20px; }
+.equip-slot { border-radius: 11px; padding: 11px 13px; border: 1px solid var(--glass-border); transition: border-color .2s; }
+.equip-slot-empty  { background: rgba(0,0,0,.25); border-style: dashed; border-color: rgba(255,255,255,.06); }
+.equip-slot-filled { background: rgba(0,0,0,.4); border-color: rgba(212,160,23,.15); }
+.equip-slot-header { display: flex; align-items: center; gap: 10px; }
+.equip-slot-icon { font-size: 20px; flex-shrink: 0; width: 24px; text-align: center; }
+.equip-slot-info { flex: 1; min-width: 0; }
+.equip-slot-name  { font-family: "Cinzel", serif; font-size: 11px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.equip-slot-bonus { font-family: "JetBrains Mono", monospace; font-size: 9px; margin-top: 1px; }
+.equip-slot-desc  { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #4b5563; margin-top: 5px; padding-left: 34px; }
+.equip-remove-btn {
+  background: rgba(220,38,38,.08);
+  border: 1px solid rgba(220,38,38,.2);
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 800;
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s;
+}
+.equip-remove-btn:active { background: rgba(220,38,38,.18); }
+
+/* ── Zaino ── */
+.zaino-title { font-family: "Cinzel", serif; font-weight: 700; font-size: 13px; letter-spacing: 2px; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.zaino-list  { display: flex; flex-direction: column; gap: 7px; }
+.zaino-empty { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #1e2535; text-align: center; padding: 20px; letter-spacing: 2px; }
+.zaino-item  { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,.35); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 12px; }
+.zaino-item-icon { font-size: 18px; flex-shrink: 0; width: 22px; text-align: center; }
+.zaino-item-body { flex: 1; min-width: 0; }
+.zaino-item-name { font-family: "Cinzel", serif; font-size: 10px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zaino-item-sub  { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #64748b; margin-top: 1px; }
+.zaino-item-actions { display: flex; gap: 5px; flex-shrink: 0; }
+.zaino-equip-btn { background: linear-gradient(135deg, rgba(78,204,163,.18), rgba(78,204,163,.07)); border: 1px solid rgba(78,204,163,.3); color: var(--primary); font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 800; padding: 6px 10px; border-radius: 6px; cursor: pointer; letter-spacing: .5px; min-height: 32px; transition: all .2s; }
+.zaino-equip-btn:active { background: rgba(78,204,163,.28); }
+.zaino-discard-btn { background: rgba(220,38,38,.06); border: 1px solid rgba(220,38,38,.18); color: var(--danger); font-size: 13px; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+.zaino-discard-btn:active { background: rgba(220,38,38,.16); }
+
+/* ══════════════════════════════════════
+   IMPOSTAZIONI
+══════════════════════════════════════ */
+.settings-section { margin-bottom: 24px; }
+.settings-section-title { font-family: "Cinzel", serif; font-size: 12px; font-weight: 700; color: var(--gold); letter-spacing: 2px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(212,160,23,0.15); display: flex; align-items: center; gap: 8px; }
+.settings-btn {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 48px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.settings-btn:active { background: rgba(212,160,23,0.08); border-color: rgba(212,160,23,0.25); }
+
+.app-info-box { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; }
+.app-info-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.app-info-row:last-child { border-bottom: none; }
+.app-info-key { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #64748b; letter-spacing: 1px; }
+.app-info-val { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--gold); font-weight: 700; }
+
+/* ══════════════════════════════════════
+   LOG PAGE
+══════════════════════════════════════ */
+.log-filter-bar { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+.log-filter-btn { flex-shrink: 0; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: #64748b; font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; white-space: nowrap; min-height: 32px; }
+.log-filter-btn.active { background: rgba(212,160,23,0.12); color: var(--gold); border-color: rgba(212,160,23,0.3); }
+.log-list { display: flex; flex-direction: column; gap: 5px; }
+.log-item { background: rgba(0,0,0,0.35); border-radius: 9px; padding: 10px 12px; border-left: 2px solid #374151; }
+.log-item.cat-habit   { border-left-color: var(--primary); }
+.log-item.cat-combat  { border-left-color: var(--danger); }
+.log-item.cat-world   { border-left-color: var(--gold); }
+.log-item.cat-shop    { border-left-color: #8faacc; }
+.log-item.cat-quest   { border-left-color: #a78bfa; }
+.log-item.cat-system  { border-left-color: #374151; }
+.log-item-time { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #64748b; margin-bottom: 2px; }
+.log-item-msg  { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #94a3b8; line-height: 1.4; }
+
+/* ══════════════════════════════════════
+   DETAIL MODALS (bestiario, tesori, trofei)
+══════════════════════════════════════ */
+.detail-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+.detail-stat-box { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 9px; padding: 10px 8px; text-align: center; }
+.detail-stat-val { font-family: "Cinzel", serif; font-size: 16px; font-weight: 900; }
+.detail-stat-lbl { font-family: "JetBrains Mono", monospace; font-size: 7px; color: #64748b; letter-spacing: 1px; margin-top: 2px; }
+
+.enemy-portrait { font-size: 48px; text-align: center; padding: 16px 0 8px; }
+.enemy-trait-badge { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: rgba(212,160,23,0.08); border: 1px solid rgba(212,160,23,0.2); color: var(--gold); letter-spacing: 1px; margin-bottom: 12px; }
+
+  
+/* === world areas — nuove classi === */
+
+/* ══════════════════════════════════════════
+   AREA TABS — selettore zone mondo esterno
+══════════════════════════════════════════ */
+.area-tabs-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px 10px;
+  padding: 0 4px;
+}
+.area-tabs {
+  display: flex;
+  gap: 6px;
+  padding-bottom: 4px;
+  min-width: max-content;
+}
+.area-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .18s;
+}
+.area-tab:hover { border-color: var(--primary); color: var(--text); }
+.area-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+.area-tab.locked {
+  opacity: .4;
+  cursor: default;
+  pointer-events: none;
+}
+.area-tab-prog {
+  font-size: 9px;
+  opacity: .75;
+  margin-left: 2px;
+}
+
+/* ── Info bar area ── */
+.area-info-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.area-info-name  { font-weight: 700; color: var(--primary); flex: 1; min-width: 120px; }
+.area-info-range { color: var(--muted); font-size: 11px; }
+.area-info-cost  { color: var(--accent); font-size: 11px; }
+.area-info-prog  { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+/* ── Missioni area ── */
+.world-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin: 10px 0 6px;
+}
+.area-quests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.area-quest-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+}
+.area-quest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.area-quest-title { font-size: 12px; font-weight: 600; color: var(--text); }
+.area-quest-prog  { font-size: 11px; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+.area-quest-desc  { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.area-quest-bar-bg {
+  background: var(--border);
+  border-radius: 3px;
+  height: 4px;
+  overflow: hidden;
+}
+.area-quest-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width .3s;
+}
+.area-all-done {
+  text-align: center;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 0 2px;
+}
+
+/* ── Pulsante spedizione ── */
+.btn-expedition {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin: 10px 0 4px;
+  transition: opacity .2s;
+}
+.btn-expedition:hover { opacity: .88; }
+.btn-expedition small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  opacity: .8;
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+
+/* ── Risorse PV/PA/Denari ── */
+.world-resources { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.world-res-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.world-res-row > span:first-child { width: 42px; flex-shrink: 0; }
+.world-res-bar-bg {
+  flex: 1;
+  background: var(--border);
+  border-radius: 4px;
+  height: 7px;
+  overflow: hidden;
+}
+.world-res-bar { height: 100%; border-radius: 4px; transition: width .4s; }
+.world-res-bar.pv { background: #ef4444; }
+.world-res-bar.pa { background: #3b82f6; }
+.world-res-row > span:last-child { width: 60px; text-align: right; font-family: 'JetBrains Mono', monospace; }
+.denari-row { justify-content: space-between; }
+.denari-row strong { color: #f59e0b; font-family: 'JetBrains Mono', monospace; }
+
+/* ── Log missioni ── */
+.mission-log { display: flex; flex-direction: column; gap: 4px; }
+.mission-log-row {
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: var(--card-bg);
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mission-log-row.win   { border-color: var(--accent); color: var(--text); }
+.mission-log-row.lose  { border-color: #ef4444; }
+.mission-log-row.treasure { border-color: #f59e0b; }
+.mission-log-row.relic { border-color: #8b5cf6; }
+.log-gold { color: #f59e0b; font-weight: 700; margin-left: auto; }
+
+/* ══════════════════════════════════════════
+   EMPIREO — pannello divinità
+══════════════════════════════════════════ */
+.empireo-panel {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2a1a00 100%);
+  border: 1px solid #5c3a00;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.empireo-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFD700;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.empireo-gods-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.empireo-god {
+  text-align: center;
+  font-size: 11px;
+  padding: 5px 3px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.empireo-god.alive {
+  background: rgba(255,215,0,.12);
+  border: 1px solid #5c3a00;
+  color: #FFD700;
+}
+.empireo-god.dead {
+  background: rgba(100,100,100,.15);
+  border: 1px solid #333;
+  color: #555;
+  text-decoration: line-through;
+}
+.empireo-note {
+  font-size: 10px;
+  color: #a07030;
+  text-align: center;
+}
+
+</style>
+</head>
+<body>
+
+<div class="ambient-particles" id="particles"></div>
+<div class="toast" id="toast"></div>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-logo"><img src="img/logo.png" alt="KAIZEN"></div>
+  <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
+</div>
+
+<!-- ══ SIDEBAR ══ -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="window.__kaizen.toggleSidebar()"></div>
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-title">✦ GRIMOIRE</div>
+  <button class="nav-btn active"  onclick="window.__kaizen.showPage('p-habits',this)">Abitudini</button>
+  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-hero',this)">Eroe</button>
+  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-mission',this)">Missioni Settimanali</button>
+  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-world',this)">Mondo Esterno</button>
+  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-shop',this)">Negozio</button>
+  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-trophy',this)">Bacheca</button>
+  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-settings',this)">Impostazioni</button>
+</div>
+
+<!-- ══ PAGE: ABITUDINI ══ -->
+<div id="p-habits" class="page active">
+  <div class="section-header">Abitudini</div>
+  <div id="habit-list"></div>
+</div>
+
+<!-- ══ PAGE: EROE ══ -->
+<div id="p-hero" class="page">
+  <div class="section-header">Eroe</div>
+
+  <!-- Avatar eroe: immagine PNG rango corrente -->
+  <div style="display:flex;justify-content:center;margin-top:8px">
+    <div id="avatar-viewport-inner"></div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px">
+    <div id="char-spec" class="char-name">MENDICANTE</div>
+    <div id="char-rank" class="char-rank-badge"
+         onclick="window.__kaizen.showRankPage()">RANGO 0</div>
+  </div>
+
+  <div class="section-header" style="margin-top:28px;font-size:13px">Statistiche</div>
+  <div id="stats-grid" class="stats-grid"></div>
+
+  <div class="section-header" style="font-size:13px">Equipaggiamento</div>
+  <div id="equipment-section"></div>
+</div>
+
+<!-- ══ SUB-PAGE: ALBO DEI RANGHI ══ -->
+<div id="p-ranks">
+  <button class="rank-back-btn"
+          onclick="window.__kaizen.showPage('p-hero',document.querySelectorAll('.nav-btn')[1])">
+    ◂ TORNA ALL'EROE
+  </button>
+  <div class="section-header" style="font-size:14px">Albo dei Ranghi</div>
+  <div class="rank-list" id="rank-list"></div>
+</div>
+
+<!-- ══ PAGE: MISSIONI SETTIMANALI ══ -->
+<div id="p-mission" class="page">
+  <div class="section-header">Missioni Settimanali</div>
+  <div id="quest-list"></div>
+</div>
+
+<!-- ══ PAGE: MONDO ESTERNO ══ -->
+<div id="p-world" class="page">
+  <div class="section-header">Mondo Esterno</div>
+  <div id="world-status-panel"></div>
+  <div class="mission-btn-wrap" id="mission-btn-wrap"></div>
+  <div id="world-log-section"></div>
+</div>
+
+<!-- ══ PAGE: NEGOZIO ══ -->
+<div id="p-shop" class="page">
+  <div class="section-header">Negozio</div>
+  <div id="shop-content"></div>
+</div>
+
+<!-- ══ PAGE: BACHECA ══ -->
+<div id="p-trophy" class="page">
+  <div class="section-header">Bacheca</div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="window.__kaizen.switchTab('tab-trophies',this)">Trofei</button>
+    <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-bestiary',this)">Bestiario</button>
+    <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-treasures',this)">Tesori</button>
+  </div>
+  <div id="tab-trophies" class="tab-panel active">
+    <div id="trophy-list" class="trophy-grid"></div>
+  </div>
+  <div id="tab-bestiary" class="tab-panel">
+    <div id="bestiary-stats" class="bacheca-stats"></div>
+    <div id="bestiary-list"  class="discovery-grid"></div>
+  </div>
+  <div id="tab-treasures" class="tab-panel">
+    <div id="treasure-stats" class="bacheca-stats"></div>
+    <div id="treasure-list"  class="discovery-grid"></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: IMPOSTAZIONI ══ -->
+<div id="p-settings" class="page">
+  <div class="section-header">Impostazioni</div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Backup &amp; Ripristino</div>
+    <button class="settings-btn" onclick="window.__kaizen.exportData()">
+      &#8679; <span>ESPORTA SIGILLO</span>
+    </button>
+    <button class="settings-btn" onclick="window.__kaizen.importData()">
+      &#8681; <span>IMPORTA SIGILLO</span>
+    </button>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#374151;
+                padding:8px 4px;line-height:1.6">
+      Il Sigillo è una stringa codificata che contiene tutto il tuo progresso.
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Cronologia (ultime 48h)</div>
+    <div id="settings-log-content"
+         style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4b5563;
+                line-height:1.8;max-height:300px;overflow-y:auto;padding:4px 0">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Informazioni</div>
+    <div class="app-info-box">
+      <div class="app-info-row">
+        <span class="app-info-key">VERSIONE</span>
+        <span class="app-info-val">6.1</span>
+      </div>
+      <div class="app-info-row">
+        <span class="app-info-key">RILASCIO</span>
+        <span class="app-info-val">08/06/2026</span>
+      </div>
+      <div class="app-info-row">
+        <span class="app-info-key">SVILUPPATORE</span>
+        <span class="app-info-val">DJIGLIO</span>
+      </div>
+      <div class="app-info-row">
+        <span class="app-info-key">ENGINE</span>
+        <span class="app-info-val">KAIZEN RPG</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COMBAT OVERLAY ══ -->
+<div class="combat-overlay" id="combat-overlay">
+  <div class="combat-inner" id="combat-inner"></div>
+</div>
+
+<!-- ══ DETAIL MODAL ══ -->
+<div class="modal-overlay" id="detail-modal"
+     onclick="if(event.target===this)window.__kaizen.closeDetailModal()">
+  <div class="modal-box" id="detail-modal-box"></div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
