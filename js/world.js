@@ -6,7 +6,7 @@
 
 import { store, save } from "./state.js";
 import { BESTIARY, TREASURES, RELICS,
-         EQUIPMENT_POOL,
+         EQUIPMENT_POOL, AREA_LOOT_POOL,
          WORLD_AREAS, EMPIREO_GODS, EMPIREO_LOOT,
          getEnemiesForArea } from "./data.js";
 import { showToast, formatDate } from "./ui.js";
@@ -615,6 +615,25 @@ function executeFlee(enemy, fleeChance) {
  if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
  save();
  appendCloseBtn();
+}
+
+
+/* ── Pick area-specific loot (from AREA_LOOT_POOL) ── */
+function pickAreaLoot(areaId, fortunaStat) {
+  const pool = AREA_LOOT_POOL[areaId];
+  if (!pool || !pool.length) return null;
+  // 30% base chance + fortuna bonus, independent of equipment loot
+  const chance = Math.min(0.55, 0.15 + fortunaStat * 0.004);
+  if (Math.random() > chance) return null;
+  // Weight by rarity (lower rarity = more common)
+  const weights = pool.map(item => 6 - item.rarity); // rarity 1→5, weight 5→1
+  const total = weights.reduce((a,b) => a+b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
 }
 
 /* ── Combattimento ── */

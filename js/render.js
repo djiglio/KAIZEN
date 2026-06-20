@@ -9,7 +9,7 @@ import { HABITS, STAT_DEFS, rankTitles,
          EQUIPMENT_POOL,
          QUEST_POOL_EVO, QUEST_POOL_WORLD,
          titleMetalColors,
-         WORLD_AREAS, AREA_QUESTS } from "./data.js";
+         WORLD_AREAS, AREA_QUESTS , EMPIREO_GODS } from './data.js';
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel } from "./engine.js";
@@ -296,7 +296,10 @@ export function renderWorld() {
     ${empireoPanel}
 
     <!-- Missioni area in corso -->
-    <div class="world-section-title">MISSIONI AREA</div>
+    <div class="world-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>MISSIONI AREA</span>
+      <button class="btn-all-quests" onclick="window.__kaizen.showAllAreaQuests()">VEDI TUTTE</button>
+    </div>
     <div class="area-quests-list">${questsHTML}</div>
     ${doneQ < poolQ.length ? "" : `<div class="area-all-done">✅ Area completata!</div>`}
 
@@ -384,18 +387,18 @@ function renderBacheca(state, w) {
  bestStatEl.innerHTML = `
  <div class="bacheca-stat"><div class="bacheca-stat-num">${seenIds.size}</div><div class="bacheca-stat-lbl">INCONTRATI</div></div>
  <div class="bacheca-stat"><div class="bacheca-stat-num">${nKills}</div><div class="bacheca-stat-lbl">UCCISI</div></div>
- <div class="bacheca-stat"><div class="bacheca-stat-num">${BESTIARY.length - seenIds.size}</div><div class="bacheca-stat-lbl">NASCOSTI</div></div>`;
+ <div class="bacheca-stat"><div class="bacheca-stat-num">${BESTIARY.length - seenIds.size}</div><div class="bacheca-stat-lbl">NASCOSTI</div></div>
+    <div class="bacheca-stat"><div class="bacheca-stat-num">${(w.worldProgress?.deiSconfitti||[]).length}/10</div><div class="bacheca-stat-lbl">DEI</div></div>`;
  }
 
  const bestListEl = document.getElementById("bestiary-list");
  if (bestListEl) {
- bestListEl.innerHTML = BESTIARY.map(e => {
- const seen = seenIds.has(e.id);
- const kills = w.nemiciAbbattuti?.[e.id] || 0;
- const incontri = Math.max(w.nemiciIncontrati?.[e.id]||0, kills);
- const tier = e.lvl>=121?"tier-5":e.lvl>=81?"tier-4":e.lvl>=41?"tier-3":e.lvl>=11?"tier-2":"tier-1";
+ const normalCards = BESTIARY.map(e => {
+    const seen = seenIds.has(e.id);
+    const kills = w.nemiciAbbattuti?.[e.id] || 0;
+    const incontri = Math.max(w.nemiciIncontrati?.[e.id]||0, kills);
+    const tier = e.lvl>=121?"tier-5":e.lvl>=81?"tier-4":e.lvl>=41?"tier-3":e.lvl>=11?"tier-2":"tier-1";
 
- // Immagine: mostrata se scoperto, altrimenti punto interrogativo
   const portrait = seen
   ? enemyImgCard(e, 56)
   : `<div style="width:56px;height:56px;margin:0 auto 4px;display:flex;
@@ -414,6 +417,45 @@ function renderBacheca(state, w) {
   <div class="discovery-sub" style="text-align:center">${seen?`${incontri} inc · ${kills} ucc`:"—"}</div>
   </div>`;
  }).join("");
+
+  // ── Sezione Dei dell'Empireo ──
+  const wpSafe2 = w.worldProgress || {};
+  const deiSconfitti = wpSafe2.deiSconfitti || [];
+  const empireoUnlocked = (wpSafe2.areeSbloccate||[]).includes("empireo");
+
+  const godDivider = `<div style="grid-column:1/-1;padding:16px 4px 8px;
+    display:flex;align-items:center;gap:10px;">
+    <div style="height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(212,160,23,0.25))"></div>
+    <div style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      color:var(--gold);letter-spacing:3px;white-space:nowrap;text-transform:uppercase;">Dei dell'Empireo</div>
+    <div style="height:1px;flex:1;background:linear-gradient(90deg,rgba(212,160,23,0.25),transparent)"></div>
+  </div>`;
+
+  const godCards = EMPIREO_GODS.map(g => {
+    const sconfitto = deiSconfitti.includes(g.id);
+    const portrait2 = empireoUnlocked
+      ? enemyImgCard(g, 56)
+      : `<div style="width:56px;height:56px;margin:0 auto 4px;display:flex;
+          align-items:center;justify-content:center;
+          font-size:24px;color:#1e2535">?</div>`;
+    const nameStr = empireoUnlocked ? g.name : "???";
+    const subStr  = empireoUnlocked ? (sconfitto ? "✦ sconfitto" : "mai affrontato") : "—";
+    const borderStyle = sconfitto ? "border-color:rgba(78,204,163,0.2);" : empireoUnlocked ? "border-color:rgba(212,160,23,0.22);" : "";
+    const opStyle = sconfitto ? "opacity:.4;filter:grayscale(0.6);" : "";
+    return `<div class="discovery-card ${empireoUnlocked?"unlocked":"locked"}"
+      onclick="${sconfitto?`window.__kaizen.showBestiaryDetail('${g.id}')`:``}"
+      style="display:flex;flex-direction:column;align-items:center;padding:8px 6px 8px;${borderStyle}${opStyle}">
+      <div style="font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+                  color:${empireoUnlocked?"var(--gold-light)":"#1e2535"};text-align:center;
+                  width:100%;margin-bottom:5px;line-height:1.3;min-height:22px">${nameStr}</div>
+      ${portrait2}
+      <span class="discovery-tier tier-5" style="margin-top:5px;margin-bottom:2px;
+        background:rgba(212,160,23,0.1);color:var(--gold);">L${g.lvl}</span>
+      <div class="discovery-sub" style="text-align:center;color:${sconfitto?"var(--primary)":"#374151"}">${subStr}</div>
+    </div>`;
+  }).join("");
+
+  bestListEl.innerHTML = normalCards + godDivider + godCards;
   resolveImgs();
  }
 
@@ -469,7 +511,7 @@ function renderLog(state) {
  MODALS DI DETTAGLIO
 ══════════════════════════════════════════════════════════ */
 export function showBestiaryDetail(enemyId) {
- const enemy = BESTIARY.find(e => e.id === enemyId);
+ const enemy = BESTIARY.find(e => e.id === enemyId) || EMPIREO_GODS.find(e => e.id === enemyId);
  if (!enemy) return;
  const w = store.state.world;
  const kills = w.nemiciAbbattuti?.[enemyId] || 0;
@@ -596,3 +638,82 @@ export function showTrophyDetail(questId) {
 export function closeDetailModal() {
  document.getElementById("detail-modal")?.classList.remove("show");
 }
+
+/* ══════════════════════════════════════════════════════════
+ showAllAreaQuests — Modal con tutte le missioni dell'area
+══════════════════════════════════════════════════════════ */
+export function showAllAreaQuests() {
+  const w   = store.state.world;
+  const wp  = w.worldProgress || {};
+  const areaId  = wp.areaCorrente || "foresta";
+  const areaCfg = WORLD_AREAS.find(a => a.id === areaId) || WORLD_AREAS[0];
+  const poolQ   = AREA_QUESTS[areaId] || [];
+  const tracker = wp.missioniPerArea?.[areaId] || {};
+
+  const doneCount = poolQ.filter(q => tracker[q.id]?.completed).length;
+  const totalPct  = poolQ.length > 0 ? Math.round(doneCount / poolQ.length * 100) : 0;
+
+  const rows = poolQ.map(q => {
+    const t    = tracker[q.id] || { progress: 0, completed: false };
+    const pct  = q.target > 0 ? Math.min(100, Math.round(t.progress / q.target * 100)) : 0;
+    const done = t.completed;
+    return `<div class="aq-row${done ? " aq-done" : ""}">
+      <div class="aq-row-header">
+        <span class="aq-num">${q.n}</span>
+        <span class="aq-title">${q.title}</span>
+        <span class="aq-prog">${done ? "✦" : `${t.progress}/${q.target}`}</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4b5563;line-height:1.4;margin-bottom:5px;">${q.desc}</div>
+      <div class="aq-bar-bg"><div class="aq-bar" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+
+  const html = `
+    <div id="all-quests-overlay" onclick="if(event.target===this)this.remove()"
+      style="position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9999;backdrop-filter:blur(4px);
+        display:flex;align-items:flex-end;justify-content:center;padding:0;">
+      <div style="background:var(--card-solid);border:1px solid rgba(212,160,23,0.2);
+        border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:88vh;
+        display:flex;flex-direction:column;overflow:hidden;
+        box-shadow:0 -20px 60px rgba(0,0,0,0.7);">
+
+        <!-- Header -->
+        <div style="padding:16px 18px 12px;border-bottom:1px solid var(--glass-border);flex-shrink:0;
+          background:linear-gradient(180deg,rgba(212,160,23,0.06),transparent);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-family:'Cinzel',serif;font-size:15px;font-weight:900;
+                color:var(--gold-light);letter-spacing:1.5px;">${areaCfg.icon} ${areaCfg.name}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;
+                color:#64748b;letter-spacing:1px;margin-top:3px;">
+                MISSIONI — ${doneCount}/${poolQ.length} COMPLETATE
+              </div>
+            </div>
+            <button onclick="document.getElementById('all-quests-overlay').remove()"
+              style="background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+                color:#64748b;font-size:14px;cursor:pointer;padding:0;
+                width:32px;height:32px;border-radius:8px;display:flex;
+                align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+          </div>
+          <!-- Progress bar totale -->
+          <div style="margin-top:10px;">
+            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${totalPct}%;
+                background:linear-gradient(90deg,var(--gold),var(--gold-light));
+                box-shadow:0 0 8px rgba(212,160,23,0.35);border-radius:3px;
+                transition:width .5s cubic-bezier(0.4,0,0.2,1);"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;
+              color:var(--gold);text-align:right;margin-top:4px;letter-spacing:0.5px;">${totalPct}%</div>
+          </div>
+        </div>
+
+        <!-- Lista missioni -->
+        <div style="overflow-y:auto;padding:14px 16px 24px;flex:1;">${rows}</div>
+      </div>
+    </div>`;
+
+  document.getElementById("all-quests-overlay")?.remove();
+  document.body.insertAdjacentHTML("beforeend", html);
+}
+

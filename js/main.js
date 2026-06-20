@@ -11,7 +11,7 @@ import { render, renderWorld,
  showBestiaryDetail,
  showTreasureDetail,
  showTrophyDetail,
- closeDetailModal } from "./render.js";
+ closeDetailModal , showAllAreaQuests} from "./render.js";
 import { updateTimer, createParticles } from "./ui.js";
 import { runMission, regenPV, regenPA } from "./world.js";
 import { buyPotion, buyEquipment,
@@ -77,6 +77,7 @@ window.__kaizen = {
  useRelic,
  // Bacheca modals
  showBestiaryDetail,
+ showAllAreaQuests,
  showTreasureDetail,
  showTrophyDetail,
  closeDetailModal,
