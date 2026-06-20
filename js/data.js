@@ -572,13 +572,30 @@ export const POTIONS = [
  Es: e001 → img/enemies/e001.png
 ══════════════════════════════════════════════════════════ */
 function npc(id, lvl, name, icon, human, forza, velocita, destrezza, critico, costituzione, trait, tags) {
- return {
- id, lvl, name, icon,
- human: !!human,
- forza, velocita, destrezza, critico, costituzione,
- trait, tags: tags || [],
- img: `img/enemies/${id}.png`,
- };
+  const L = Math.max(1, lvl);
+  const orig_base_forza = 8 + (L - 1) * 0.64;
+  const orig_base_cost = 30 + (L - 1) * 2.6;
+  const orig_base_vel = 6 + (L - 1) * 0.48;
+
+  const new_base_forza = L * 3 + 5;
+  const new_base_cost = L * 12 + 50;
+  const new_base_vel = L * 3 + 5;
+
+  const final_forza = Math.round(new_base_forza * (forza / orig_base_forza));
+  const final_cost = Math.round(new_base_cost * (costituzione / orig_base_cost));
+  const final_vel = Math.round(new_base_vel * (velocita / orig_base_vel));
+
+  return {
+    id, lvl, name, icon,
+    human: !!human,
+    forza: final_forza,
+    velocita: final_vel,
+    destrezza,
+    critico,
+    costituzione: final_cost,
+    trait, tags: tags || [],
+    img: `img/enemies/${id}.png`,
+  };
 }
 
 export const BESTIARY = [
@@ -858,13 +875,32 @@ export function getEnemiesForArea(areaId) {
   return BESTIARY.filter(e => e.lvl >= area.lvlMin && e.lvl <= area.lvlMax);
 }
 
-/* ── Divinità dell'Empireo (10 nemici unici, non rispawnano) ── */
 function god(id, lvl, name, hp, atk, mag, def, trait) {
+  const L = Math.max(1, lvl);
+  const orig_base_forza = 8 + (L - 1) * 0.64;
+  const orig_base_cost = 30 + (L - 1) * 2.6;
+  const orig_base_vel = 6 + (L - 1) * 0.48;
+
+  const new_base_forza = L * 3 + 5;
+  const new_base_cost = L * 12 + 50;
+  const new_base_vel = L * 3 + 5;
+
+  const raw_forza = atk;
+  const raw_vel = Math.floor(atk * 0.75);
+  const raw_cost = hp;
+
+  const final_forza = Math.round(new_base_forza * (raw_forza / orig_base_forza));
+  const final_cost = Math.round(new_base_cost * (raw_cost / orig_base_cost));
+  const final_vel = Math.round(new_base_vel * (raw_vel / orig_base_vel));
+
   return {
     id, lvl, name, icon: "",
     human: false,
-    forza: atk, velocita: Math.floor(atk * 0.75), destrezza: def,
-    critico: Math.floor(mag * 0.4), costituzione: hp,
+    forza: final_forza,
+    velocita: final_vel,
+    destrezza: def,
+    critico: Math.floor(mag * 0.4),
+    costituzione: final_cost,
     trait, tags: ["divinita"],
     img: `img/enemies/${id}.png`,
     isGod: true,
