@@ -235,20 +235,9 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
  <div class="combat-sub">LVL ${enemy.lvl} · ${enemy.trait || ""}</div>
  ${equipStr}
 
- <!-- Ritratti affiancati: eroe a sinistra, nemico a destra -->
- <div style="display:flex;justify-content:center;align-items:center;
- gap:20px;padding:14px 0 10px">
- <div style="text-align:center">
- ${heroAvatarSmall(heroTitle, 80)}
- <div style="font-family:'JetBrains Mono',monospace;font-size:8px;
- color:var(--primary);letter-spacing:1px;margin-top:4px">EROE</div>
- </div>
- <div style="font-family:'Cinzel',serif;font-size:18px;color:#374151">VS</div>
- <div style="text-align:center">
- ${enemyImgHTML(enemy, 80)}
- <div style="font-family:'JetBrains Mono',monospace;font-size:8px;
- color:var(--danger);letter-spacing:1px;margin-top:4px">NEMICO</div>
- </div>
+ <!-- Immagine nemico -->
+ <div style="display:flex;justify-content:center;padding:14px 0 10px;width:100%">
+ ${enemyImgHTML(enemy, '100%', 'auto')}
  </div>
 
  <!-- Statistiche nemico -->

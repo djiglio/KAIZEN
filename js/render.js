@@ -94,7 +94,7 @@ function renderHero(state, heroS, rank, title) {
  // Avatar: SVG procedurale + immagine rango sovrapposta
  const avViewport = document.getElementById("avatar-viewport-inner");
  if (avViewport) {
-    avViewport.innerHTML = heroAvatarHTML(title);
+    avViewport.innerHTML = heroAvatarHTML(title, '100%', 'auto');
     resolveImgs(avViewport);
   }
 
@@ -523,22 +523,15 @@ export function showBestiaryDetail(enemyId) {
  box.innerHTML = `
  <div class="modal-title">Bestiario</div>
 
- <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">
- <!-- Immagine nemico -->
- <div style="flex-shrink:0">
- ${enemyImgHTML(enemy, 96)}
- </div>
- <!-- Nome e trait -->
- <div style="flex:1;min-width:0">
- <div style="font-family:'Cinzel',serif;font-size:15px;font-weight:700;
- margin-bottom:4px;line-height:1.3">${enemy.name}</div>
- <span class="enemy-trait-badge">Lv ${enemy.lvl} · ${enemy.trait}</span>
- <div style="font-family:'JetBrains Mono',monospace;font-size:8px;
- color:#64748b;margin-top:6px">
- ${enemy.human ? "UMANOIDE" : "CREATURA"}<br>
- ${enemy.tags.join(", ")||"—"}
- </div>
- </div>
+ <div style="text-align:center;margin-bottom:14px">
+   <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;margin-bottom:4px;line-height:1.3">${enemy.name}</div>
+   <span class="enemy-trait-badge">Lv ${enemy.lvl}</span>
+   <div style="margin-top:14px;display:flex;justify-content:center;width:100%">
+     ${enemyImgHTML(enemy, '100%', 'auto')}
+   </div>
+   <div style="font-family:'Inter',sans-serif;font-size:12px;color:#a0a0b0;margin-top:14px;font-style:italic;">
+     ${enemy.trait}
+   </div>
  </div>
 
  <div class="detail-stat-grid">

@@ -34,8 +34,8 @@ async function fetchFile(path) {
 
 async function injectInto(el) {
   const path = el.dataset.ki;
-  const w = parseInt(el.dataset.kiw) || 56;
-  const h = parseInt(el.dataset.kih) || 56;
+  const wStr = el.dataset.kiw?.includes('%') || el.dataset.kiw === 'auto' ? el.dataset.kiw : (parseInt(el.dataset.kiw) || 56) + 'px';
+  const hStr = el.dataset.kih?.includes('%') || el.dataset.kih === 'auto' ? el.dataset.kih : (parseInt(el.dataset.kih) || 56) + 'px';
   if (!path || el.dataset.kiDone === '1') return;
   el.dataset.kiDone = '1';
 
@@ -45,16 +45,16 @@ async function injectInto(el) {
   if (f.type === 'png') {
     const img = document.createElement('img');
     img.src = f.url;
-    img.width = w; img.height = h;
-    img.style.cssText = `width:${w}px;height:${h}px;object-fit:contain;display:block;`;
+    img.style.cssText = `width:${wStr};height:${hStr};object-fit:contain;display:block;`;
     el.innerHTML = ''; el.appendChild(img);
   } else {
     const tmp = document.createElement('div');
     tmp.innerHTML = f.text;
     const svg = tmp.querySelector('svg');
     if (!svg) { const ph = el.querySelector('.img-ph'); if (ph) ph.style.display='flex'; return; }
-    svg.setAttribute('width', w); svg.setAttribute('height', h);
-    svg.style.cssText = `display:block;width:${w}px;height:${h}px;`;
+    if (!wStr.includes('%') && wStr !== 'auto') svg.setAttribute('width', parseInt(wStr));
+    if (!hStr.includes('%') && hStr !== 'auto') svg.setAttribute('height', parseInt(hStr));
+    svg.style.cssText = `display:block;width:${wStr};height:${hStr};`;
     el.innerHTML = ''; el.appendChild(svg);
   }
 }
@@ -65,8 +65,10 @@ export function resolveImgs(root = document) {
 }
 
 function wrap(path, w, h, phHTML, extra = '') {
+  const wStr = typeof w === 'string' && (w.includes('%') || w === 'auto') ? w : w + 'px';
+  const hStr = typeof h === 'string' && (h.includes('%') || h === 'auto') ? h : h + 'px';
   return `<div data-ki="${path}" data-kiw="${w}" data-kih="${h}"
-    style="width:${w}px;height:${h}px;position:relative;flex-shrink:0;${extra}">
+    style="width:${wStr};height:${hStr};position:relative;flex-shrink:0;${extra}">
     <div class="img-ph" style="display:none;position:absolute;inset:0;
          flex-direction:column;align-items:center;justify-content:center;">${phHTML}</div>
   </div>`;
@@ -89,10 +91,11 @@ export function heroAvatarSmall(title, px = 64) {
   const ph = `<span style="font-size:${Math.round(px*0.3)}px;color:rgba(78,204,163,0.4)">?</span>`;
   return wrap(rankImgPath(title), px, px, ph);
 }
-export function enemyImgHTML(enemy, px = 120) {
-  const ph = `<span style="font-size:${Math.round(px*0.35)}px;color:rgba(220,38,38,0.4)">${enemy.icon||'?'}</span>
+export function enemyImgHTML(enemy, w = 120, h = w) {
+  const pxStr = typeof w === 'number' ? w : parseInt(w) || 120;
+  const ph = `<span style="font-size:${Math.round(pxStr*0.35)}px;color:rgba(220,38,38,0.4)">${enemy.icon||'?'}</span>
     <span style="font-family:'JetBrains Mono',monospace;font-size:7px;color:rgba(220,38,38,0.35)">${enemy.id}</span>`;
-  return wrap(enemyImgPath(enemy), px, px, ph);
+  return wrap(enemyImgPath(enemy), w, h, ph);
 }
 export function enemyImgSmall(enemy, px = 48) {
   const ph = `<span style="font-size:${Math.round(px*0.4)}px;color:rgba(220,38,38,0.5)">${enemy.icon||'?'}</span>`;
