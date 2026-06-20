@@ -16,7 +16,7 @@ import { getHeroStats, addHistory,
          updateAreaQuests,
          getHeroRank, getRankTitle } from "./engine.js";
 import { enemyImgHTML, enemyImgSmall,
- heroAvatarSmall, resolveImgs } from "./img.js";
+ heroAvatarSmall, heroAvatarHTML, resolveImgs } from "./img.js";
 
 /* ── Utility ── */
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -306,12 +306,16 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip) {
  ${enemyEquipStr}
 
  <!-- Miniature dei combattenti affiancate con VS -->
-  <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:15px 0;">
-    ${heroAvatarSmall(heroTitle, 64)}
-    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-      <span style="font-size:18px; font-weight:bold; color:var(--text-dim); font-family:'Cinzel', serif;">VS</span>
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin:15px 0; width:100%;">
+    <div style="flex:1;">
+      ${heroAvatarHTML(heroTitle, "100%", "auto")}
     </div>
-    ${enemyImgSmall(enemy, 64)}
+    <div style="flex-shrink:0; text-align:center; width:40px;">
+      <span style="font-size:24px; font-weight:bold; color:var(--text-dim); font-family:'Cinzel', serif;">VS</span>
+    </div>
+    <div style="flex:1;">
+      ${enemyImgHTML(enemy, "100%", "auto")}
+    </div>
   </div>
 
   <!-- Pannello HP con avatar eroe e immagine nemico -->
