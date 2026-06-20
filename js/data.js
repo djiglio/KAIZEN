@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.8";
+export const APP_VERSION = "6.9";
 export const APP_RELEASE = "20/06/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -210,12 +210,9 @@ export const RANK_IMG_MAP = {}; // popolato dopo rankTitles
  bonus: { stat, value } — stat in ["attacco","difesa","velocita","critico"]
 ══════════════════════════════════════════════════════════ */
 function genEquip(slot, icon, tier, idx, name, bonusStat, bonusVal, desc, fonte) {
- // Prezzi bilanciati per tier (1-10):
- // Tier 1: 15-25 | Tier 2: 40-60 | Tier 3: 90-130
- // Tier 4: 180-240| Tier 5: 320-400 | Tier 6: 520-640
- // Tier 7: 780-960| Tier 8: 1100-1350| Tier 9: 1600-1950| Tier 10: 2400-2900
- const priceBase = [0, 20, 50, 110, 210, 360, 580, 870, 1220, 1750, 2650];
- const priceVar = [0, 6, 12, 24, 36, 50, 70, 96, 130, 200, 250];
+ // Prezzi bilanciati (moltiplicati circa 2.5x - 3x)
+ const priceBase = [0, 50, 125, 280, 520, 900, 1450, 2150, 3050, 4350, 6600];
+ const priceVar = [0, 15, 30, 60, 90, 125, 175, 240, 325, 500, 625];
  const prezzo = priceBase[tier] + (idx - 1) * priceVar[tier];
  return { id:`${slot[0]}${tier}${idx}`, slot, icon, tier, name, bonus:{[bonusStat]:bonusVal}, desc, prezzo, fonte: fonte||["negozio"] };
 }
@@ -535,7 +532,7 @@ export const TREASURES = [
  {id:"t082",name:"Occhio del Leviatano", icon:"",tier:5,minV:70,maxV:86},
  {id:"t083",name:"Prima Pagina del Tempo", icon:"",tier:5,minV:78,maxV:94},
  {id:"t084",name:"Sangue di Titano", icon:"",tier:5,minV:68,maxV:84},
- {id:"t085",name:"Chiave senza Serratura", icon:"",tier:5,minV:60,maxV:76},
+ {id:"t085",name:"Chiave senza Serratura", icon:"",tier:5,minV:76,maxV:92},
  {id:"t086",name:"Mantello dell'Asceso", icon:"",tier:5,minV:76,maxV:92},
  {id:"t087",name:"Stella Caduta", icon:"",tier:5,minV:64,maxV:80},
  {id:"t088",name:"Sigillo dell'Oblio", icon:"",tier:5,minV:72,maxV:88},
@@ -557,13 +554,13 @@ export const TREASURES = [
  POZIONI
 ══════════════════════════════════════════════════════════ */
 export const POTIONS = [
- {id:"pot01",name:"Pozione Curativa Piccola",icon:"",prezzo:8, desc:"Ripristina 30 PV istantaneamente", effect:{tipo:"heal",val:30}},
- {id:"pot02",name:"Pozione Curativa Media", icon:"",prezzo:18, desc:"Ripristina 70 PV istantaneamente", effect:{tipo:"heal",val:70}},
- {id:"pot03",name:"Pozione Curativa Grande", icon:"",prezzo:30, desc:"Ripristina 100 PV istantaneamente", effect:{tipo:"heal",val:100}},
- {id:"pot04",name:"Pozione Revitalizzante", icon:"",prezzo:90, desc:"Ripristina 300 PV istantaneamente", effect:{tipo:"heal",val:300}},
- {id:"pot05",name:"Pozione Rigenerante", icon:"",prezzo:22, desc:"Raddoppia regen PV per 24 ore", effect:{tipo:"regen_boost",durata:86400000}},
- {id:"pot06",name:"Pozione dei Punti Azione Piccola",icon:"",prezzo:25, desc:"Ripristina 3 Punti Azione", effect:{tipo:"restore_pa",val:3}},
- {id:"pot07",name:"Pozione dei Punti Azione Media",icon:"",prezzo:70, desc:"Ripristina 10 Punti Azione", effect:{tipo:"restore_pa",val:10}},
+ {id:"pot01",name:"Pozione Curativa Piccola",icon:"",prezzo:25, desc:"Ripristina 30 PV istantaneamente", effect:{tipo:"heal",val:30}},
+ {id:"pot02",name:"Pozione Curativa Media", icon:"",prezzo:60, desc:"Ripristina 70 PV istantaneamente", effect:{tipo:"heal",val:70}},
+ {id:"pot03",name:"Pozione Curativa Grande", icon:"",prezzo:100, desc:"Ripristina 100 PV istantaneamente", effect:{tipo:"heal",val:100}},
+ {id:"pot04",name:"Pozione Revitalizzante", icon:"",prezzo:280, desc:"Ripristina 300 PV istantaneamente", effect:{tipo:"heal",val:300}},
+ {id:"pot05",name:"Pozione Rigenerante", icon:"",prezzo:70, desc:"Raddoppia regen PV per 24 ore", effect:{tipo:"regen_boost",durata:86400000}},
+ {id:"pot06",name:"Pozione dei Punti Azione Piccola",icon:"",prezzo:85, desc:"Ripristina 3 Punti Azione", effect:{tipo:"restore_pa",val:3}},
+ {id:"pot07",name:"Pozione dei Punti Azione Media",icon:"",prezzo:220, desc:"Ripristina 10 Punti Azione", effect:{tipo:"restore_pa",val:10}},
 ];
 
 /* ══════════════════════════════════════════════════════════
