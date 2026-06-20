@@ -305,13 +305,21 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip) {
  <div class="combat-sub">LVL ${enemy.lvl} · ${enemy.trait||""}</div>
  ${enemyEquipStr}
 
- <!-- Pannello HP con avatar eroe e immagine nemico -->
- <div class="combat-hp-panel">
+ <!-- Miniature dei combattenti affiancate con VS -->
+  <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:15px 0;">
+    ${heroAvatarSmall(heroTitle, 64)}
+    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+      <span style="font-size:18px; font-weight:bold; color:var(--text-dim); font-family:'Cinzel', serif;">VS</span>
+    </div>
+    ${enemyImgSmall(enemy, 64)}
+  </div>
+
+  <!-- Pannello HP con avatar eroe e immagine nemico -->
+  <div class="combat-hp-panel">
 
  <!-- EROE: avatar + barra HP -->
  <div class="combat-hp-block">
  <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
- ${heroAvatarSmall(heroTitle, 36)}
  <div style="flex:1;min-width:0">
  <div class="combat-hp-label">
  <span style="color:var(--primary)">EROE</span>
@@ -328,14 +336,12 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip) {
 
  <!-- VS centrale -->
  <div class="combat-hp-vs">
- <span style="font-size:12px">VS</span>
- <span class="combat-ini-odds">${result.pHero}%</span>
+ <span class="combat-ini-odds" style="font-size:10px; margin-top:14px">${result.pHero}% INI</span>
  </div>
 
  <!-- NEMICO: immagine + barra HP -->
  <div class="combat-hp-block">
  <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-direction:row-reverse">
- ${enemyImgSmall(enemy, 36)}
  <div style="flex:1;min-width:0;text-align:right">
  <div class="combat-hp-label" style="flex-direction:row-reverse">
  <span style="color:var(--danger);font-size:9px">${enemy.name}</span>
