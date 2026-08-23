@@ -128,12 +128,13 @@
   background: linear-gradient(135deg, rgba(212,160,23,0.15), rgba(212,160,23,0.05));
   color: var(--gold-light);
   border-color: rgba(212,160,23,0.3);
+  box-shadow: 0 0 16px rgba(212,160,23,0.15);
 }
 
 /* ── Pages ── */
 .page {
   display: none;
-  padding-top:    calc(var(--header-h) + var(--sat) + 14px);
+  padding-top:    calc(var(--header-h) + var(--sat) + 16px);
   padding-left:   calc(var(--page-pad) + var(--sal));
   padding-right:  calc(var(--page-pad) + var(--sar));
   padding-bottom: 40px;
@@ -141,7 +142,7 @@
   margin: 0 auto;
   position: relative;
   z-index: 1;
-  animation: fadeIn 0.4s cubic-bezier(0.4,0,0.2,1);
+  animation: fadeIn 0.4s cubic-bezier(0.2,0.8,0.2,1);
   overflow-x: hidden;
 }
 .page.active { display: block; }
@@ -149,7 +150,7 @@
 /* Sub-page (rank list) */
 #p-ranks {
   display: none;
-  padding-top:    calc(var(--header-h) + var(--sat) + 14px);
+  padding-top:    calc(var(--header-h) + var(--sat) + 16px);
   padding-left:   calc(var(--page-pad) + var(--sal));
   padding-right:  calc(var(--page-pad) + var(--sar));
   padding-bottom: 40px;
@@ -157,7 +158,7 @@
   margin: 0 auto;
   position: relative;
   z-index: 1;
-  animation: fadeIn 0.4s cubic-bezier(0.4,0,0.2,1);
+  animation: fadeIn 0.4s cubic-bezier(0.2,0.8,0.2,1);
   overflow-x: hidden;
 }
 #p-ranks.active { display: block; }
