@@ -352,6 +352,7 @@ export function renderEquipment() {
  const bStr = bStat === "attacco" ? `+${bVal} ATK` :
  bStat === "difesa" ? `+${bVal} DEF` :
  bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
+ const refund = Math.floor(piece.prezzo * 0.30);
  return `<div class="zaino-item">
  <span class="zaino-item-icon">${piece.icon}</span>
  <div class="zaino-item-body">
@@ -360,12 +361,13 @@ export function renderEquipment() {
  </div>
  <div class="zaino-item-actions">
  <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem('${zItem.id}')">Equip</button>
- <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">🗑</button>
+ <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${refund}</button>
  </div>
  </div>`;
  } else if (zItem.type === "relic") {
  const rel = RELICS.find(r => r.id === zItem.id);
  if (!rel) return "";
+ const refund = 5;
  return `<div class="zaino-item">
  <span class="zaino-item-icon">${rel.icon}</span>
  <div class="zaino-item-body">
