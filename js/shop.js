@@ -328,7 +328,22 @@ export function renderEquipment() {
  if (!zItems.length) {
  zainoHTML = `<div class="zaino-empty">LO ZAINO È VUOTO</div>`;
  } else {
- zainoHTML = zItems.map((zItem, idx) => {
+ // Raggruppa gli oggetti
+ const groupedItems = {};
+ zItems.forEach(z => {
+ const key = z.type + "_" + z.id;
+ if (!groupedItems[key]) {
+ groupedItems[key] = { ...z, count: 1 };
+ } else {
+ groupedItems[key].count++;
+ }
+ });
+
+ zainoHTML = Object.values(groupedItems).map((zItem) => {
+ const countBadge = zItem.count > 1 
+ ? `<span style="display:inline-block; margin-left:6px; background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.3); color:var(--gold); padding:2px 6px; border-radius:4px; font-size:9px; font-family:'JetBrains Mono',monospace;">x${zItem.count}</span>` 
+ : '';
+
  if (zItem.type === "equip") {
  const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
  if (!piece) return "";
@@ -340,12 +355,12 @@ export function renderEquipment() {
  return `<div class="zaino-item">
  <span class="zaino-item-icon">${piece.icon}</span>
  <div class="zaino-item-body">
- <div class="zaino-item-name">${piece.name}</div>
+ <div class="zaino-item-name">${piece.name}${countBadge}</div>
  <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
  </div>
  <div class="zaino-item-actions">
  <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem('${zItem.id}')">Equip</button>
- <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')"></button>
+ <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">🗑</button>
  </div>
  </div>`;
  } else if (zItem.type === "relic") {
@@ -354,7 +369,7 @@ export function renderEquipment() {
  return `<div class="zaino-item">
  <span class="zaino-item-icon">${rel.icon}</span>
  <div class="zaino-item-body">
- <div class="zaino-item-name">${rel.name}</div>
+ <div class="zaino-item-name">${rel.name}${countBadge}</div>
  <div class="zaino-item-sub">${rel.desc}</div>
  </div>
  <div class="zaino-item-actions">
