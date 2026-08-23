@@ -590,7 +590,7 @@
 .mission-btn-sub { font-family: "JetBrains Mono", monospace; font-size: 9px; opacity: 0.55; letter-spacing: 0.8px; }
 
 /* Mission log */
-.world-log-title { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #374151; letter-spacing: 2px; margin-bottom: 9px; text-transform: uppercase; }
+.world-log-title { font-family: "Cinzel", serif; font-size: 11px; font-weight: 800; color: var(--text); letter-spacing: 2px; margin-bottom: 9px; }
 .mission-log { display: flex; flex-direction: column; gap: 6px; }
 .mission-log-entry {
   background: rgba(0,0,0,0.35);
@@ -638,7 +638,7 @@
 .combat-inner { max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1; }
 
 .combat-header { font-family: "Cinzel", serif; font-size: 15px; font-weight: 900; color: var(--gold); letter-spacing: 3px; text-align: center; margin-bottom: 3px; }
-.combat-sub    { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #64748b; text-align: center; letter-spacing: 2px; margin-bottom: 14px; }
+.combat-sub    { font-size: 9px; color: #64748b; text-align: center; letter-spacing: 2px; margin-bottom: 14px; text-transform: uppercase; }
 
 /* Pre-combat: flee panel */
 .flee-panel {
@@ -649,7 +649,7 @@
   margin-bottom: 14px;
 }
 .flee-title { font-family: "Cinzel", serif; font-size: 12px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; }
-.flee-text  { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5; }
+.flee-text  { font-size: 10px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5; }
 .flee-btns  { display: flex; gap: 8px; }
 .flee-btn {
   flex: 1;
@@ -692,11 +692,11 @@
 .combat-ini-odds { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #4b5563; letter-spacing: 1px; }
 
 /* Enemy equip */
-.combat-enemy-equip { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #8faacc; background: rgba(143,170,204,0.06); border: 1px solid rgba(143,170,204,0.15); border-radius: 7px; padding: 6px 10px; margin-bottom: 10px; line-height: 1.5; }
+.combat-enemy-equip { font-size: 10px; color: #8faacc; background: rgba(143,170,204,0.06); border: 1px solid rgba(143,170,204,0.15); border-radius: 7px; padding: 6px 10px; margin-bottom: 10px; line-height: 1.5; }
 
 /* Combat log */
 .combat-log { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; flex: 1; }
-.combat-line { font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; line-height: 1.45; animation: combatLine 0.25s ease; }
+.combat-line { font-size: 11px; padding: 6px 10px; border-radius: 6px; line-height: 1.45; animation: combatLine 0.25s ease; }
 .combat-line.hero    { background: rgba(78,204,163,.06);  border-left: 2px solid var(--primary); color: #a0e8d0; }
 .combat-line.enemy   { background: rgba(220,38,38,.06);   border-left: 2px solid var(--danger);  color: #f0a0a0; }
 .combat-line.system  { background: rgba(212,160,23,.04);  border-left: 2px solid var(--gold);    color: #c8a050; font-style: italic; }
