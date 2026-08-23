@@ -499,7 +499,7 @@ export const TREASURES = [
  {id:"t046",name:"Dente di Drago", icon:"",tier:3,minV:23,maxV:31},
  {id:"t047",name:"Mantello di Seta Nera", icon:"",tier:3,minV:21,maxV:29},
  {id:"t048",name:"Libro dei Morti", icon:"",tier:3,minV:19,maxV:27},
- {id:"t049",name:"Orologio senza Lancette", icon:"⏱",tier:3,minV:22,maxV:30},
+ {id:"t049",name:"Orologio senza Lancette", icon:"",tier:3,minV:22,maxV:30},
  {id:"t050",name:"Forziere Miniatura", icon:"",tier:3,minV:24,maxV:33},
  {id:"t051",name:"Collana di Ambra", icon:"",tier:3,minV:20,maxV:28},
  {id:"t052",name:"Calice di Ossidiana", icon:"",tier:3,minV:23,maxV:31},
