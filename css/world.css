@@ -130,7 +130,8 @@
 .area-all-done {
   text-align: center;
   color: var(--primary);
-  font-size: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 2px;
   padding: 8px 0 2px;

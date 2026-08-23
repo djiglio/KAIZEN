@@ -246,7 +246,7 @@ export function renderWorld() {
         <div class="area-quest-bar" style="width:${pct}%"></div>
       </div>
     </div>`;
-  }).join("") || `<div class="area-quest-item" style="color:var(--accent)">
+  }).join("") || `<div class="area-quest-item" style="color:var(--accent); font-family:'Cinzel', serif; font-size:12px; font-weight:700; text-align:center; padding: 14px 11px;">
     ✅ Tutte le missioni completate!
   </div>`;
 
