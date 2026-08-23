@@ -377,7 +377,7 @@ export function renderEquipment() {
  <div class="zaino-item-actions">
  <button class="zaino-equip-btn" style="background:rgba(212,160,23,0.15);border-color:rgba(212,160,23,0.3);color:var(--gold)"
  onclick="window.__kaizen.useRelic('${zItem.id}')">Usa</button>
- <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')"></button>
+ <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${refund}</button>
  </div>
  </div>`;
  }
