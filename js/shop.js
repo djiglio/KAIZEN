@@ -307,7 +307,8 @@ export function renderEquipment() {
 
  let relHTML = "";
  if (relAttive.length > 0) {
- relHTML = `<div class="zaino-title" style="margin-top:16px"> Reliquie Attive</div>` +
+ relHTML = `<div class="zaino-title" style="margin-top:16px"> Reliquie Attive</div>
+ <div class="zaino-list" style="margin-bottom:24px;">` +
  relAttive.map(ra => {
  const rel = RELICS.find(r => r.id === ra.id);
  if (!rel) return "";
@@ -319,7 +320,7 @@ export function renderEquipment() {
  <div class="zaino-item-sub">${rel.desc} · ${remaining}h rimanenti</div>
  </div>
  </div>`;
- }).join("");
+ }).join("") + `</div>`;
  }
 
  // Zaino
