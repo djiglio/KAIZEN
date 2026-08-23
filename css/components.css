@@ -14,7 +14,7 @@
   padding: 16px;
   margin-bottom: 14px;
   border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-heavy);
+  box-shadow: var(--shadow-heavy), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   position: relative;
   overflow: hidden;
 }
@@ -65,8 +65,8 @@
   margin-bottom: 7px;
 }
 .habit-label {
-  font-family: "Metamorphous", "Cinzel", serif;
-  font-weight: 400;
+  font-family: "Cinzel", serif;
+  font-weight: 700;
   letter-spacing: 0.4px;
   font-size: 13px;
   color: #c8d0dc;
