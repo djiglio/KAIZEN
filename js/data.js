@@ -1183,7 +1183,7 @@ export const AREA_QUESTS = {
     {id:"m16", n:16, title:"Ricchezze Sotterranee",    type:"denari_area", target:6000,desc:"Accumula 6000 denari da bottini delle Miniere Sepolte"},
     {id:"m17", n:17, title:"Lo Stregone Nano",         type:"kills_name",  target:1,   enemy:"Stregone Nano",         desc:"Sconfiggi lo Stregone Nano"},
     {id:"m18", n:18, title:"Il Guardiano Golem",       type:"kills_name",  target:1,   enemy:"Colosso di Guardia",       desc:"Sconfiggi il Colosso di Guardia"},
-    {id:"m19", n:19, title:"Veterano delle Profondità",type:"kills_area",  target:15,  desc:"Sconfiggi 80 nemici nelle Miniere Sepolte"},
+    {id:"m19", n:19, title:"Veterano delle Profondità",type:"kills_area",  target:80,  desc:"Sconfiggi 80 nemici nelle Miniere Sepolte"},
     {id:"m20", n:20, title:"Il Re delle Miniere",      type:"kills_name",  target:1,   enemy:"Nano Re delle Miniere", desc:"Sconfiggi il Nano Re delle Miniere", sblocca:"isole"},
   ],
 
