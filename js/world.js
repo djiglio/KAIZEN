@@ -729,20 +729,18 @@ function executeDiscovery() {
 
  updateWorldQuests("discovery", {});
 
- if (tr < 0.18) {
- // Reliquia
- const rel = pickRelic();
- const expiry = Date.now() + 24 * 3600 * 1000;
- // Rimuovi reliquie scadute e quelle dello stesso tipo
- w.reliquieAttive = (w.reliquieAttive||[]).filter(ra => Date.now() < ra.expiry && ra.id !== rel.id);
- w.reliquieAttive.push({ id: rel.id, expiry });
- // Aggiungi allo zaino
- state.equipment.zaino.push({ id:rel.id, type:"relic" });
- updateWorldQuests("relic", {});
- w.missioniLog.unshift({ tipo:"relic", nome:rel.name, denari:0, t:Date.now() });
- addHistory(` Reliquia: ${rel.name} — ${rel.desc}`, "world");
- showToast(`${rel.icon} Reliquia: ${rel.name}!`);
- } else if (tr < 0.35) {
+    if (tr < 0.18) {
+      // Reliquia
+      const rel = pickRelic();
+      // Aggiungi solo allo zaino, andranno attivate manualmente
+      // (rimossa l'attivazione automatica per evitare duplicazioni e dare il controllo al giocatore)
+      // Aggiungi allo zaino
+      state.equipment.zaino.push({ id:rel.id, type:"relic" });
+      updateWorldQuests("relic", {});
+      w.missioniLog.unshift({ tipo:"relic", nome:rel.name, denari:0, t:Date.now() });
+      addHistory(` Reliquia: ${rel.name} — ${rel.desc}`, "world");
+      showToast(`${rel.icon} Reliquia: ${rel.name}!`);
+    } else if (tr < 0.35) {
  // Equipaggiamento da esplorazione
  const pool = EQUIPMENT_POOL.filter(e => e.fonte.includes("esplorazione"));
  if (pool.length) {
