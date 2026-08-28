@@ -89,7 +89,7 @@ export function getHeroStats() {
   }
 
  // Sconto carisma (%)
- const shopDiscount = Math.min(40, stats.carisma);
+ const shopDiscount = Math.min(50, stats.carisma);
 
  // Arrotonda destrezza e critico alla prima cifra decimale
  if (stats.destrezza !== undefined) stats.destrezza = Math.round(stats.destrezza * 10) / 10;

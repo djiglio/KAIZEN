@@ -36,7 +36,7 @@ export const STAT_DEFS = [
   { id:"fortuna",       icon:"LUC", label:"FORTUNA",       habit:"lettura",      desc:"Bonus bottino missioni",       formula: lv => lv },
   { id:"sopravvivenza", icon:"SOP", label:"SOPRAVVIVENZA", habit:"sonno",        desc:"PA massimi",         formula: lv => 5+lv*2 },
   { id:"pianificazione",icon:"PIA", label:"PIANIFICAZIONE",habit:"studio",       desc:"Minuti per +1 PA",                formula: lv => Math.max(1, 6-Math.floor(lv/4)) },
-  { id:"carisma",       icon:"CAR", label:"CARISMA",       habit:"lingue",       desc:"% sconto al negozio",          formula: lv => Math.min(40, lv*1.7) },
+  { id:"carisma",       icon:"CAR", label:"CARISMA",       habit:"lingue",       desc:"% sconto al negozio",          formula: lv => Math.min(50, lv*0.5) },
 ];
 
 /* ── Ranghi ── */
