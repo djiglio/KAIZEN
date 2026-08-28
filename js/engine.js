@@ -76,17 +76,24 @@ export function getHeroStats() {
  stats.critico = Math.min(80, stats.critico + (eqBonus.critico || 0));
  const bonusDifesa = eqBonus.difesa || 0;
 
- // Applica bonus reliquie
- for (const [stat, mult] of Object.entries(relBonus)) {
- if (stat === "costituzione") {
- stats.costituzione = Math.floor(stats.costituzione * (1 + mult));
- } else if (stats[stat] !== undefined) {
- stats[stat] = Math.floor(stats[stat] * (1 + mult));
- }
- }
+  // Applica bonus reliquie
+  for (const [stat, mult] of Object.entries(relBonus)) {
+    if (stats[stat] !== undefined) {
+      const newVal = stats[stat] * (1 + mult);
+      if (stat === "destrezza" || stat === "critico") {
+        stats[stat] = newVal; // I decimali verranno arrotondati dopo
+      } else {
+        stats[stat] = Math.floor(newVal);
+      }
+    }
+  }
 
  // Sconto carisma (%)
  const shopDiscount = Math.min(40, stats.carisma);
+
+ // Arrotonda destrezza e critico alla prima cifra decimale
+ if (stats.destrezza !== undefined) stats.destrezza = Math.round(stats.destrezza * 10) / 10;
+ if (stats.critico !== undefined) stats.critico = Math.round(stats.critico * 10) / 10;
 
  return {
  ...stats,
