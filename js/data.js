@@ -30,13 +30,13 @@ export const STAT_DEFS = [
   { id:"velocita",      icon:"VEL", label:"VELOCITÀ",      habit:"passi",        desc:"Iniziativa in combattimento",  formula: lv => lv*3+5 },
   { id:"destrezza",     icon:"DES", label:"DESTREZZA",     habit:"stretching",   desc:"% schivata colpi",             formula: lv => Math.min(60, lv*1.2+2) },
   { id:"critico",       icon:"CRI", label:"CRITICO",       habit:"piegamenti",   desc:"% colpi critici (x2)",         formula: lv => Math.min(50, lv*1.2+2) },
-  { id:"furtivita",     icon:"FUR", label:"FURTIVITÀ",     habit:"enigmistica",  desc:"% riuscita fuga",              formula: lv => Math.min(80, Math.floor(lv * 0.5) + 10) },
+  { id:"furtivita",     icon:"FUR", label:"FURTIVITÀ",     habit:"enigmistica",  desc:"% riuscita fuga",              formula: lv => Math.min(80, Math.floor(lv*0.5)+10) },
   { id:"costituzione",  icon:"COS", label:"COSTITUZIONE",  habit:"dieta",        desc:"PV massimi",           formula: lv => 50+lv*12 },
-  { id:"guarigione",    icon:"GUA", label:"GUARIGIONE",    habit:"meditazione",  desc:"Minuti per +1 PV",             formula: lv => Math.max(1, 8-Math.floor(lv/3)) },
+  { id:"guarigione",    icon:"GUA", label:"GUARIGIONE",    habit:"meditazione",  desc:"Minuti per +1 PV",             formula: lv => Math.max(0.5, 8-(5/86)*(lv-1)) },
   { id:"fortuna",       icon:"LUC", label:"FORTUNA",       habit:"lettura",      desc:"Bonus bottino missioni",       formula: lv => lv },
   { id:"sopravvivenza", icon:"SOP", label:"SOPRAVVIVENZA", habit:"sonno",        desc:"PA massimi",         formula: lv => 5+lv*2 },
-  { id:"pianificazione",icon:"PIA", label:"PIANIFICAZIONE",habit:"studio",       desc:"Minuti per +1 PA",                formula: lv => Math.max(1, 6-Math.floor(lv/4)) },
-  { id:"carisma",       icon:"CAR", label:"CARISMA",       habit:"lingue",       desc:"% sconto al negozio",          formula: lv => Math.min(50, lv*0.5) },
+  { id:"pianificazione",icon:"PIA", label:"PIANIFICAZIONE",habit:"studio",       desc:"Minuti per +1 PA",                formula: lv => Math.max(0.5, 10-(19/260)*lv) },
+  { id:"carisma",       icon:"CAR", label:"CARISMA",       habit:"lingue",       desc:"% sconto al negozio",          formula: lv => Math.min(60,(6/13)*lv) },
 ];
 
 /* ── Ranghi ── */
