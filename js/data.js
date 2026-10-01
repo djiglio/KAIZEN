@@ -1181,10 +1181,10 @@ export const AREA_QUESTS = {
     {id:"m14", n:14, title:"Il Labirinto Stregato",     type:"kills_name",  target:1,   enemy:"Amazzone del Labirinto",             desc:"Sconfiggi l'Amazzone del Labirinto"},
     {id:"m15", n:15, title:"Il Drago delle Cave",      type:"kills_name",  target:2,   enemy:"Giovane Drago di Pietra",desc:"Sconfiggi 2 volte un Giovane Drago di Pietra"},
     {id:"m16", n:16, title:"Ricchezze Sotterranee",    type:"denari_area", target:6000,desc:"Accumula 6000 denari da bottini delle Miniere Sepolte"},
-    {id:"m17", n:17, title:"Lo Stregone Nano",         type:"kills_name",  target:1,   enemy:"Stregone Nano",         desc:"Sconfiggi lo Stregone Nano"},
+    {id:"m17", n:17, title:"Il Sovrano del Sottosuolo",         type:"kills_name",  target:1,   enemy:"Re Nanico delle Miniere",         desc:"Sconfiggi il Re Nanico delle Miniere"},
     {id:"m18", n:18, title:"Il Guardiano Golem",       type:"kills_name",  target:1,   enemy:"Colosso di Guardia",       desc:"Sconfiggi il Colosso di Guardia"},
     {id:"m19", n:19, title:"Veterano delle Profondità",type:"kills_area",  target:80,  desc:"Sconfiggi 80 nemici nelle Miniere Sepolte"},
-    {id:"m20", n:20, title:"Il Re delle Miniere",      type:"kills_name",  target:1,   enemy:"Nano Re delle Miniere", desc:"Sconfiggi il Nano Re delle Miniere", sblocca:"isole"},
+    {id:"m20", n:20, title:"Il Terrore delle Miniere",      type:"kills_name",  target:1,   enemy:"Drago delle Profondità", desc:"Sconfiggi il Drago delle Profondità", sblocca:"isole"},
   ],
 
   isole: [
