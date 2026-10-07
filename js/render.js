@@ -117,7 +117,7 @@ function renderHero(state, heroS, rank, title) {
      const hdef    = HABITS.find(h => h.id === sd.habit);
      const col     = hdef?.color || "var(--primary)";
      const showPct = ["destrezza","critico","furtivita","carisma"].includes(sd.id);
-     const displayVal = `${val}${showPct ? "%" : ""}`;
+     const displayVal = `${(typeof val === 'number') ? Math.round(val * 100) / 100 : val}${showPct ? "%" : ""}`;
      return `<div style="margin-bottom:12px;border-left:2px solid ${col}44;padding-left:10px">
        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
          <span style="font-family:'Cinzel',serif;font-size:11px;font-weight:700;
