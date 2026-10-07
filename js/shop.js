@@ -5,7 +5,7 @@
 
 import { store, save } from "./state.js";
 import { POTIONS, EQUIPMENT_POOL,
- RELICS } from "./data.js";
+ RELICS, AREA_LOOT_POOL } from "./data.js";
 import { showToast } from "./ui.js";
 import { getHeroStats } from "./engine.js";
 import { getMinsPerPV, getMinsPerPA } from "./world.js";
@@ -135,6 +135,13 @@ export function discardItem(itemId) {
  } else if (zItem.type === "relic") {
  const rel = RELICS.find(r => r.id === itemId);
  if (rel) { name = rel.name; icon = rel.icon; refund = 5; }
+ } else if (zItem.type === "arealoot") {
+ let piece = null;
+ for (const pool of Object.values(AREA_LOOT_POOL)) {
+ piece = pool.find(i => i.id === itemId);
+ if (piece) break;
+ }
+ if (piece) { name = piece.name; icon = "📦"; refund = piece.value; }
  }
 
  if (refund > 0) state.world.denari += refund;
@@ -379,6 +386,23 @@ export function renderEquipment() {
  <button class="zaino-equip-btn" style="background:rgba(212,160,23,0.15);border-color:rgba(212,160,23,0.3);color:var(--gold)"
  onclick="window.__kaizen.useRelic('${zItem.id}')">Usa</button>
  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${refund}</button>
+ </div>
+ </div>`;
+ } else if (zItem.type === "arealoot") {
+ let piece = null;
+ for (const pool of Object.values(AREA_LOOT_POOL)) {
+ piece = pool.find(i => i.id === zItem.id);
+ if (piece) break;
+ }
+ if (!piece) return "";
+ return `<div class="zaino-item">
+ <span class="zaino-item-icon">📦</span>
+ <div class="zaino-item-body">
+ <div class="zaino-item-name">${piece.name}${countBadge}</div>
+ <div class="zaino-item-sub">${piece.desc}</div>
+ </div>
+ <div class="zaino-item-actions">
+ <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${piece.value}</button>
  </div>
  </div>`;
  }

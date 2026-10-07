@@ -285,7 +285,7 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
 /* ══════════════════════════════════════════════════════════
  MODAL COMBATTIMENTO ANIMATO
 ══════════════════════════════════════════════════════════ */
-function showCombatModal(enemy, result, reward, loot, enemyEquip) {
+function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  const overlay = document.getElementById("combat-overlay");
  const inner = document.getElementById("combat-inner");
 
@@ -389,6 +389,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip) {
  if (result.victory) {
  let lootLine = "";
  if (loot) lootLine += `<br>Loot: <strong>${loot.name}</strong>`;
+ if (areaLootObj) lootLine += `<br>Scoperto: <strong>📦 ${areaLootObj.name}</strong>`;
  if (enemyEquip) {
  const razzia = Object.values(enemyEquip).map(p=>p.name).join(", ");
  lootLine += `<br>Razziato: <strong>${razzia}</strong>`;
@@ -645,7 +646,7 @@ function executeCombat(enemy, enemyEquip) {
  w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
  w.pvAttuali = result.heroHPFinal;
 
- let reward = 0, loot = null;
+ let reward = 0, loot = null, areaLootObj = null;
 
  if (result.victory) {
  const lvl = enemy.lvl || 1;
@@ -675,6 +676,14 @@ function executeCombat(enemy, enemyEquip) {
  }
  const names = Object.values(enemyEquip).map(p=>p.name).join(", ");
  addHistory(` Razziato: ${names}`, "world");
+ }
+
+ // Bottino area specifico
+ areaLootObj = pickAreaLoot(store.state.world.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
+ if (areaLootObj) {
+ store.state.equipment.zaino.push({ id: areaLootObj.id, type: "arealoot" });
+ updateWorldQuests("loot", { value: areaLootObj.value });
+ addHistory(` Trovato: ${areaLootObj.name} → zaino`, "world");
  }
 
  // Tracker streak vittorie
