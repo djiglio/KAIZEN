@@ -347,67 +347,84 @@ export function renderEquipment() {
  }
  });
 
- zainoHTML = Object.values(groupedItems).map((zItem) => {
- const countBadge = zItem.count > 1 
- ? `<span style="display:inline-block; margin-left:6px; background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.3); color:var(--gold); padding:2px 6px; border-radius:4px; font-size:9px; font-family:'JetBrains Mono',monospace;">x${zItem.count}</span>` 
- : '';
+  let equipHTMLs = [];
+  let relicHTMLs = [];
+  let arealootHTMLs = [];
 
- if (zItem.type === "equip") {
- const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
- if (!piece) return "";
- const bStat = Object.keys(piece.bonus)[0];
- const bVal = Object.values(piece.bonus)[0];
- const bStr = bStat === "attacco" ? `+${bVal} ATK` :
- bStat === "difesa" ? `+${bVal} DEF` :
- bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
- const refund = Math.floor(piece.prezzo * 0.30);
- return `<div class="zaino-item">
- <span class="zaino-item-icon">${piece.icon}</span>
- <div class="zaino-item-body">
- <div class="zaino-item-name">${piece.name}${countBadge}</div>
- <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
- </div>
- <div class="zaino-item-actions">
- <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem('${zItem.id}')">Equip</button>
- <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${refund}</button>
- </div>
- </div>`;
- } else if (zItem.type === "relic") {
- const rel = RELICS.find(r => r.id === zItem.id);
- if (!rel) return "";
- const refund = 5;
- return `<div class="zaino-item">
- <span class="zaino-item-icon">${rel.icon}</span>
- <div class="zaino-item-body">
- <div class="zaino-item-name">${rel.name}${countBadge}</div>
- <div class="zaino-item-sub">${rel.desc}</div>
- </div>
- <div class="zaino-item-actions">
- <button class="zaino-equip-btn" style="background:rgba(212,160,23,0.15);border-color:rgba(212,160,23,0.3);color:var(--gold)"
- onclick="window.__kaizen.useRelic('${zItem.id}')">Usa</button>
- <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${refund}</button>
- </div>
- </div>`;
- } else if (zItem.type === "arealoot") {
- let piece = null;
- for (const pool of Object.values(AREA_LOOT_POOL)) {
- piece = pool.find(i => i.id === zItem.id);
- if (piece) break;
- }
- if (!piece) return "";
- return `<div class="zaino-item">
- <span class="zaino-item-icon">📦</span>
- <div class="zaino-item-body">
- <div class="zaino-item-name">${piece.name}${countBadge}</div>
- <div class="zaino-item-sub">${piece.desc}</div>
- </div>
- <div class="zaino-item-actions">
- <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${piece.value}</button>
- </div>
- </div>`;
- }
- return "";
- }).join("");
+  Object.values(groupedItems).forEach((zItem) => {
+  const countBadge = zItem.count > 1 
+  ? `<span style="display:inline-block; margin-left:6px; background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.3); color:var(--gold); padding:2px 6px; border-radius:4px; font-size:9px; font-family:'JetBrains Mono',monospace;">x${zItem.count}</span>` 
+  : '';
+
+  if (zItem.type === "equip") {
+  const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
+  if (!piece) return;
+  const bStat = Object.keys(piece.bonus)[0];
+  const bVal = Object.values(piece.bonus)[0];
+  const bStr = bStat === "attacco" ? `+${bVal} ATK` :
+  bStat === "difesa" ? `+${bVal} DEF` :
+  bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
+  const refund = Math.floor(piece.prezzo * 0.30);
+  equipHTMLs.push(`<div class="zaino-item">
+  <span class="zaino-item-icon">${piece.icon}</span>
+  <div class="zaino-item-body">
+  <div class="zaino-item-name">${piece.name}${countBadge}</div>
+  <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
+  </div>
+  <div class="zaino-item-actions">
+  <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem('${zItem.id}')">Equip</button>
+  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${refund}</button>
+  </div>
+  </div>`);
+  } else if (zItem.type === "relic") {
+  const rel = RELICS.find(r => r.id === zItem.id);
+  if (!rel) return;
+  const refund = 5;
+  relicHTMLs.push(`<div class="zaino-item">
+  <span class="zaino-item-icon">${rel.icon}</span>
+  <div class="zaino-item-body">
+  <div class="zaino-item-name">${rel.name}${countBadge}</div>
+  <div class="zaino-item-sub">${rel.desc}</div>
+  </div>
+  <div class="zaino-item-actions">
+  <button class="zaino-equip-btn" style="background:rgba(212,160,23,0.15);border-color:rgba(212,160,23,0.3);color:var(--gold)"
+  onclick="window.__kaizen.useRelic('${zItem.id}')">Usa</button>
+  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${refund}</button>
+  </div>
+  </div>`);
+  } else if (zItem.type === "arealoot") {
+  let piece = null;
+  for (const pool of Object.values(AREA_LOOT_POOL)) {
+  piece = pool.find(i => i.id === zItem.id);
+  if (piece) break;
+  }
+  if (!piece) return;
+  arealootHTMLs.push(`<div class="zaino-item">
+  <span class="zaino-item-icon">📦</span>
+  <div class="zaino-item-body">
+  <div class="zaino-item-name">${piece.name}${countBadge}</div>
+  <div class="zaino-item-sub">${piece.desc}</div>
+  </div>
+  <div class="zaino-item-actions">
+  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${zItem.id}')">Vendi 🪙 ${piece.value}</button>
+  </div>
+  </div>`);
+  }
+  });
+
+  const makeDetails = (title, htmls) => {
+    if (!htmls.length) return "";
+    return `
+      <details class="zaino-details">
+        <summary>${title} <span style="color:#64748b;font-size:10px;font-family:'JetBrains Mono',monospace">(${htmls.length})</span></summary>
+        <div class="zaino-list" style="margin-bottom:0;border:none;">${htmls.join("")}</div>
+      </details>
+    `;
+  };
+
+  zainoHTML = makeDetails("Reliquie", relicHTMLs) +
+              makeDetails("Equipaggiamento", equipHTMLs) +
+              makeDetails("Materiali", arealootHTMLs);
  }
 
  el.innerHTML = `
@@ -434,10 +451,8 @@ export function renderEquipment() {
 
  ${relHTML}
 
- <div class="zaino-title"> Zaino
- <span style="color:#64748b;font-size:10px;font-family:'JetBrains Mono',monospace">(${zItems.length} oggetti)</span>
- </div>
- <div class="zaino-list">${zainoHTML}</div>
+ <div class="zaino-title"> Zaino</div>
+ ${zainoHTML}
  `;
 }
 
