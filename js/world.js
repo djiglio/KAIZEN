@@ -623,7 +623,7 @@ function pickAreaLoot(areaId, fortunaStat) {
   const pool = AREA_LOOT_POOL[areaId];
   if (!pool || !pool.length) return null;
   // 30% base chance + fortuna bonus, independent of equipment loot
-  const chance = Math.min(0.55, 0.15 + fortunaStat * 0.004);
+  const chance = Math.min(0.65, 0.30 + fortunaStat * 0.005);
   if (Math.random() > chance) return null;
   // Weight by rarity (lower rarity = more common)
   const weights = pool.map(item => 6 - item.rarity); // rarity 1→5, weight 5→1
@@ -763,9 +763,18 @@ function executeDiscovery() {
  } else {
  pickTreasureReward();
  }
- } else {
- pickTreasureReward();
- }
+  } else {
+  const aLoot = pickAreaLoot(w.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
+  if (aLoot) {
+    state.equipment.zaino.push({ id: aLoot.id, type: "arealoot" });
+    updateWorldQuests("loot", { value: aLoot.value });
+    w.missioniLog.unshift({ tipo:"equip", nome:aLoot.name, denari:0, t:Date.now() });
+    addHistory(` Trovato: 📦 ${aLoot.name} → zaino`, "world");
+    showToast(`📦 ${aLoot.name} trovato!`);
+  } else {
+    pickTreasureReward();
+  }
+  }
 
  if (state.history.length > 200) state.history = state.history.slice(0,200);
  if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
