@@ -412,19 +412,23 @@ export function renderEquipment() {
   }
   });
 
-  const makeDetails = (title, htmls) => {
+  const makeDetails = (key, title, htmls) => {
     if (!htmls.length) return "";
     return `
-      <details class="zaino-details">
-        <summary>${title} <span style="color:#64748b;font-size:10px;font-family:'JetBrains Mono',monospace">(${htmls.length})</span></summary>
-        <div class="zaino-list" style="margin-bottom:0;border:none;">${htmls.join("")}</div>
+      <details class="zaino-details" data-cat="${key}" ${zainoOpenCats.has(key) ? "open" : ""}>
+        <summary>
+          <span class="zaino-cat-title">${title}</span>
+          <span class="zaino-cat-count">${htmls.length}</span>
+          <span class="zaino-cat-chevron"></span>
+        </summary>
+        <div class="zaino-list">${htmls.join("")}</div>
       </details>
     `;
   };
 
-  zainoHTML = makeDetails("Reliquie", relicHTMLs) +
-              makeDetails("Equipaggiamento", equipHTMLs) +
-              makeDetails("Materiali", arealootHTMLs);
+  zainoHTML = makeDetails("relic", "Reliquie", relicHTMLs) +
+              makeDetails("equip", "Equipaggiamento", equipHTMLs) +
+              makeDetails("arealoot", "Materiali", arealootHTMLs);
  }
 
  el.innerHTML = `
@@ -451,9 +455,22 @@ export function renderEquipment() {
 
  ${relHTML}
 
- <div class="zaino-title"> Zaino</div>
+ <div class="zaino-title">Zaino
+ <span style="color:#64748b;font-size:10px;font-family:'JetBrains Mono',monospace">(${zItems.length} oggetti)</span>
+ </div>
  ${zainoHTML}
  `;
+
+ // Ricorda quali tendine sono aperte, così non si richiudono dopo vendita/equip
+ el.querySelectorAll(".zaino-details").forEach(d => {
+ d.addEventListener("toggle", () => {
+ if (d.open) zainoOpenCats.add(d.dataset.cat);
+ else zainoOpenCats.delete(d.dataset.cat);
+ });
+ });
 }
+
+/* Tendine zaino aperte (solo per la sessione corrente: all'avvio sono chiuse) */
+const zainoOpenCats = new Set();
 
 

@@ -7,13 +7,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="icon" type="image/png" href="img/icon.png"/>
   <link rel="apple-touch-icon" href="img/icon.png"/>
-  <title>KAIZEN v6.13</title>
+  <title>KAIZEN v6.15</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.13
+   KAIZEN v6.15
    ============================================================ */
 
 :root {
@@ -1205,6 +1205,19 @@ body::before {
 .zaino-equip-btn:active { background: rgba(78,204,163,.28); }
 .zaino-discard-btn { background: rgba(220,38,38,.06); border: 1px solid rgba(220,38,38,.18); color: var(--danger); font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 9px; padding: 0 8px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background .2s; }
 .zaino-discard-btn:active { background: rgba(220,38,38,.16); }
+
+/* ── Zaino: tendine per categoria ── */
+.zaino-details { background: rgba(0,0,0,.4); border: 1px solid rgba(212,160,23,.15); border-radius: 11px; margin-bottom: 8px; overflow: hidden; transition: border-color .2s; }
+.zaino-details[open] { border-color: rgba(212,160,23,.32); }
+.zaino-details > summary { list-style: none; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; display: flex; align-items: center; gap: 10px; padding: 12px 14px; min-height: 44px; box-sizing: border-box; transition: background .2s; }
+.zaino-details > summary::-webkit-details-marker { display: none; }
+.zaino-details > summary:hover { background: rgba(212,160,23,.04); }
+.zaino-cat-title { flex: 1; font-family: "Cinzel", serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
+.zaino-cat-count { font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--gold); background: rgba(212,160,23,.12); border: 1px solid rgba(212,160,23,.28); border-radius: 4px; padding: 2px 7px; }
+.zaino-cat-chevron { width: 7px; height: 7px; border-right: 2px solid var(--gold); border-bottom: 2px solid var(--gold); transform: rotate(45deg); margin: -3px 4px 0 2px; opacity: .7; transition: transform .25s, margin .25s; flex-shrink: 0; }
+.zaino-details[open] .zaino-cat-chevron { transform: rotate(-135deg); margin-top: 3px; }
+.zaino-details[open] > summary { border-bottom: 1px solid rgba(212,160,23,.12); }
+.zaino-details > .zaino-list { padding: 10px; }
 
 /* ══════════════════════════════════════
    IMPOSTAZIONI
