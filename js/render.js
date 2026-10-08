@@ -6,7 +6,7 @@
 import { store } from "./state.js";
 import { HABITS, STAT_DEFS, rankTitles,
          BESTIARY, TREASURES, RELICS,
-         EQUIPMENT_POOL,
+         EQUIPMENT_POOL, AREA_LOOT_POOL,
          QUEST_POOL_EVO, QUEST_POOL_WORLD,
          titleMetalColors,
          WORLD_AREAS, AREA_QUESTS , EMPIREO_GODS } from './data.js';
@@ -482,6 +482,36 @@ function renderBacheca(state, w) {
  <div class="discovery-sub">${locked?"—":count>0?`×${count} · ${t.minV}-${t.maxV} 🪙`:""}</div>
  </div>`;
  }).join("");
+ }
+
+ // ── Materiali d'Area ──
+ const mstatEl = document.getElementById("material-stats");
+ const mlistEl = document.getElementById("material-list");
+ if (mstatEl && mlistEl) {
+   let allMaterials = [];
+   Object.values(AREA_LOOT_POOL).forEach(pool => {
+     allMaterials = allMaterials.concat(pool);
+   });
+   
+   let nmFound = 0;
+   allMaterials.forEach(m => {
+     if ((w.tesoriScoperti||{})[m.id]) nmFound++;
+   });
+   
+   mstatEl.innerHTML = `
+   <div class="bacheca-stat"><div class="bacheca-stat-num">${nmFound}</div><div class="bacheca-stat-lbl">SCOPERTI</div></div>
+   <div class="bacheca-stat"><div class="bacheca-stat-num">${allMaterials.length - nmFound}</div><div class="bacheca-stat-lbl">DA SCOPRIRE</div></div>`;
+
+   mlistEl.innerHTML = allMaterials.map(m => {
+     const count = (w.tesoriScoperti||{})[m.id] || 0;
+     const locked = count === 0;
+     return `<div class="discovery-card ${locked?"locked":"unlocked"}">
+     <span class="discovery-tier tier-${m.rarity}">R${m.rarity}</span>
+     <span class="discovery-icon">${locked?"":"📦"}</span>
+     <div class="discovery-name" style="color:${locked?"#1e2535":"var(--gold)"}">${locked?"???":m.name}</div>
+     <div class="discovery-sub">${locked?"—":`×${count} · Valore: ${m.value} 🪙`}</div>
+     </div>`;
+   }).join("");
  }
 }
 

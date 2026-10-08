@@ -682,6 +682,7 @@ function executeCombat(enemy, enemyEquip) {
  areaLootObj = pickAreaLoot(store.state.world.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
  if (areaLootObj) {
  store.state.equipment.zaino.push({ id: areaLootObj.id, type: "arealoot" });
+ store.state.world.tesoriScoperti[areaLootObj.id] = (store.state.world.tesoriScoperti[areaLootObj.id] || 0) + 1;
  updateWorldQuests("loot", { value: areaLootObj.value });
  addHistory(` Trovato: ${areaLootObj.name} → zaino`, "world");
  }
@@ -767,6 +768,7 @@ function executeDiscovery() {
   const aLoot = pickAreaLoot(w.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
   if (aLoot) {
     state.equipment.zaino.push({ id: aLoot.id, type: "arealoot" });
+    w.tesoriScoperti[aLoot.id] = (w.tesoriScoperti[aLoot.id] || 0) + 1;
     updateWorldQuests("loot", { value: aLoot.value });
     w.missioniLog.unshift({ tipo:"equip", nome:aLoot.name, denari:0, t:Date.now() });
     addHistory(` Trovato: 📦 ${aLoot.name} → zaino`, "world");
