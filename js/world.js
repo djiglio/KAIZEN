@@ -540,7 +540,7 @@ export function runMission() {
   updateWorldQuests("mission", {});
 
   const roll = Math.random();
-  if (roll < 0.40) {
+  if (roll < 0.50) {
     // COMBATTIMENTO
     const enemy = pickEnemyForArea(areaId);
     if (!enemy) {
@@ -566,7 +566,7 @@ export function runMission() {
  /* onFlee */ (fleeChance) => executeFlee(enemy, fleeChance)
  );
 
- } else if (roll < 0.80) {
+ } else if (roll < 0.90) {
  // SCOPERTA
  executeDiscovery();
  } else {
@@ -623,7 +623,7 @@ function pickAreaLoot(areaId, fortunaStat) {
   const pool = AREA_LOOT_POOL[areaId];
   if (!pool || !pool.length) return null;
   // 30% base chance + fortuna bonus, independent of equipment loot
-  const chance = Math.min(0.65, 0.30 + fortunaStat * 0.005);
+  const chance = Math.min(0.35, 0.15 + fortunaStat * 0.005);
   if (Math.random() > chance) return null;
   // Weight by rarity (lower rarity = more common)
   const weights = pool.map(item => 6 - item.rarity); // rarity 1→5, weight 5→1
