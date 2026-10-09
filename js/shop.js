@@ -278,7 +278,7 @@ export function renderShop() {
  <span class="shop-balance-icon">🪙</span>
  <span class="shop-balance-val">${w.denari}</span>
  <span class="shop-balance-lbl">denari</span>
- ${disc > 0 ? `<span class="shop-discount-badge">-${disc}% CARISMA</span>` : ""}
+ ${disc > 0 ? `<span class="shop-discount-badge">-${Math.round(disc * 100) / 100}% CARISMA</span>` : ""}
  </div>
 
  ${dropdownHTML(mercatoOpenCats, "erborista", "Erborista", POTIONS.length, `
