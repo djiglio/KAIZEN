@@ -386,7 +386,7 @@ export function renderEquipment() {
  if (!rel) return "";
  const remaining = Math.ceil((ra.expiry - now) / 3600000);
  return `<div class="zaino-item">
- <span class="zaino-item-icon">${rel.icon}</span>
+ <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
  <div class="zaino-item-body">
  <div class="zaino-item-name">${rel.name}</div>
  <div class="zaino-item-sub">${rel.desc} · ${remaining}h rimanenti</div>
@@ -431,7 +431,7 @@ export function renderEquipment() {
   bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
   const refund = Math.floor(piece.prezzo * 0.30);
   equipHTMLs.push(`<div class="zaino-item">
-  <span class="zaino-item-icon">${piece.icon}</span>
+  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
   <div class="zaino-item-body">
   <div class="zaino-item-name">${piece.name}${countBadge}</div>
   <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
@@ -446,7 +446,7 @@ export function renderEquipment() {
   if (!rel) return;
   const refund = 5;
   relicHTMLs.push(`<div class="zaino-item">
-  <span class="zaino-item-icon">${rel.icon}</span>
+  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
   <div class="zaino-item-body">
   <div class="zaino-item-name">${rel.name}${countBadge}</div>
   <div class="zaino-item-sub">${rel.desc}</div>
@@ -465,7 +465,7 @@ export function renderEquipment() {
   }
   if (!piece) return;
   arealootHTMLs.push(`<div class="zaino-item">
-  <span class="zaino-item-icon">📦</span>
+  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
   <div class="zaino-item-body">
   <div class="zaino-item-name">${piece.name}${countBadge}</div>
   <div class="zaino-item-sub">${piece.desc}</div>
