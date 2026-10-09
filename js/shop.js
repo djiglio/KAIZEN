@@ -273,6 +273,9 @@ export function renderShop() {
  Il fabbro sta ancora accendendo la forgia. Torna più avanti.
  </div>`;
 
+ const pvPct = Math.min(100, (w.pvAttuali / heroS.pvMax) * 100).toFixed(1);
+ const paPct = Math.min(100, (w.paAttuali / heroS.paMax) * 100).toFixed(1);
+
  el.innerHTML = `
  <div class="shop-balance">
  <span class="shop-balance-icon">🪙</span>
@@ -283,7 +286,23 @@ export function renderShop() {
 
  ${dropdownHTML(mercatoOpenCats, "erborista", "Erborista", POTIONS.length, `
  <div class="mercato-body">
- <div class="shop-section-note">Pozioni · uso immediato all'acquisto</div>
+ <div class="shop-section-note" style="margin-bottom:12px;">Pozioni · uso immediato all'acquisto</div>
+ <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+  <div style="display:flex; align-items:center; gap:8px;">
+    <span style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:var(--text);width:22px;">PV</span>
+    <div style="flex:1; background:rgba(255,255,255,0.1); height:6px; border-radius:3px; overflow:hidden;">
+      <div style="width:${pvPct}%; background:#ef4444; height:100%; border-radius:3px; transition:width 0.4s;"></div>
+    </div>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);width:45px;text-align:right;">${Math.floor(w.pvAttuali)}/${heroS.pvMax}</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <span style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:var(--text);width:22px;">PA</span>
+    <div style="flex:1; background:rgba(255,255,255,0.1); height:6px; border-radius:3px; overflow:hidden;">
+      <div style="width:${paPct}%; background:#3b82f6; height:100%; border-radius:3px; transition:width 0.4s;"></div>
+    </div>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);width:45px;text-align:right;">${Math.floor(w.paAttuali)}/${heroS.paMax}</span>
+  </div>
+ </div>
  ${potionsHTML}
  </div>`)}
 
