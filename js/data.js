@@ -5,8 +5,8 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.15";
-export const APP_RELEASE = "08/10/2026";
+export const APP_VERSION = "6.16";
+export const APP_RELEASE = "09/10/2026";
 export const APP_DEV = "djiglio.ai";
 
 /* ── Abitudini (11) ── */
@@ -36,7 +36,7 @@ export const STAT_DEFS = [
   { id:"fortuna",       icon:"LUC", label:"FORTUNA",       habit:"lettura",      desc:"Bonus bottino missioni",       formula: lv => lv },
   { id:"sopravvivenza", icon:"SOP", label:"SOPRAVVIVENZA", habit:"sonno",        desc:"PA massimi",         formula: lv => 5+lv*2 },
   { id:"pianificazione",icon:"PIA", label:"PIANIFICAZIONE",habit:"studio",       desc:"Minuti per +1 PA",                formula: lv => Math.max(0.5, 10-(19/260)*lv) },
-  { id:"carisma",       icon:"CAR", label:"CARISMA",       habit:"lingue",       desc:"% sconto al negozio",          formula: lv => Math.min(60,(6/13)*lv) },
+  { id:"carisma",       icon:"CAR", label:"CARISMA",       habit:"lingue",       desc:"% sconto al mercato",          formula: lv => Math.min(60,(6/13)*lv) },
 ];
 
 /* ── Ranghi ── */

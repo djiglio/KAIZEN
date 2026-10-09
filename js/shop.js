@@ -172,7 +172,37 @@ export function useRelic(relicId) {
 }
 
 /* ══════════════════════════════════════════════════════════
- RENDER NEGOZIO
+ TENDINE (condivise da Zaino e Mercato)
+ Chiuse all'avvio; lo stato aperto viene ricordato per la sessione
+ così non si richiudono quando la pagina viene ridisegnata.
+══════════════════════════════════════════════════════════ */
+const zainoOpenCats = new Set();
+const mercatoOpenCats = new Set();
+
+function dropdownHTML(openSet, key, title, count, bodyHTML) {
+ const countHTML = count != null ? `<span class="zaino-cat-count">${count}</span>` : "";
+ return `
+ <details class="zaino-details" data-cat="${key}" ${openSet.has(key) ? "open" : ""}>
+ <summary>
+ <span class="zaino-cat-title">${title}</span>
+ ${countHTML}
+ <span class="zaino-cat-chevron"></span>
+ </summary>
+ ${bodyHTML}
+ </details>`;
+}
+
+function bindDropdownState(container, openSet) {
+ container.querySelectorAll(".zaino-details").forEach(d => {
+ d.addEventListener("toggle", () => {
+ if (d.open) openSet.add(d.dataset.cat);
+ else openSet.delete(d.dataset.cat);
+ });
+ });
+}
+
+/* ══════════════════════════════════════════════════════════
+ RENDER MERCATO
 ══════════════════════════════════════════════════════════ */
 export function renderShop() {
  const el = document.getElementById("shop-content");
@@ -183,7 +213,7 @@ export function renderShop() {
  const disc = heroS.shopDiscount;
  const boosted = w.regenBoostExpiry && Date.now() < w.regenBoostExpiry;
 
- // ── Pozioni ──
+ // ── Erborista: pozioni ──
  const potionsHTML = POTIONS.map(p => {
  const finalPrice = discountedPrice(p.prezzo, disc);
  const canBuy = w.denari >= finalPrice;
@@ -203,7 +233,7 @@ export function renderShop() {
  </div>`;
  }).join("");
 
- // ── Equipaggiamento da negozio ──
+ // ── Armaiolo: armi e armature ──
  const shopEquip = EQUIPMENT_POOL.filter(e => e.fonte.includes("negozio"));
  const slotLabels = {
  arma:"Armi", elmo:"Elmi", scudo:"Scudi",
@@ -237,6 +267,12 @@ export function renderShop() {
  }).join("");
  }
 
+ // ── Fabbro: in sviluppo ──
+ const fabbroHTML = `<div class="mercato-soon">
+ <strong>Bottega chiusa</strong>
+ Il fabbro sta ancora accendendo la forgia. Torna più avanti.
+ </div>`;
+
  el.innerHTML = `
  <div class="shop-balance">
  <span class="shop-balance-icon">🪙</span>
@@ -245,14 +281,22 @@ export function renderShop() {
  ${disc > 0 ? `<span class="shop-discount-badge">-${disc}% CARISMA</span>` : ""}
  </div>
 
- <div class="shop-section-title">Pozioni</div>
- <div class="shop-section-note">Uso immediato all'acquisto</div>
+ ${dropdownHTML(mercatoOpenCats, "erborista", "Erborista", POTIONS.length, `
+ <div class="mercato-body">
+ <div class="shop-section-note">Pozioni · uso immediato all'acquisto</div>
  ${potionsHTML}
+ </div>`)}
 
- <div class="shop-section-title" style="margin-top:22px">Armaiolo</div>
- <div class="shop-section-note">Gli acquisti vanno nello zaino</div>
+ ${dropdownHTML(mercatoOpenCats, "armaiolo", "Armaiolo", shopEquip.length, `
+ <div class="mercato-body">
+ <div class="shop-section-note">Armi e armature · gli acquisti vanno nello zaino</div>
  ${equipHTML}
+ </div>`)}
+
+ ${dropdownHTML(mercatoOpenCats, "fabbro", "Fabbro", null, fabbroHTML)}
  `;
+
+ bindDropdownState(el, mercatoOpenCats);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -414,16 +458,8 @@ export function renderEquipment() {
 
   const makeDetails = (key, title, htmls) => {
     if (!htmls.length) return "";
-    return `
-      <details class="zaino-details" data-cat="${key}" ${zainoOpenCats.has(key) ? "open" : ""}>
-        <summary>
-          <span class="zaino-cat-title">${title}</span>
-          <span class="zaino-cat-count">${htmls.length}</span>
-          <span class="zaino-cat-chevron"></span>
-        </summary>
-        <div class="zaino-list">${htmls.join("")}</div>
-      </details>
-    `;
+    return dropdownHTML(zainoOpenCats, key, title, htmls.length,
+      `<div class="zaino-list">${htmls.join("")}</div>`);
   };
 
   zainoHTML = makeDetails("relic", "Reliquie", relicHTMLs) +
@@ -462,15 +498,7 @@ export function renderEquipment() {
  `;
 
  // Ricorda quali tendine sono aperte, così non si richiudono dopo vendita/equip
- el.querySelectorAll(".zaino-details").forEach(d => {
- d.addEventListener("toggle", () => {
- if (d.open) zainoOpenCats.add(d.dataset.cat);
- else zainoOpenCats.delete(d.dataset.cat);
- });
- });
+ bindDropdownState(el, zainoOpenCats);
 }
-
-/* Tendine zaino aperte (solo per la sessione corrente: all'avvio sono chiuse) */
-const zainoOpenCats = new Set();
 
 

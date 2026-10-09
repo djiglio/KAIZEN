@@ -7,13 +7,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="icon" type="image/png" href="img/icon.png"/>
   <link rel="apple-touch-icon" href="img/icon.png"/>
-  <title>KAIZEN v6.15</title>
+  <title>KAIZEN v6.16</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.15
+   KAIZEN v6.16
    ============================================================ */
 
 :root {
@@ -1219,6 +1219,13 @@ body::before {
 .zaino-details[open] > summary { border-bottom: 1px solid rgba(212,160,23,.12); }
 .zaino-details > .zaino-list { padding: 10px; }
 
+/* ── Mercato: contenuto delle tendine (riusa .zaino-details) ── */
+.mercato-body { padding: 10px 10px 2px; }
+.mercato-body > .shop-section-note { margin: 2px 2px 10px; }
+.mercato-body > .shop-section-note + .shop-section-label { margin-top: 4px; }
+.mercato-soon { font-family: "Inter", sans-serif; font-size: 11px; color: #64748b; text-align: center; padding: 18px 12px 20px; line-height: 1.6; }
+.mercato-soon strong { display: block; font-family: "Cinzel", serif; font-size: 11px; letter-spacing: 2px; color: var(--gold); margin-bottom: 4px; }
+
 /* ══════════════════════════════════════
    IMPOSTAZIONI
 ══════════════════════════════════════ */
@@ -1587,7 +1594,7 @@ body::before {
   <button class="nav-btn"         onclick="window.__kaizen.showPage('p-hero',this)">Eroe</button>
   <button class="nav-btn"         onclick="window.__kaizen.showPage('p-mission',this)">Missioni Settimanali</button>
   <button class="nav-btn"         onclick="window.__kaizen.showPage('p-world',this)">Mondo Esterno</button>
-  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-shop',this)">Negozio</button>
+  <button class="nav-btn"         onclick="window.__kaizen.showPage('p-shop',this)">Mercato</button>
   <button class="nav-btn"         onclick="window.__kaizen.showPage('p-trophy',this)">Bacheca</button>
   <button class="nav-btn"         onclick="window.__kaizen.showPage('p-settings',this)">Impostazioni</button>
 </div>
@@ -1644,9 +1651,9 @@ body::before {
   <div id="world-log-section"></div>
 </div>
 
-<!-- ══ PAGE: NEGOZIO ══ -->
+<!-- ══ PAGE: MERCATO ══ -->
 <div id="p-shop" class="page">
-  <div class="section-header">Negozio</div>
+  <div class="section-header">Mercato</div>
   <div id="shop-content"></div>
 </div>
 
