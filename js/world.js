@@ -684,7 +684,7 @@ function executeCombat(enemy, enemyEquip) {
  store.state.equipment.zaino.push({ id: areaLootObj.id, type: "arealoot" });
  store.state.world.tesoriScoperti[areaLootObj.id] = (store.state.world.tesoriScoperti[areaLootObj.id] || 0) + 1;
  updateWorldQuests("loot", { value: areaLootObj.value });
- addHistory(` Trovato: ${areaLootObj.name} → zaino`, "world");
+ addHistory(` Trovato: ${areaLootObj.icon} ${areaLootObj.name} → zaino`, "world");
  }
 
  // Tracker streak vittorie
@@ -748,7 +748,7 @@ function executeDiscovery() {
       state.equipment.zaino.push({ id:rel.id, type:"relic" });
       updateWorldQuests("relic", {});
       w.missioniLog.unshift({ tipo:"relic", nome:rel.name, denari:0, t:Date.now() });
-      addHistory(` Reliquia: ${rel.name} — ${rel.desc}`, "world");
+      addHistory(` Reliquia: ${rel.icon} ${rel.name} — ${rel.desc}`, "world");
       showToast(`${rel.icon} Reliquia: ${rel.name}!`);
     } else if (tr < 0.35) {
  // Equipaggiamento da esplorazione
@@ -771,8 +771,8 @@ function executeDiscovery() {
     w.tesoriScoperti[aLoot.id] = (w.tesoriScoperti[aLoot.id] || 0) + 1;
     updateWorldQuests("loot", { value: aLoot.value });
     w.missioniLog.unshift({ tipo:"equip", nome:aLoot.name, denari:0, t:Date.now() });
-    addHistory(` Trovato: 📦 ${aLoot.name} → zaino`, "world");
-    showToast(`📦 ${aLoot.name} trovato!`);
+    addHistory(` Trovato: ${aLoot.icon} ${aLoot.name} → zaino`, "world");
+    showToast(`${aLoot.icon} ${aLoot.name} trovato!`);
   } else {
     pickTreasureReward();
   }
