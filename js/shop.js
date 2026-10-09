@@ -243,28 +243,30 @@ export function renderShop() {
  for (const [slot, label] of Object.entries(slotLabels)) {
  const items = shopEquip.filter(e => e.slot === slot);
  if (!items.length) continue;
- equipHTML += `<div class="shop-section-label">${label}</div>`;
- equipHTML += items.map(e => {
- const fp = discountedPrice(e.prezzo, disc);
- const can = w.denari >= fp;
- const bStat = Object.keys(e.bonus)[0];
- const bVal = Object.values(e.bonus)[0];
- const bStr = bStat === "attacco" ? `+${bVal} ATK` :
- bStat === "difesa" ? `+${bVal} DEF` :
- bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
- const priceHTML = disc > 0
- ? `<span class="shop-original-price">${e.prezzo} 🪙</span>${fp} 🪙`
- : `${fp} 🪙`;
- return `<div class="shop-item">
- <div class="shop-item-icon">${e.icon}</div>
- <div class="shop-item-body">
- <div class="shop-item-name">${e.name}</div>
- <div class="shop-item-desc">${e.desc} · <span style="color:var(--primary)">${bStr}</span> · T${e.tier}</div>
- </div>
- <button class="shop-buy-btn ${can?"":"disabled"}"
- onclick="${can?`window.__kaizen.buyEquipment('${e.id}')`:""}">${priceHTML}</button>
- </div>`;
- }).join("");
+ equipHTML += dropdownHTML(mercatoOpenCats, "armaiolo_" + slot, label, items.length, `
+ <div class="zaino-list">
+ ${items.map(e => {
+  const fp = discountedPrice(e.prezzo, disc);
+  const can = w.denari >= fp;
+  const bStat = Object.keys(e.bonus)[0];
+  const bVal = Object.values(e.bonus)[0];
+  const bStr = bStat === "attacco" ? `+${bVal} ATK` :
+  bStat === "difesa" ? `+${bVal} DEF` :
+  bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
+  const priceHTML = disc > 0
+  ? `<span class="shop-original-price">${e.prezzo} 🪙</span>${fp} 🪙`
+  : `${fp} 🪙`;
+  return `<div class="shop-item">
+  <div class="shop-item-icon">${e.icon}</div>
+  <div class="shop-item-body">
+  <div class="shop-item-name">${e.name}</div>
+  <div class="shop-item-desc">${e.desc} · <span style="color:var(--primary)">${bStr}</span> · T${e.tier}</div>
+  </div>
+  <button class="shop-buy-btn ${can?"":"disabled"}"
+  onclick="${can?`window.__kaizen.buyEquipment('${e.id}')`:""}">${priceHTML}</button>
+  </div>`;
+ }).join("")}
+ </div>`);
  }
 
  // ── Fabbro: in sviluppo ──
