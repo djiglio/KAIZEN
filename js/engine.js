@@ -52,12 +52,14 @@ export function getHeroStats() {
  // Bonus equipaggiamento
  const eqBonus = { attacco:0, difesa:0, velocita:0, critico:0 };
  for (const slot of ["arma","elmo","scudo","corazza","gambali","bracciali"]) {
- const id = eq.equipped[slot];
- if (!id) continue;
+ const eqObj = eq.equipped[slot];
+ if (!eqObj) continue;
+ const id = typeof eqObj === "string" ? eqObj : eqObj.id;
+ const dur = typeof eqObj === "string" ? 100 : (eqObj.dur !== undefined ? eqObj.dur : 100);
  const piece = EQUIPMENT_POOL.find(e => e.id === id);
  if (!piece) continue;
  for (const [k,v] of Object.entries(piece.bonus)) {
- eqBonus[k] = (eqBonus[k] || 0) + v;
+ eqBonus[k] = (eqBonus[k] || 0) + Math.ceil(v * (dur / 100));
  }
  }
 

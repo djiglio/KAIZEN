@@ -16,7 +16,7 @@ import { updateTimer, createParticles } from "./ui.js";
 import { runMission, regenPV, regenPA } from "./world.js";
 import { buyPotion, buyEquipment,
  equipItem, unequipItem,
- discardItem, useRelic } from "./shop.js";
+ discardItem, useRelic, repairItem } from "./shop.js";
 import { APP_VERSION, APP_RELEASE,
  BESTIARY, rankTitles } from "./data.js";
 import { preloadAllImages, initImgObserver } from "./img.js";
@@ -75,6 +75,7 @@ window.__kaizen = {
  unequipItem,
  discardItem,
  useRelic,
+ repairItem,
  // Bacheca modals
  showBestiaryDetail,
  showAllAreaQuests,

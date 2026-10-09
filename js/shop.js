@@ -63,7 +63,7 @@ export function buyEquipment(equipId) {
  if (state.world.denari < finalPrice) { showToast("🪙 Denari insufficienti!"); return; }
 
  state.world.denari -= finalPrice;
- state.equipment.zaino.push({ id:piece.id, type:"equip" });
+ state.equipment.zaino.push({ id:piece.id, type:"equip", dur:100 });
  state.history.unshift({ t:Date.now(), msg:` Acquistato: ${piece.icon} ${piece.name} → zaino`, cat:"shop" });
  if (state.history.length > 200) state.history = state.history.slice(0,200);
  save();
@@ -72,27 +72,23 @@ export function buyEquipment(equipId) {
 }
 
 /* ── Equipaggia da zaino ── */
-export function equipItem(itemId) {
+export function equipItem(idx) {
  const state = store.state;
  const eq = state.equipment;
 
- // Cerca nello zaino
- const idx = eq.zaino.findIndex(z => z.id === itemId);
- if (idx === -1) return;
+ if (idx < 0 || idx >= eq.zaino.length) return;
  const zItem = eq.zaino[idx];
 
- // Solo equip, non reliquie
  if (zItem.type !== "equip") { showToast("Le reliquie non si equipaggiano!"); return; }
 
- const piece = EQUIPMENT_POOL.find(e => e.id === itemId);
+ const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
  if (!piece) return;
 
  eq.zaino.splice(idx, 1);
 
- // Swap slot
  const old = eq.equipped[piece.slot];
- if (old) eq.zaino.push({ id:old, type:"equip" });
- eq.equipped[piece.slot] = itemId;
+ if (old) eq.zaino.push({ id:old.id, type:"equip", dur:old.dur });
+ eq.equipped[piece.slot] = { id:piece.id, dur:(zItem.dur !== undefined ? zItem.dur : 100) };
 
  save();
  showToast(`${piece.icon} ${piece.name} equipaggiato!`);
@@ -102,43 +98,42 @@ export function equipItem(itemId) {
 /* ── Disequipaggia ── */
 export function unequipItem(slot) {
  const eq = store.state.equipment;
- const id = eq.equipped[slot];
- if (!id) return;
+ const eqObj = eq.equipped[slot];
+ if (!eqObj) return;
  eq.equipped[slot] = null;
- eq.zaino.push({ id, type:"equip" });
+ eq.zaino.push({ id:eqObj.id, type:"equip", dur:eqObj.dur });
  save();
- const piece = EQUIPMENT_POOL.find(e => e.id === id);
+ const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
  showToast(`${piece?.icon||""} Rimosso da ${slot}`);
  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
 /* ── Scarta oggetto ── */
-export function discardItem(itemId) {
+export function discardItem(idx) {
  const state = store.state;
  const eq = state.equipment;
- const idx = eq.zaino.findIndex(z => z.id === itemId);
- if (idx === -1) return;
+ if (idx < 0 || idx >= eq.zaino.length) return;
  const zItem = eq.zaino[idx];
  eq.zaino.splice(idx, 1);
 
  let refund = 0;
- let name = itemId;
+ let name = zItem.id;
  let icon = "";
 
  if (zItem.type === "equip") {
- const piece = EQUIPMENT_POOL.find(e => e.id === itemId);
+ const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
  if (piece) {
  refund = Math.floor(piece.prezzo * 0.30);
  name = piece.name;
  icon = piece.icon;
  }
  } else if (zItem.type === "relic") {
- const rel = RELICS.find(r => r.id === itemId);
+ const rel = RELICS.find(r => r.id === zItem.id);
  if (rel) { name = rel.name; icon = rel.icon; refund = 5; }
  } else if (zItem.type === "arealoot") {
  let piece = null;
  for (const pool of Object.values(AREA_LOOT_POOL)) {
- piece = pool.find(i => i.id === itemId);
+ piece = pool.find(i => i.id === zItem.id);
  if (piece) break;
  }
  if (piece) { name = piece.name; icon = "📦"; refund = piece.value; }
@@ -151,21 +146,22 @@ export function discardItem(itemId) {
 }
 
 /* ── Usa reliquia dallo zaino ── */
-export function useRelic(relicId) {
+export function useRelic(idx) {
  const state = store.state;
  const w = state.world;
- const idx = state.equipment.zaino.findIndex(z => z.id === relicId && z.type === "relic");
- if (idx === -1) return;
+ if (idx < 0 || idx >= state.equipment.zaino.length) return;
+ const zItem = state.equipment.zaino[idx];
+ if (zItem.type !== "relic") return;
 
- const rel = RELICS.find(r => r.id === relicId);
+ const rel = RELICS.find(r => r.id === zItem.id);
  if (!rel) return;
 
  state.equipment.zaino.splice(idx, 1);
  // Attiva reliquia (sostituisce eventuale della stessa stat)
  w.reliquieAttive = (w.reliquieAttive||[]).filter(ra =>
- Date.now() < ra.expiry && ra.id !== relicId
+ Date.now() < ra.expiry && ra.id !== zItem.id
  );
- w.reliquieAttive.push({ id: relicId, expiry: Date.now() + 24 * 3600 * 1000 });
+ w.reliquieAttive.push({ id: zItem.id, expiry: Date.now() + 24 * 3600 * 1000 });
  save();
  showToast(`${rel.icon} ${rel.name} attivata! ${rel.desc}`);
  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
@@ -199,6 +195,31 @@ function bindDropdownState(container, openSet) {
  else openSet.delete(d.dataset.cat);
  });
  });
+}
+
+
+/* ── Fabbro: Ripara equipaggiamento ── */
+export function repairItem(slot) {
+ const state = store.state;
+ const eqObj = state.equipment.equipped[slot];
+ if (!eqObj) return;
+ const dur = eqObj.dur !== undefined ? eqObj.dur : 100;
+ if (dur >= 100) { showToast("L'oggetto è già in perfette condizioni!"); return; }
+
+ const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+ if (!piece) return;
+
+ const missing = 100 - dur;
+ const cost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
+
+ if (state.world.denari < cost) { showToast(`🪙 Denari insufficienti! Costo: ${cost}`); return; }
+
+ state.world.denari -= cost;
+ eqObj.dur = 100;
+
+ save();
+ showToast(`🛠️ ${piece.name} riparato per ${cost} 🪙!`);
+ if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -269,11 +290,49 @@ export function renderShop() {
  </div>`);
  }
 
- // ── Fabbro: in sviluppo ──
- const fabbroHTML = `<div class="mercato-soon">
- <strong>Bottega chiusa</strong>
- Il fabbro sta ancora accendendo la forgia. Torna più avanti.
+ // ── Fabbro: Riparazioni ──
+ let fabbroHTML = "";
+ const eqSlots = ["arma","elmo","scudo","corazza","gambali","bracciali"];
+ let repairableItems = [];
+ for (const slot of eqSlots) {
+   const eqObj = store.state.equipment.equipped[slot];
+   if (!eqObj) continue;
+   const dur = eqObj.dur !== undefined ? eqObj.dur : 100;
+   if (dur < 100) {
+     const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+     if (piece) repairableItems.push({ slot, piece, dur });
+   }
+ }
+
+ if (repairableItems.length === 0) {
+   fabbroHTML = `<div class="mercato-soon">
+ <strong>Tutto perfetto!</strong>
+ Il tuo equipaggiamento attuale non necessita di riparazioni.
  </div>`;
+ } else {
+   fabbroHTML = `<div class="mercato-body">
+ <div class="shop-section-note">Fabbro · ripara gli oggetti equipaggiati logorati</div>
+ <div class="zaino-list">
+ ${repairableItems.map(item => {
+   const { slot, piece, dur } = item;
+   const missing = 100 - dur;
+   const cost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
+   const canBuy = w.denari >= cost;
+   const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
+   return `<div class="shop-item">
+   <div class="shop-item-icon">${piece.icon}</div>
+   <div class="shop-item-body">
+   <div class="shop-item-name">${piece.name}</div>
+   <div style="height:2px; background:rgba(255,255,255,0.1); margin-top:2px; margin-bottom:2px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>
+   <div class="shop-item-desc">Slot: ${slot} · Usura: ${missing}%</div>
+   </div>
+   <button class="shop-buy-btn ${canBuy?"":"disabled"}" style="background:rgba(212,160,23,0.1); border-color:rgba(212,160,23,0.3); color:var(--gold);"
+   onclick="${canBuy?`window.__kaizen.repairItem('${slot}')`:""}">${cost} 🪙</button>
+   </div>`;
+ }).join("")}
+ </div>
+ </div>`;
+ }
 
  const pvPct = Math.min(100, (w.pvAttuali / heroS.pvMax) * 100).toFixed(1);
  const paPct = Math.min(100, (w.paAttuali / heroS.paMax) * 100).toFixed(1);
@@ -340,10 +399,13 @@ export function renderEquipment() {
  ];
 
  const slotsHTML = slotDefs.map(({ slot, label, icon }) => {
- const id = eq.equipped[slot];
+ const eqObj = eq.equipped[slot];
+ const id = eqObj ? (typeof eqObj === "string" ? eqObj : eqObj.id) : null;
+ const dur = eqObj ? (typeof eqObj === "string" ? 100 : (eqObj.dur !== undefined ? eqObj.dur : 100)) : 100;
  const piece = id ? EQUIPMENT_POOL.find(e => e.id === id) : null;
  const bStat = piece ? Object.keys(piece.bonus)[0] : null;
- const bVal = piece ? Object.values(piece.bonus)[0] : 0;
+ const originalVal = piece ? Object.values(piece.bonus)[0] : 0;
+ const bVal = piece ? Math.ceil(originalVal * (dur / 100)) : 0;
  const bStr = piece
  ? (bStat === "attacco" ? `+${bVal} ATK` :
  bStat === "difesa" ? `+${bVal} DEF` :
@@ -353,12 +415,15 @@ export function renderEquipment() {
  ? (bStat === "attacco" ? "#dc2626" : bStat === "difesa" ? "#0e7490" :
  bStat === "velocita"? "#0ea5e9" : "#f97316")
  : "#374151";
+ const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
+ const durBar = piece ? `<div style="height:2px; background:rgba(255,255,255,0.1); margin-top:3px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>` : "";
  return `<div class="equip-slot ${piece?"equip-slot-filled":"equip-slot-empty"}">
  <div class="equip-slot-header">
  <span class="equip-slot-icon">${piece ? piece.icon : icon}</span>
- <div class="equip-slot-info">
+ <div class="equip-slot-info" style="flex:1; min-width:0;">
  <div class="equip-slot-name">${piece ? piece.name : label}</div>
- <div class="equip-slot-bonus" style="color:${bColor}">${bStr}${piece?" · T"+piece.tier:""}</div>
+ ${durBar}
+ <div class="equip-slot-bonus" style="color:${bColor}; margin-top:2px;">${bStr}${piece?" · T"+piece.tier:""}</div>
  </div>
  ${piece ? `<button class="equip-remove-btn" onclick="window.__kaizen.unequipItem('${slot}')">×</button>` : ""}
  </div>
@@ -401,16 +466,70 @@ export function renderEquipment() {
  if (!zItems.length) {
  zainoHTML = `<div class="zaino-empty">LO ZAINO È VUOTO</div>`;
  } else {
- // Raggruppa gli oggetti
- const groupedItems = {};
- zItems.forEach(z => {
- const key = z.type + "_" + z.id;
- if (!groupedItems[key]) {
- groupedItems[key] = { ...z, count: 1 };
- } else {
- groupedItems[key].count++;
- }
- });
+ let equipHTMLs = [];
+  let relicHTMLs = [];
+  let arealootHTMLs = [];
+
+  zItems.forEach((zItem, idx) => {
+  if (zItem.type === "equip") {
+  const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
+  if (!piece) return;
+  const dur = zItem.dur !== undefined ? zItem.dur : 100;
+  const bStat = Object.keys(piece.bonus)[0];
+  const bVal = Math.ceil(Object.values(piece.bonus)[0] * (dur / 100));
+  const bStr = bStat === "attacco" ? `+${bVal} ATK` :
+  bStat === "difesa" ? `+${bVal} DEF` :
+  bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
+  const refund = Math.floor(piece.prezzo * 0.30);
+  const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
+  const durBar = `<div style="height:2px; background:rgba(255,255,255,0.1); margin-top:2px; margin-bottom:2px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>`;
+  equipHTMLs.push(`<div class="zaino-item">
+  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
+  <div class="zaino-item-body">
+  <div class="zaino-item-name">${piece.name}</div>
+  ${durBar}
+  <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
+  </div>
+  <div class="zaino-item-actions">
+  <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem(${idx})">Equip</button>
+  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${refund}</button>
+  </div>
+  </div>`);
+  } else if (zItem.type === "relic") {
+    const rel = RELICS.find(r => r.id === zItem.id);
+    if (!rel) return;
+    const refund = 5;
+    relicHTMLs.push(`<div class="zaino-item">
+    <span class="zaino-item-icon">${rel.icon}</span>
+  <div class="zaino-item-body">
+  <div class="zaino-item-name">${rel.name}</div>
+  <div class="zaino-item-sub">${rel.desc}</div>
+  </div>
+  <div class="zaino-item-actions">
+  <button class="zaino-equip-btn" style="background:rgba(212,160,23,0.15);border-color:rgba(212,160,23,0.3);color:var(--gold)"
+  onclick="window.__kaizen.useRelic(${idx})">Usa</button>
+  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${refund}</button>
+  </div>
+  </div>`);
+  } else if (zItem.type === "arealoot") {
+  let piece = null;
+  for (const pool of Object.values(AREA_LOOT_POOL)) {
+  piece = pool.find(i => i.id === zItem.id);
+  if (piece) break;
+  }
+  if (!piece) return;
+  arealootHTMLs.push(`<div class="zaino-item">
+  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
+  <div class="zaino-item-body">
+  <div class="zaino-item-name">${piece.name}</div>
+  <div class="zaino-item-sub">${piece.desc}</div>
+  </div>
+  <div class="zaino-item-actions">
+  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${piece.value}</button>
+  </div>
+  </div>`);
+  }
+  });
 
   let equipHTMLs = [];
   let relicHTMLs = [];

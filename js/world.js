@@ -637,7 +637,7 @@ function pickAreaLoot(areaId, fortunaStat) {
 }
 
 /* ── Combattimento ── */
-function executeCombat(enemy, enemyEquip) {
+ function executeCombat(enemy, enemyEquip) {
  const state = store.state;
  const w = state.world;
  const heroS = getHeroStats();
@@ -645,6 +645,17 @@ function executeCombat(enemy, enemyEquip) {
 
  w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
  w.pvAttuali = result.heroHPFinal;
+
+ // Usura equipaggiamento
+ const degradeRates = [0, 10, 9, 8, 7, 6, 5, 4, 4, 3, 2]; // Indice = Tier
+ for (const slot of ["arma", "elmo", "scudo", "corazza", "gambali", "bracciali"]) {
+   const eqObj = state.equipment.equipped[slot];
+   if (!eqObj) continue;
+   const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+   if (!piece) continue;
+   const rate = degradeRates[piece.tier] || 1;
+   eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - rate);
+ }
 
  let reward = 0, loot = null, areaLootObj = null;
 

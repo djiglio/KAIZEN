@@ -138,8 +138,20 @@ function migrate(p) {
  if (!p.equipment.equipped) p.equipment.equipped = defaultEquipment().equipped;
  for (const slot of ["arma","elmo","scudo","corazza","gambali","bracciali"]) {
  if (!(slot in p.equipment.equipped)) p.equipment.equipped[slot] = null;
+ else if (typeof p.equipment.equipped[slot] === "string") {
+   p.equipment.equipped[slot] = { id: p.equipment.equipped[slot], dur: 100 };
+ } else if (p.equipment.equipped[slot] && p.equipment.equipped[slot].dur === undefined) {
+   p.equipment.equipped[slot].dur = 100;
+ }
  }
  if (!p.equipment.zaino) p.equipment.zaino = [];
+ else {
+   for (let i=0; i<p.equipment.zaino.length; i++) {
+     if (p.equipment.zaino[i].type === "equip" && p.equipment.zaino[i].dur === undefined) {
+       p.equipment.zaino[i].dur = 100;
+     }
+   }
+ }
  if (!p.activeQuestsEvo) p.activeQuestsEvo = [];
  if (!p.activeQuestsWorld) p.activeQuestsWorld = [];
  if (p.lastQuestWeek === undefined) p.lastQuestWeek = -1;
