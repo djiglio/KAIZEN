@@ -383,10 +383,10 @@ export function renderEquipment() {
  <div class="zaino-list" style="margin-bottom:24px;">` +
  relAttive.map(ra => {
  const rel = RELICS.find(r => r.id === ra.id);
- if (!rel) return "";
- const remaining = Math.ceil((ra.expiry - now) / 3600000);
- return `<div class="zaino-item">
- <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
+   if (!rel) return "";
+   const remaining = Math.ceil((ra.expiry - now) / 3600000);
+   return `<div class="zaino-item">
+   <span class="zaino-item-icon">${rel.icon}</span>
  <div class="zaino-item-body">
  <div class="zaino-item-name">${rel.name}</div>
  <div class="zaino-item-sub">${rel.desc} · ${remaining}h rimanenti</div>
@@ -442,11 +442,11 @@ export function renderEquipment() {
   </div>
   </div>`);
   } else if (zItem.type === "relic") {
-  const rel = RELICS.find(r => r.id === zItem.id);
-  if (!rel) return;
-  const refund = 5;
-  relicHTMLs.push(`<div class="zaino-item">
-  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
+    const rel = RELICS.find(r => r.id === zItem.id);
+    if (!rel) return;
+    const refund = 5;
+    relicHTMLs.push(`<div class="zaino-item">
+    <span class="zaino-item-icon">${rel.icon}</span>
   <div class="zaino-item-body">
   <div class="zaino-item-name">${rel.name}${countBadge}</div>
   <div class="zaino-item-sub">${rel.desc}</div>
