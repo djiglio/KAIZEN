@@ -109,9 +109,15 @@ export function unequipItem(slot) {
 }
 
 /* ── Scarta oggetto ── */
-export function discardItem(idx) {
+export function discardItem(target) {
  const state = store.state;
  const eq = state.equipment;
+ let idx = -1;
+ if (typeof target === "number") {
+   idx = target;
+ } else if (typeof target === "string") {
+   idx = eq.zaino.findIndex(z => z.id === target);
+ }
  if (idx < 0 || idx >= eq.zaino.length) return;
  const zItem = eq.zaino[idx];
  eq.zaino.splice(idx, 1);
@@ -146,9 +152,15 @@ export function discardItem(idx) {
 }
 
 /* ── Usa reliquia dallo zaino ── */
-export function useRelic(idx) {
+export function useRelic(target) {
  const state = store.state;
  const w = state.world;
+ let idx = -1;
+ if (typeof target === "number") {
+   idx = target;
+ } else if (typeof target === "string") {
+   idx = state.equipment.zaino.findIndex(z => z.type === "relic" && z.id === target);
+ }
  if (idx < 0 || idx >= state.equipment.zaino.length) return;
  const zItem = state.equipment.zaino[idx];
  if (zItem.type !== "relic") return;
@@ -460,88 +472,129 @@ export function renderEquipment() {
  }).join("") + `</div>`;
  }
 
- // Zaino
- const zItems = eq.zaino;
- let zainoHTML;
- if (!zItems.length) {
- zainoHTML = `<div class="zaino-empty">LO ZAINO È VUOTO</div>`;
- } else {
- let equipHTMLs = [];
-  let relicHTMLs = [];
-  let arealootHTMLs = [];
+  // Zaino
+  const zItems = eq.zaino;
+  let zainoHTML;
+  if (!zItems.length) {
+    zainoHTML = `<div class="zaino-empty">LO ZAINO È VUOTO</div>`;
+  } else {
+    let equipHTMLs = [];
+    let arealootHTMLs = [];
+    const relicMap = new Map();
 
-  zItems.forEach((zItem, idx) => {
-  if (zItem.type === "equip") {
-  const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
-  if (!piece) return;
-  const dur = zItem.dur !== undefined ? zItem.dur : 100;
-  const bStat = Object.keys(piece.bonus)[0];
-  const bVal = Math.ceil(Object.values(piece.bonus)[0] * (dur / 100));
-  const bStr = bStat === "attacco" ? `+${bVal} ATK` :
-  bStat === "difesa" ? `+${bVal} DEF` :
-  bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
-  const refund = Math.floor(piece.prezzo * 0.30);
-  const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
-  const durBar = `<div style="height:2px; background:rgba(255,255,255,0.1); margin-top:2px; margin-bottom:2px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>`;
-  equipHTMLs.push(`<div class="zaino-item">
-  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
-  <div class="zaino-item-body">
-  <div class="zaino-item-name">${piece.name}</div>
-  ${durBar}
-  <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
-  </div>
-  <div class="zaino-item-actions">
-  <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem(${idx})">Equip</button>
-  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${refund}</button>
-  </div>
-  </div>`);
-  } else if (zItem.type === "relic") {
-    const rel = RELICS.find(r => r.id === zItem.id);
-    if (!rel) return;
-    const refund = 5;
-    relicHTMLs.push(`<div class="zaino-item">
-    <span class="zaino-item-icon">${rel.icon}</span>
-  <div class="zaino-item-body">
-  <div class="zaino-item-name">${rel.name}</div>
-  <div class="zaino-item-sub">${rel.desc}</div>
-  </div>
-  <div class="zaino-item-actions">
-  <button class="zaino-equip-btn" style="background:rgba(212,160,23,0.15);border-color:rgba(212,160,23,0.3);color:var(--gold)"
-  onclick="window.__kaizen.useRelic(${idx})">Usa</button>
-  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${refund}</button>
-  </div>
-  </div>`);
-  } else if (zItem.type === "arealoot") {
-  let piece = null;
-  for (const pool of Object.values(AREA_LOOT_POOL)) {
-  piece = pool.find(i => i.id === zItem.id);
-  if (piece) break;
+    zItems.forEach((zItem, idx) => {
+      if (zItem.type === "equip") {
+        const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
+        if (!piece) return;
+        const dur = zItem.dur !== undefined ? zItem.dur : 100;
+        const bStat = Object.keys(piece.bonus)[0];
+        const bVal = Math.ceil(Object.values(piece.bonus)[0] * (dur / 100));
+        const bStr = bStat === "attacco" ? `+${bVal} ATK` :
+        bStat === "difesa" ? `+${bVal} DEF` :
+        bStat === "velocita"? `+${bVal} VEL` : `+${bVal} CRI`;
+        const refund = Math.floor(piece.prezzo * 0.30);
+        const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
+        const durBar = `<div style="height:2px; background:rgba(255,255,255,0.1); margin-top:2px; margin-bottom:2px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>`;
+        equipHTMLs.push(`<div class="zaino-item">
+        <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
+        <div class="zaino-item-body">
+        <div class="zaino-item-name">${piece.name}</div>
+        ${durBar}
+        <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
+        </div>
+        <div class="zaino-item-actions">
+        <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem(${idx})">Equip</button>
+        <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${refund}</button>
+        </div>
+        </div>`);
+      } else if (zItem.type === "relic") {
+        const rel = RELICS.find(r => r.id === zItem.id);
+        if (!rel) return;
+        if (!relicMap.has(rel.id)) {
+          relicMap.set(rel.id, { rel, count: 1 });
+        } else {
+          relicMap.get(rel.id).count++;
+        }
+      } else if (zItem.type === "arealoot") {
+        let piece = null;
+        for (const pool of Object.values(AREA_LOOT_POOL)) {
+          piece = pool.find(i => i.id === zItem.id);
+          if (piece) break;
+        }
+        if (!piece) return;
+        arealootHTMLs.push(`<div class="zaino-item">
+        <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
+        <div class="zaino-item-body">
+        <div class="zaino-item-name">${piece.name}</div>
+        <div class="zaino-item-sub">${piece.desc}</div>
+        </div>
+        <div class="zaino-item-actions">
+        <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${piece.value}</button>
+        </div>
+        </div>`);
+      }
+    });
+
+    const STAT_ORDER = [
+      "forza",
+      "difesa",
+      "velocita",
+      "destrezza",
+      "critico",
+      "costituzione",
+      "furtivita",
+      "guarigione",
+      "fortuna",
+      "sopravvivenza",
+      "pianificazione",
+      "carisma"
+    ];
+
+    const sortedRelics = Array.from(relicMap.values()).sort((a, b) => {
+      const orderA = STAT_ORDER.indexOf(a.rel.stat);
+      const orderB = STAT_ORDER.indexOf(b.rel.stat);
+      const statDiff = (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+      if (statDiff !== 0) return statDiff;
+
+      const bonusDiff = (b.rel.bonus || 0) - (a.rel.bonus || 0);
+      if (bonusDiff !== 0) return bonusDiff;
+
+      return a.rel.name.localeCompare(b.rel.name);
+    });
+
+    let totalRelicsCount = 0;
+    const relicHTMLs = sortedRelics.map(item => {
+      const { rel, count } = item;
+      totalRelicsCount += count;
+      const refund = 5;
+      const countBadge = count > 1 
+        ? `<span class="zaino-qty-badge">x${count}</span>` 
+        : "";
+      return `<div class="zaino-item">
+        <span class="zaino-item-icon">${rel.icon}</span>
+        <div class="zaino-item-body">
+          <div class="zaino-item-name">${rel.name}${countBadge}</div>
+          <div class="zaino-item-sub">${rel.desc}</div>
+        </div>
+        <div class="zaino-item-actions">
+          <button class="zaino-equip-btn" style="background:rgba(212,160,23,0.15);border-color:rgba(212,160,23,0.3);color:var(--gold)"
+            onclick="window.__kaizen.useRelic('${rel.id}')">Usa</button>
+          <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${rel.id}')">Vendi 🪙 ${refund}</button>
+        </div>
+      </div>`;
+    });
+
+    const makeDetails = (key, title, htmls, countOverride) => {
+      if (!htmls.length) return "";
+      const count = countOverride !== undefined ? countOverride : htmls.length;
+      return dropdownHTML(zainoOpenCats, key, title, count,
+        `<div class="zaino-list">${htmls.join("")}</div>`);
+    };
+
+    zainoHTML = makeDetails("relic", "Reliquie", relicHTMLs, totalRelicsCount) +
+                makeDetails("equip", "Equipaggiamento", equipHTMLs) +
+                makeDetails("arealoot", "Materiali", arealootHTMLs);
   }
-  if (!piece) return;
-  arealootHTMLs.push(`<div class="zaino-item">
-  <span class="zaino-item-icon">${piece.icon || "🦴"}</span>
-  <div class="zaino-item-body">
-  <div class="zaino-item-name">${piece.name}</div>
-  <div class="zaino-item-sub">${piece.desc}</div>
-  </div>
-  <div class="zaino-item-actions">
-  <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem(${idx})">Vendi 🪙 ${piece.value}</button>
-  </div>
-  </div>`);
-  }
-  });
-
-  
-  const makeDetails = (key, title, htmls) => {
-    if (!htmls.length) return "";
-    return dropdownHTML(zainoOpenCats, key, title, htmls.length,
-      `<div class="zaino-list">${htmls.join("")}</div>`);
-  };
-
-  zainoHTML = makeDetails("relic", "Reliquie", relicHTMLs) +
-              makeDetails("equip", "Equipaggiamento", equipHTMLs) +
-              makeDetails("arealoot", "Materiali", arealootHTMLs);
- }
 
  el.innerHTML = `
  <div class="equip-totals">

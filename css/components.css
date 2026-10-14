@@ -817,6 +817,7 @@
 .zaino-item-icon { font-size: 18px; flex-shrink: 0; width: 22px; text-align: center; }
 .zaino-item-body { flex: 1; min-width: 0; }
 .zaino-item-name { font-family: "Cinzel", serif; font-size: 10px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zaino-qty-badge { display: inline-block; margin-left: 6px; background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.3); color: var(--gold); padding: 1px 6px; border-radius: 4px; font-size: 9px; font-family: "JetBrains Mono", monospace; vertical-align: middle; }
 .zaino-item-sub  { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #64748b; margin-top: 1px; }
 .zaino-item-actions { display: flex; gap: 5px; flex-shrink: 0; }
 .zaino-equip-btn { background: linear-gradient(135deg, rgba(78,204,163,.18), rgba(78,204,163,.07)); border: 1px solid rgba(78,204,163,.3); color: var(--primary); font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 800; padding: 6px 10px; border-radius: 6px; cursor: pointer; letter-spacing: .5px; min-height: 32px; transition: all .2s; }
