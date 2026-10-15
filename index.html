@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="icon" type="image/png" href="img/icon.png"/>
   <link rel="apple-touch-icon" href="img/icon.png"/>
-  <title>KAIZEN v6.27</title>
+  <title>KAIZEN v6.28</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
@@ -1218,8 +1218,9 @@ body::before {
 .zaino-cat-count { font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--gold); background: rgba(212,160,23,.12); border: 1px solid rgba(212,160,23,.28); border-radius: 4px; padding: 2px 7px; }
 .zaino-cat-chevron { width: 7px; height: 7px; border-right: 2px solid var(--gold); border-bottom: 2px solid var(--gold); transform: rotate(45deg); margin: -3px 4px 0 2px; opacity: .7; transition: transform .25s, margin .25s; flex-shrink: 0; }
 .zaino-details[open] .zaino-cat-chevron { transform: rotate(-135deg); margin-top: 3px; }
-.zaino-details[open] > summary { border-bottom: 1px solid rgba(212,160,23,.12); }
 .zaino-details > .zaino-list { padding: 10px; }
+.zaino-toggle-all-btn { background: rgba(212,160,23,0.08); border: 1px solid rgba(212,160,23,0.22); color: var(--gold); font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 700; padding: 4px 8px; border-radius: 5px; cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; transition: all 0.2s; }
+.zaino-toggle-all-btn:active { background: rgba(212,160,23,0.25); }
 
 /* ── Mercato: contenuto delle tendine (riusa .zaino-details) ── */
 .mercato-body { padding: 10px 10px 2px; }
@@ -1665,7 +1666,7 @@ body::before {
   <div class="tab-bar">
     <button class="tab-btn active" onclick="window.__kaizen.switchTab('tab-trophies',this)">Trofei</button>
     <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-bestiary',this)">Bestiario</button>
-    <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-treasures',this)">Tesori</button>
+    <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-treasures',this)">Tesori &amp; Materiali</button>
   </div>
   <div id="tab-trophies" class="tab-panel active">
     <div id="trophy-list" class="trophy-grid"></div>
@@ -1740,6 +1741,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.27"></script>
+<script type="module" src="js/main.js?v=6.28"></script>
 </body>
 </html>

@@ -825,6 +825,8 @@
 .zaino-equip-btn:active { background: rgba(78,204,163,.28); }
 .zaino-discard-btn { background: rgba(220,38,38,.06); border: 1px solid rgba(220,38,38,.18); color: var(--danger); font-size: 13px; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
 .zaino-discard-btn:active { background: rgba(220,38,38,.16); }
+.zaino-toggle-all-btn { background: rgba(212,160,23,0.08); border: 1px solid rgba(212,160,23,0.22); color: var(--gold); font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 700; padding: 4px 8px; border-radius: 5px; cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; transition: all 0.2s; }
+.zaino-toggle-all-btn:active { background: rgba(212,160,23,0.25); }
 
 /* ══════════════════════════════════════
    IMPOSTAZIONI

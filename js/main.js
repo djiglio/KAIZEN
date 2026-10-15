@@ -11,6 +11,7 @@ import { render, renderWorld,
  showBestiaryDetail,
  showTreasureDetail,
  showTrophyDetail,
+ toggleAllTreasures,
  closeDetailModal , showAllAreaQuests} from "./render.js";
 import { updateTimer, createParticles } from "./ui.js";
 import { runMission, regenPV, regenPA } from "./world.js";
@@ -81,6 +82,7 @@ window.__kaizen = {
  showAllAreaQuests,
  showTreasureDetail,
  showTrophyDetail,
+ toggleAllTreasures,
  closeDetailModal,
  // Render callback
  onAfterUpdate: render,

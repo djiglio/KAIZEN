@@ -353,7 +353,7 @@ export function renderWorld() {
 }
 
 
-const bachecaOpenCats = new Set(["generic"]);
+const bachecaOpenCats = new Set();
 
 function renderBacheca(state, w) {
  // ── Trofei ──
@@ -536,7 +536,13 @@ function renderBacheca(state, w) {
      sectionsHTML += makeTendina(area.id, area.name, `${areaFound}/${pool.length}`, areaCards);
    });
 
-   tlistEl.innerHTML = sectionsHTML;
+   const toggleButtonsHTML = `
+   <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
+     <button class="zaino-toggle-all-btn" onclick="window.__kaizen.toggleAllTreasures(true)">Espandi tutti</button>
+     <button class="zaino-toggle-all-btn" onclick="window.__kaizen.toggleAllTreasures(false)">Comprimi tutti</button>
+   </div>`;
+
+   tlistEl.innerHTML = toggleButtonsHTML + sectionsHTML;
 
    tlistEl.querySelectorAll(".zaino-details").forEach(d => {
      d.addEventListener("toggle", () => {
@@ -545,6 +551,16 @@ function renderBacheca(state, w) {
      });
    });
  }
+}
+
+export function toggleAllTreasures(open) {
+  const container = document.getElementById("treasure-list");
+  if (!container) return;
+  container.querySelectorAll(".zaino-details").forEach(d => {
+    d.open = open;
+    if (open) bachecaOpenCats.add(d.dataset.cat);
+    else bachecaOpenCats.delete(d.dataset.cat);
+  });
 }
 
 /* ── Log in Impostazioni ── */
