@@ -9,7 +9,7 @@ import { HABITS, STAT_DEFS, rankTitles,
  QUEST_POOL_EVO, QUEST_POOL_WORLD,
  EQUIPMENT_POOL, RELICS,
  WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS, EMPIREO_LOOT,
- getEnemiesForArea } from "./data.js";
+ getEnemiesForArea, getCoatingBonus } from "./data.js";
 import { showToast } from "./ui.js";
 
 /* ── Utility ── */
@@ -60,6 +60,14 @@ export function getHeroStats() {
  if (!piece) continue;
  for (const [k,v] of Object.entries(piece.bonus)) {
  eqBonus[k] = (eqBonus[k] || 0) + Math.ceil(v * (dur / 100));
+ }
+ if (eqObj.rivestimento) {
+ const cBonus = getCoatingBonus(eqObj.rivestimento, slot);
+ if (cBonus) {
+ for (const [k, v] of Object.entries(cBonus)) {
+ eqBonus[k] = (eqBonus[k] || 0) + v;
+ }
+ }
  }
  }
 

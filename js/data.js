@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.30";
+export const APP_VERSION = "6.31";
 export const APP_RELEASE = "15/10/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -1341,4 +1341,94 @@ export const MATERIALS = [
   { id: "mat_platino",   name: "Platino",   areaId: "empireo",    rarity: 7, value: 320, desc: "Metallo incorruttibile e tenace, degno degli dei." },
   { id: "mat_diamante",  name: "Diamante",  areaId: "empireo",    rarity: 8, value: 500, desc: "Il minerale più puro e resistente del firmamento." },
 ];
+
+/* ══════════════════════════════════════════════════════════
+   CONFIGURAZIONE RIVESTIMENTI FABBRO (per materiale)
+   Definisce requisiti, bonus per slot e formule di costo
+══════════════════════════════════════════════════════════ */
+export const MATERIAL_COATING_CONFIG = {
+  mat_legno: {
+    reqQty: 5,
+    arma:     { attacco: 1 },
+    armatura: { difesa: 1, velocita: 1 },
+  },
+  mat_ambra: {
+    reqQty: 5,
+    arma:     { attacco: 2, velocita: 1 },
+    armatura: { difesa: 2, velocita: 1 },
+  },
+  mat_carbone: {
+    reqQty: 5,
+    arma:     { attacco: 2, critico: 1 },
+    armatura: { difesa: 2, critico: 1 },
+  },
+  mat_rame: {
+    reqQty: 4,
+    arma:     { attacco: 3, difesa: 1 },
+    armatura: { difesa: 3, attacco: 1 },
+  },
+  mat_bronzo: {
+    reqQty: 4,
+    arma:     { attacco: 3, velocita: 2 },
+    armatura: { difesa: 3, velocita: 2 },
+  },
+  mat_ferro: {
+    reqQty: 4,
+    arma:     { attacco: 5, critico: 1 },
+    armatura: { difesa: 5, attacco: 1 },
+  },
+  mat_granito: {
+    reqQty: 4,
+    arma:     { attacco: 4, difesa: 3 },
+    armatura: { difesa: 6 },
+  },
+  mat_argento: {
+    reqQty: 3,
+    arma:     { attacco: 6, velocita: 3, critico: 1 },
+    armatura: { difesa: 6, velocita: 3, critico: 1 },
+  },
+  mat_oro: {
+    reqQty: 3,
+    arma:     { attacco: 7, critico: 3 },
+    armatura: { difesa: 7, velocita: 2, critico: 2 },
+  },
+  mat_topazio: {
+    reqQty: 3,
+    arma:     { attacco: 8, critico: 4 },
+    armatura: { difesa: 8, velocita: 3, critico: 2 },
+  },
+  mat_ossidiana: {
+    reqQty: 3,
+    arma:     { attacco: 10, critico: 3 },
+    armatura: { difesa: 9, attacco: 3 },
+  },
+  mat_rubino: {
+    reqQty: 2,
+    arma:     { attacco: 12, critico: 5 },
+    armatura: { difesa: 11, critico: 4, attacco: 2 },
+  },
+  mat_platino: {
+    reqQty: 2,
+    arma:     { attacco: 14, difesa: 4, velocita: 2 },
+    armatura: { difesa: 13, attacco: 4, velocita: 2 },
+  },
+  mat_diamante: {
+    reqQty: 2,
+    arma:     { attacco: 18, critico: 6, velocita: 3 },
+    armatura: { difesa: 16, attacco: 5, critico: 4 },
+  },
+};
+
+export function getCoatingBonus(matId, slot) {
+  const cfg = MATERIAL_COATING_CONFIG[matId];
+  if (!cfg) return null;
+  return slot === "arma" ? cfg.arma : cfg.armatura;
+}
+
+export function calculateCoatingCost(piece, mat) {
+  const cfg = MATERIAL_COATING_CONFIG[mat.id] || { reqQty: 4 };
+  const baseCost = Math.round((piece?.prezzo || 50) * 0.15 + (mat?.value || 10) * cfg.reqQty * 0.20);
+  return Math.max(10, baseCost);
+}
+
 

@@ -653,7 +653,10 @@ function pickAreaLoot(areaId, fortunaStat) {
    if (!eqObj) continue;
    const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
    if (!piece) continue;
-   const rate = degradeRates[piece.tier] || 1;
+   let rate = degradeRates[piece.tier] || 1;
+   if (eqObj.rivestimento) {
+     rate = Math.max(1, Math.floor(rate * 0.5));
+   }
    eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - rate);
  }
 
