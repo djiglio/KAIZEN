@@ -18,8 +18,6 @@ import { runMission, regenPV, regenPA } from "./world.js";
 import { buyPotion, buyEquipment,
  equipItem, unequipItem,
  discardItem, useRelic, repairItem,
- openCoatingModal,
- applyCoating,
  openCoatingModal, applyCoating } from "./shop.js";
 import { APP_VERSION, APP_RELEASE,
  BESTIARY, rankTitles } from "./data.js";
@@ -80,6 +78,8 @@ window.__kaizen = {
  discardItem,
  useRelic,
  repairItem,
+ openCoatingModal,
+ applyCoating,
  // Bacheca modals
  showBestiaryDetail,
  showAllAreaQuests,
