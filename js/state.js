@@ -4,6 +4,7 @@
  ============================================================ */
 
 import { showToast } from "./ui.js";
+import { AREA_LOOT_POOL } from "./data.js";
 
 const STORAGE_KEY = "kaizenV6_0";
 
@@ -146,11 +147,31 @@ function migrate(p) {
  }
  if (!p.equipment.zaino) p.equipment.zaino = [];
  else {
+   const remainingZaino = [];
+   let convertedDenari = 0;
    for (let i=0; i<p.equipment.zaino.length; i++) {
-     if (p.equipment.zaino[i].type === "equip" && p.equipment.zaino[i].dur === undefined) {
-       p.equipment.zaino[i].dur = 100;
+     const zItem = p.equipment.zaino[i];
+     if (zItem.type === "arealoot") {
+       let val = 10;
+       for (const pool of Object.values(AREA_LOOT_POOL)) {
+         const piece = pool.find(item => item.id === zItem.id);
+         if (piece) { val = piece.value; break; }
+       }
+       convertedDenari += val;
+       if (p.world) {
+         if (!p.world.tesoriScoperti) p.world.tesoriScoperti = {};
+         p.world.tesoriScoperti[zItem.id] = (p.world.tesoriScoperti[zItem.id] || 0) + 1;
+       }
+     } else {
+       if (zItem.type === "equip" && zItem.dur === undefined) zItem.dur = 100;
+       remainingZaino.push(zItem);
      }
    }
+   if (convertedDenari > 0 && p.world) {
+     p.world.denari = (p.world.denari || 0) + convertedDenari;
+     p.world.deniariTotaliGuadagnati = (p.world.deniariTotaliGuadagnati || 0) + convertedDenari;
+   }
+   p.equipment.zaino = remainingZaino;
  }
  if (!p.activeQuestsEvo) p.activeQuestsEvo = [];
  if (!p.activeQuestsWorld) p.activeQuestsWorld = [];

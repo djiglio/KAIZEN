@@ -595,8 +595,7 @@ export function renderEquipment() {
     };
 
     zainoHTML = makeDetails("relic", "Reliquie", relicHTMLs, totalRelicsCount) +
-                makeDetails("equip", "Equipaggiamento", equipHTMLs) +
-                makeDetails("arealoot", "Materiali", arealootHTMLs);
+                makeDetails("equip", "Equipaggiamento", equipHTMLs);
   }
 
  el.innerHTML = `

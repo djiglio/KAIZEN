@@ -353,6 +353,8 @@ export function renderWorld() {
 }
 
 
+const bachecaOpenCats = new Set(["generic"]);
+
 function renderBacheca(state, w) {
  // ── Trofei ──
  const trophyEl = document.getElementById("trophy-list");
@@ -459,59 +461,89 @@ function renderBacheca(state, w) {
   resolveImgs();
  }
 
- // ── Tesori ──
- const ntFound = Object.keys(w.tesoriScoperti||{}).length;
+ // ── Tesori (accorpati: generici + specifici per area) ──
  const tstatEl = document.getElementById("treasure-stats");
- if (tstatEl) {
- tstatEl.innerHTML = `
- <div class="bacheca-stat"><div class="bacheca-stat-num">${ntFound}</div><div class="bacheca-stat-lbl">TROVATI</div></div>
- <div class="bacheca-stat"><div class="bacheca-stat-num">${w.deniariTotaliGuadagnati}</div><div class="bacheca-stat-lbl">DENARI TOT.</div></div>
- <div class="bacheca-stat"><div class="bacheca-stat-num">${TREASURES.length-ntFound}</div><div class="bacheca-stat-lbl">NASCOSTI</div></div>`;
- }
-
  const tlistEl = document.getElementById("treasure-list");
- if (tlistEl) {
- tlistEl.innerHTML = TREASURES.map(t => {
- const count = (w.tesoriScoperti||{})[t.id] || 0;
- const locked = count === 0;
- return `<div class="discovery-card ${locked?"locked":"unlocked"}"
- onclick="${!locked?`window.__kaizen.showTreasureDetail('${t.id}')`:""}" >
- <span class="discovery-tier tier-${t.tier}">T${t.tier}</span>
- <span class="discovery-icon">${locked?"":t.icon}</span>
- <div class="discovery-name" style="color:${locked?"#1e2535":"var(--gold)"}">${locked?"???":t.name}</div>
- <div class="discovery-sub">${locked?"—":count>0?`×${count} · ${t.minV}-${t.maxV} 🪙`:""}</div>
- </div>`;
- }).join("");
- }
-
- // ── Materiali d'Area ──
- const mstatEl = document.getElementById("material-stats");
- const mlistEl = document.getElementById("material-list");
- if (mstatEl && mlistEl) {
-   let allMaterials = [];
+ if (tstatEl && tlistEl) {
+   let allAreaItems = [];
    Object.values(AREA_LOOT_POOL).forEach(pool => {
-     allMaterials = allMaterials.concat(pool);
+     allAreaItems = allAreaItems.concat(pool);
    });
-   
-   let nmFound = 0;
-   allMaterials.forEach(m => {
-     if ((w.tesoriScoperti||{})[m.id]) nmFound++;
+   const allCollectibles = [...TREASURES, ...allAreaItems];
+   let totalFound = 0;
+   allCollectibles.forEach(item => {
+     if ((w.tesoriScoperti || {})[item.id]) totalFound++;
    });
-   
-   mstatEl.innerHTML = `
-   <div class="bacheca-stat"><div class="bacheca-stat-num">${nmFound}</div><div class="bacheca-stat-lbl">SCOPERTI</div></div>
-   <div class="bacheca-stat"><div class="bacheca-stat-num">${allMaterials.length - nmFound}</div><div class="bacheca-stat-lbl">DA SCOPRIRE</div></div>`;
 
-   mlistEl.innerHTML = allMaterials.map(m => {
-     const count = (w.tesoriScoperti||{})[m.id] || 0;
+   tstatEl.innerHTML = `
+   <div class="bacheca-stat"><div class="bacheca-stat-num">${totalFound}</div><div class="bacheca-stat-lbl">TROVATI</div></div>
+   <div class="bacheca-stat"><div class="bacheca-stat-num">${w.deniariTotaliGuadagnati}</div><div class="bacheca-stat-lbl">DENARI TOT.</div></div>
+   <div class="bacheca-stat"><div class="bacheca-stat-num">${allCollectibles.length - totalFound}</div><div class="bacheca-stat-lbl">NASCOSTI</div></div>`;
+
+   const makeTendina = (key, title, countBadge, contentHTML) => {
+     const isOpen = bachecaOpenCats.has(key);
+     return `<details class="zaino-details" data-cat="${key}" ${isOpen ? "open" : ""}>
+     <summary>
+       <span class="zaino-cat-title">${title}</span>
+       <span class="zaino-cat-count">${countBadge}</span>
+       <span class="zaino-cat-chevron"></span>
+     </summary>
+     <div style="padding:10px 4px 6px">
+       <div class="discovery-grid">${contentHTML}</div>
+     </div>
+     </details>`;
+   };
+
+   // 1. In cima: Tesori generici
+   let genFound = 0;
+   TREASURES.forEach(t => {
+     if ((w.tesoriScoperti || {})[t.id]) genFound++;
+   });
+   const genCards = TREASURES.map(t => {
+     const count = (w.tesoriScoperti || {})[t.id] || 0;
      const locked = count === 0;
-     return `<div class="discovery-card ${locked?"locked":"unlocked"}">
-     <span class="discovery-tier tier-${m.rarity}">R${m.rarity}</span>
-     <span class="discovery-icon">${locked?"":"📦"}</span>
-     <div class="discovery-name" style="color:${locked?"#1e2535":"var(--gold)"}">${locked?"???":m.name}</div>
-     <div class="discovery-sub">${locked?"—":`×${count} · Valore: ${m.value} 🪙`}</div>
+     return `<div class="discovery-card ${locked ? "locked" : "unlocked"}"
+       onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
+       <span class="discovery-tier tier-${t.tier}">T${t.tier}</span>
+       <span class="discovery-icon">${locked ? "" : (t.icon || "🪙")}</span>
+       <div class="discovery-name" style="color:${locked ? "#1e2535" : "var(--gold)"}">${locked ? "???" : t.name}</div>
+       <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${t.minV}-${t.maxV} 🪙` : ""}</div>
      </div>`;
    }).join("");
+
+   let sectionsHTML = makeTendina("generic", "Tesori Generici", `${genFound}/${TREASURES.length}`, genCards);
+
+   // 2. Poi: specifici per ogni zona del Mondo Esterno
+   const areasWithLoot = WORLD_AREAS.filter(area => AREA_LOOT_POOL[area.id] && AREA_LOOT_POOL[area.id].length > 0);
+   areasWithLoot.forEach(area => {
+     const pool = AREA_LOOT_POOL[area.id];
+     let areaFound = 0;
+     pool.forEach(m => {
+       if ((w.tesoriScoperti || {})[m.id]) areaFound++;
+     });
+     const areaCards = pool.map(m => {
+       const count = (w.tesoriScoperti || {})[m.id] || 0;
+       const locked = count === 0;
+       return `<div class="discovery-card ${locked ? "locked" : "unlocked"}"
+         onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
+         <span class="discovery-tier tier-${m.rarity}">R${m.rarity}</span>
+         <span class="discovery-icon">${locked ? "" : (m.icon || "📦")}</span>
+         <div class="discovery-name" style="color:${locked ? "#1e2535" : "var(--gold)"}">${locked ? "???" : m.name}</div>
+         <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${m.value} 🪙` : ""}</div>
+       </div>`;
+     }).join("");
+
+     sectionsHTML += makeTendina(area.id, area.name, `${areaFound}/${pool.length}`, areaCards);
+   });
+
+   tlistEl.innerHTML = sectionsHTML;
+
+   tlistEl.querySelectorAll(".zaino-details").forEach(d => {
+     d.addEventListener("toggle", () => {
+       if (d.open) bachecaOpenCats.add(d.dataset.cat);
+       else bachecaOpenCats.delete(d.dataset.cat);
+     });
+   });
  }
 }
 
@@ -592,34 +624,56 @@ export function showBestiaryDetail(enemyId) {
 }
 
 export function showTreasureDetail(treasureId) {
- const t = TREASURES.find(x => x.id === treasureId);
- if (!t) return;
- const count = store.state.world.tesoriScoperti?.[treasureId] || 0;
+  let t = TREASURES.find(x => x.id === treasureId);
+  let isArea = false;
+  let areaName = "";
+  if (!t) {
+    for (const [areaKey, pool] of Object.entries(AREA_LOOT_POOL)) {
+      const found = pool.find(x => x.id === treasureId);
+      if (found) {
+        t = found;
+        isArea = true;
+        const aObj = WORLD_AREAS.find(a => a.id === areaKey);
+        areaName = aObj ? aObj.name : areaKey;
+        break;
+      }
+    }
+  }
+  if (!t) return;
+  const count = store.state.world.tesoriScoperti?.[treasureId] || 0;
 
- const box = document.getElementById("detail-modal-box");
- if (!box) return;
- document.getElementById("detail-modal").classList.add("show");
- box.innerHTML = `
- <div class="modal-title"> Tesori</div>
- <div style="text-align:center;font-size:48px;padding:16px 0 8px">${t.icon}</div>
- <div style="text-align:center;margin-bottom:4px">
- <span style="font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold)">${t.name}</span>
- </div>
- <div style="text-align:center;margin-bottom:14px">
- <span class="enemy-trait-badge">Tier ${t.tier}</span>
- </div>
- <div style="display:flex;gap:8px;margin:12px 0">
- <div class="detail-stat-box" style="flex:1;text-align:center">
- <div class="detail-stat-val" style="color:var(--gold)">${t.minV}–${t.maxV}</div>
- <div class="detail-stat-lbl">VALORE (🪙)</div>
- </div>
- <div class="detail-stat-box" style="flex:1;text-align:center">
- <div class="detail-stat-val" style="color:var(--primary)">${count}</div>
- <div class="detail-stat-lbl">TROVATO</div>
- </div>
- </div>
- <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
- `;
+  const box = document.getElementById("detail-modal-box");
+  if (!box) return;
+  document.getElementById("detail-modal").classList.add("show");
+
+  const badgeText = isArea 
+    ? `${areaName.toUpperCase()} · RARITÀ ${t.rarity}` 
+    : `TIER ${t.tier}`;
+  const valText = isArea ? `${t.value}` : `${t.minV}–${t.maxV}`;
+  const descHTML = t.desc ? `<div style="font-size:11px;color:#94a3b8;font-family:'Inter',sans-serif;text-align:center;padding:0 12px 10px;line-height:1.4;">${t.desc}</div>` : "";
+
+  box.innerHTML = `
+  <div class="modal-title"> ${isArea ? "Materiale" : "Tesoro"}</div>
+  <div style="text-align:center;font-size:48px;padding:16px 0 8px">${t.icon || (isArea ? "📦" : "🪙")}</div>
+  <div style="text-align:center;margin-bottom:4px">
+  <span style="font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold)">${t.name}</span>
+  </div>
+  <div style="text-align:center;margin-bottom:14px">
+  <span class="enemy-trait-badge">${badgeText}</span>
+  </div>
+  ${descHTML}
+  <div style="display:flex;gap:8px;margin:12px 0">
+  <div class="detail-stat-box" style="flex:1;text-align:center">
+  <div class="detail-stat-val" style="color:var(--gold)">${valText} 🪙</div>
+  <div class="detail-stat-lbl">VALORE</div>
+  </div>
+  <div class="detail-stat-box" style="flex:1;text-align:center">
+  <div class="detail-stat-val" style="color:var(--primary)">${count}</div>
+  <div class="detail-stat-lbl">TROVATO</div>
+  </div>
+  </div>
+  <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+  `;
   resolveImgs();
 }
 

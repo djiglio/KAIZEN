@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="icon" type="image/png" href="img/icon.png"/>
   <link rel="apple-touch-icon" href="img/icon.png"/>
-  <title>KAIZEN v6.26</title>
+  <title>KAIZEN v6.27</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
@@ -1666,7 +1666,6 @@ body::before {
     <button class="tab-btn active" onclick="window.__kaizen.switchTab('tab-trophies',this)">Trofei</button>
     <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-bestiary',this)">Bestiario</button>
     <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-treasures',this)">Tesori</button>
-    <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-materials',this)">Materiali</button>
   </div>
   <div id="tab-trophies" class="tab-panel active">
     <div id="trophy-list" class="trophy-grid"></div>
@@ -1677,11 +1676,7 @@ body::before {
   </div>
   <div id="tab-treasures" class="tab-panel">
     <div id="treasure-stats" class="bacheca-stats"></div>
-    <div id="treasure-list"  class="discovery-grid"></div>
-  </div>
-  <div id="tab-materials" class="tab-panel">
-    <div id="material-stats" class="bacheca-stats"></div>
-    <div id="material-list"  class="discovery-grid"></div>
+    <div id="treasure-list"></div>
   </div>
 </div>
 
@@ -1745,6 +1740,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.26"></script>
+<script type="module" src="js/main.js?v=6.27"></script>
 </body>
 </html>
