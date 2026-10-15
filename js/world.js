@@ -6,7 +6,7 @@
 
 import { store, save } from "./state.js";
 import { BESTIARY, TREASURES, RELICS,
-         EQUIPMENT_POOL, AREA_LOOT_POOL,
+         EQUIPMENT_POOL, AREA_LOOT_POOL, MATERIALS,
          WORLD_AREAS, EMPIREO_GODS, EMPIREO_LOOT,
          getEnemiesForArea } from "./data.js";
 import { showToast, formatDate } from "./ui.js";
@@ -784,27 +784,45 @@ function executeDiscovery() {
  } else {
  pickTreasureReward();
  }
-  } else {
-  const aLoot = pickAreaLoot(w.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
-  if (aLoot) {
-    const val = aLoot.value;
-    w.denari += val;
-    w.deniariTotaliGuadagnati += val;
-    w.tesoriScoperti[aLoot.id] = (w.tesoriScoperti[aLoot.id] || 0) + 1;
-    updateWorldQuests("loot", { value: val });
-    updateWorldQuests("denari", { value: val });
-    const _areaLoot = w.worldProgress?.areaCorrente || "foresta";
-    updateAreaQuests([{ type: "loot", areaId: _areaLoot, lootCount: 1, denari: val }]);
-    if (!state.world.wq.unique_finds.includes(aLoot.id)) {
-      state.world.wq.unique_finds.push(aLoot.id);
-      updateWorldQuests("unique_find", {});
+  } else if (tr < 0.80) {
+    // Bottino d'area / tesoro (45%)
+    const aLoot = pickAreaLoot(w.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
+    if (aLoot) {
+      const val = aLoot.value;
+      w.denari += val;
+      w.deniariTotaliGuadagnati += val;
+      w.tesoriScoperti[aLoot.id] = (w.tesoriScoperti[aLoot.id] || 0) + 1;
+      updateWorldQuests("loot", { value: val });
+      updateWorldQuests("denari", { value: val });
+      const _areaLoot = w.worldProgress?.areaCorrente || "foresta";
+      updateAreaQuests([{ type: "loot", areaId: _areaLoot, lootCount: 1, denari: val }]);
+      if (!state.world.wq.unique_finds.includes(aLoot.id)) {
+        state.world.wq.unique_finds.push(aLoot.id);
+        updateWorldQuests("unique_find", {});
+      }
+      w.missioniLog.unshift({ tipo:"treasure", nome:aLoot.name, denari:val, t:Date.now() });
+      addHistory(`Trovato: ${aLoot.name} +${val} denari`, "world");
+      showToast(`${aLoot.name} +${val} denari!`);
+    } else {
+      pickTreasureReward();
     }
-    w.missioniLog.unshift({ tipo:"treasure", nome:aLoot.name, denari:val, t:Date.now() });
-    addHistory(` Trovato: ${aLoot.icon} ${aLoot.name} +${val} 🪙`, "world");
-    showToast(`${aLoot.icon} ${aLoot.name} +${val} 🪙!`);
   } else {
-    pickTreasureReward();
-  }
+    // Materiali (20%)
+    const currentArea = w.worldProgress?.areaCorrente || "foresta";
+    const areaMats = MATERIALS.filter(m => m.areaId === currentArea);
+    if (areaMats.length > 0) {
+      areaMats.sort((a, b) => a.rarity - b.rarity);
+      const rareChance = Math.min(0.50, 0.35 + (heroS.fortuna || 0) * 0.003);
+      const mat = (Math.random() < rareChance) ? areaMats[1] : areaMats[0];
+
+      state.equipment.zaino.push({ id: mat.id, type: "material" });
+      updateWorldQuests("loot", { value: mat.value });
+      w.missioniLog.unshift({ tipo: "material", nome: mat.name, denari: 0, t: Date.now() });
+      addHistory(`Materiale trovato: ${mat.name} (${mat.value} denari) → zaino`, "world");
+      showToast(`Materiale trovato: ${mat.name} → zaino!`);
+    } else {
+      pickTreasureReward();
+    }
   }
 
  if (state.history.length > 200) state.history = state.history.slice(0,200);

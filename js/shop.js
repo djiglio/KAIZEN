@@ -5,7 +5,7 @@
 
 import { store, save } from "./state.js";
 import { POTIONS, EQUIPMENT_POOL,
- RELICS, AREA_LOOT_POOL } from "./data.js";
+ RELICS, AREA_LOOT_POOL, MATERIALS } from "./data.js";
 import { showToast } from "./ui.js";
 import { getHeroStats } from "./engine.js";
 import { getMinsPerPV, getMinsPerPA } from "./world.js";
@@ -79,7 +79,7 @@ export function equipItem(idx) {
  if (idx < 0 || idx >= eq.zaino.length) return;
  const zItem = eq.zaino[idx];
 
- if (zItem.type !== "equip") { showToast("Le reliquie non si equipaggiano!"); return; }
+ if (zItem.type !== "equip") { showToast("Non puoi equipaggiare questo oggetto!"); return; }
 
  const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
  if (!piece) return;
@@ -136,6 +136,9 @@ export function discardItem(target) {
  } else if (zItem.type === "relic") {
  const rel = RELICS.find(r => r.id === zItem.id);
  if (rel) { name = rel.name; icon = rel.icon; refund = 5; }
+ } else if (zItem.type === "material") {
+ const mat = MATERIALS.find(m => m.id === zItem.id);
+ if (mat) { name = mat.name; icon = ""; refund = mat.value; }
  } else if (zItem.type === "arealoot") {
  let piece = null;
  for (const pool of Object.values(AREA_LOOT_POOL)) {
@@ -147,7 +150,8 @@ export function discardItem(target) {
 
  if (refund > 0) state.world.denari += refund;
  save();
- showToast(`${icon} ${name} scartato${refund > 0 ? ` +${refund} 🪙` : ""}`);
+ const toastMsg = icon ? `${icon} ${name} scartato${refund > 0 ? ` +${refund} 🪙` : ""}` : `${name} venduto (+${refund} denari)`;
+ showToast(toastMsg);
  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
@@ -479,8 +483,8 @@ export function renderEquipment() {
     zainoHTML = `<div class="zaino-empty">LO ZAINO È VUOTO</div>`;
   } else {
     let equipHTMLs = [];
-    let arealootHTMLs = [];
     const relicMap = new Map();
+    const materialMap = new Map();
 
     zItems.forEach((zItem, idx) => {
       if (zItem.type === "equip") {
@@ -514,6 +518,14 @@ export function renderEquipment() {
           relicMap.set(rel.id, { rel, count: 1 });
         } else {
           relicMap.get(rel.id).count++;
+        }
+      } else if (zItem.type === "material") {
+        const mat = MATERIALS.find(m => m.id === zItem.id);
+        if (!mat) return;
+        if (!materialMap.has(mat.id)) {
+          materialMap.set(mat.id, { mat, count: 1 });
+        } else {
+          materialMap.get(mat.id).count++;
         }
       } else if (zItem.type === "arealoot") {
         let piece = null;
@@ -594,7 +606,34 @@ export function renderEquipment() {
         `<div class="zaino-list">${htmls.join("")}</div>`);
     };
 
-    zainoHTML = makeDetails("relic", "Reliquie", relicHTMLs, totalRelicsCount) +
+    const sortedMaterials = Array.from(materialMap.values()).sort((a, b) => {
+      if (a.mat.rarity !== b.mat.rarity) return a.mat.rarity - b.mat.rarity;
+      return a.mat.name.localeCompare(b.mat.name);
+    });
+
+    let totalMaterialsCount = 0;
+    const materialHTMLs = sortedMaterials.map(item => {
+      const { mat, count } = item;
+      totalMaterialsCount += count;
+      const countBadge = count > 1 
+        ? `<span class="zaino-qty-badge">×${count}</span>` 
+        : "";
+      return `<div class="zaino-item">
+        <div class="zaino-item-body">
+          <div class="zaino-item-header">
+            <span class="zaino-item-name">${mat.name}</span>
+            ${countBadge}
+          </div>
+          <div class="zaino-item-sub">Rarità ${mat.rarity} · ${mat.desc}</div>
+        </div>
+        <div class="zaino-item-actions">
+          <button class="zaino-discard-btn" onclick="window.__kaizen.discardItem('${mat.id}')">Vendi ${mat.value} den</button>
+        </div>
+      </div>`;
+    });
+
+    zainoHTML = makeDetails("material", "Materiali", materialHTMLs, totalMaterialsCount) +
+                makeDetails("relic", "Reliquie", relicHTMLs, totalRelicsCount) +
                 makeDetails("equip", "Equipaggiamento", equipHTMLs);
   }
 

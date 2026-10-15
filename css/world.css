@@ -215,6 +215,7 @@
 .mission-log-row.lose  { border-color: #ef4444; }
 .mission-log-row.treasure { border-color: #f59e0b; }
 .mission-log-row.relic { border-color: #8b5cf6; }
+.mission-log-row.material { border-color: #38bdf8; }
 .log-gold { color: #f59e0b; font-weight: 700; margin-left: auto; }
 
 /* ══════════════════════════════════════════

@@ -343,9 +343,10 @@ export function renderWorld() {
     <div class="mission-log">
       ${(w.missioniLog || []).slice(0,5).map(m => {
         const icon = m.tipo==="win"?"⚔️":m.tipo==="lose"?"💀":m.tipo==="treasure"?"💎":
-                     m.tipo==="relic"?"🔮":m.tipo==="equip"?"🗡️":m.tipo==="fled"?"🏃":m.tipo==="empty"?"🌫️":"❓";
+                     m.tipo==="relic"?"🔮":m.tipo==="equip"?"🗡️":m.tipo==="fled"?"🏃":
+                     m.tipo==="empty"?"🌫️":m.tipo==="material"?"":"❓";
         return `<div class="mission-log-row ${m.tipo}">
-          ${icon} ${m.nome} ${m.denari ? `<span class="log-gold">+${m.denari}🪙</span>` : ""}
+          ${icon ? icon + " " : ""}${m.nome} ${m.denari ? `<span class="log-gold">+${m.denari}🪙</span>` : ""}
         </div>`;
       }).join("") || `<div class="mission-log-row">Nessuna spedizione ancora.</div>`}
     </div>`;

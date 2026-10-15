@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.29";
+export const APP_VERSION = "6.30";
 export const APP_RELEASE = "15/10/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -1307,3 +1307,38 @@ export const AREA_QUESTS = {
     {id:"emp21", n:21, title:"Il Dono di Kaelos",    type:"loot_god", target:1, godId:"e190", lootId:"gl10", desc:"Ottieni la Clessidra di Kaelos"},
   ],
 };
+
+/* ══════════════════════════════════════════════════════════
+   MATERIALI — Risorse collezionabili per zona (no emoji)
+   Utilizzabili per potenziamenti al mercato o vendibili
+══════════════════════════════════════════════════════════ */
+export const MATERIALS = [
+  // Foresta Crepuscolare
+  { id: "mat_legno",     name: "Legno",     areaId: "foresta",    rarity: 1, value: 10, desc: "Legname stagionato ricavato dagli alberi secolari." },
+  { id: "mat_ambra",     name: "Ambra",     areaId: "foresta",    rarity: 2, value: 25, desc: "Resina fossile lucente con riflessi dorati." },
+
+  // Miniere Sepolte
+  { id: "mat_carbone",   name: "Carbone",   areaId: "miniere",    rarity: 2, value: 20, desc: "Minerale combustibile estratto dal cuore della terra." },
+  { id: "mat_rame",      name: "Rame",      areaId: "miniere",    rarity: 3, value: 45, desc: "Metallo malleabile, eccellente per le prime leghe." },
+
+  // Isole dei Naufraghi
+  { id: "mat_bronzo",    name: "Bronzo",    areaId: "isole",      rarity: 3, value: 40, desc: "Lega solida e resistente alla salsedine marina." },
+  { id: "mat_ferro",     name: "Ferro",     areaId: "isole",      rarity: 4, value: 80, desc: "Metallo temprato, base per forgiare lame resistenti." },
+
+  // Montagne Silenti
+  { id: "mat_granito",   name: "Granito",   areaId: "montagne",   rarity: 4, value: 75, desc: "Roccia vulcanica durissima delle vette più impervie." },
+  { id: "mat_argento",   name: "Argento",   areaId: "montagne",   rarity: 5, value: 140, desc: "Metallo prezioso lucente dalle forti affinità arcane." },
+
+  // Deserto delle Ossa
+  { id: "mat_oro",       name: "Oro",       areaId: "deserto",    rarity: 5, value: 130, desc: "Pepita d'oro puro nascosta tra le dune di sabbia." },
+  { id: "mat_topazio",   name: "Topazio",   areaId: "deserto",    rarity: 6, value: 220, desc: "Gemma solare brillante con bagliori incandescenti." },
+
+  // Oltretomba
+  { id: "mat_ossidiana", name: "Ossidiana", areaId: "oltretomba", rarity: 6, value: 210, desc: "Vetro vulcanico nerissimo con profili affilati a rasoio." },
+  { id: "mat_rubino",    name: "Rubino",    areaId: "oltretomba", rarity: 7, value: 350, desc: "Pietra preziosa cremisi intrisa del calore dell'abisso." },
+
+  // Empireo
+  { id: "mat_platino",   name: "Platino",   areaId: "empireo",    rarity: 7, value: 320, desc: "Metallo incorruttibile e tenace, degno degli dei." },
+  { id: "mat_diamante",  name: "Diamante",  areaId: "empireo",    rarity: 8, value: 500, desc: "Il minerale più puro e resistente del firmamento." },
+];
+
