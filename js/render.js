@@ -502,12 +502,11 @@ function renderBacheca(state, w) {
    const genCards = TREASURES.map(t => {
      const count = (w.tesoriScoperti || {})[t.id] || 0;
      const locked = count === 0;
-     return `<div class="discovery-card ${locked ? "locked" : "unlocked"}"
+     return `<div class="discovery-card treasure-card ${locked ? "locked" : "unlocked"}"
        onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
        <span class="discovery-tier tier-${t.tier}">T${t.tier}</span>
-       <span class="discovery-icon">${locked ? "" : (t.icon || "🪙")}</span>
        <div class="discovery-name" style="color:${locked ? "#1e2535" : "var(--gold)"}">${locked ? "???" : t.name}</div>
-       <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${t.minV}-${t.maxV} 🪙` : ""}</div>
+       <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${t.minV}-${t.maxV} den` : ""}</div>
      </div>`;
    }).join("");
 
@@ -527,9 +526,8 @@ function renderBacheca(state, w) {
        return `<div class="discovery-card ${locked ? "locked" : "unlocked"}"
          onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
          <span class="discovery-tier tier-${m.rarity}">R${m.rarity}</span>
-         <span class="discovery-icon">${locked ? "" : (m.icon || "📦")}</span>
          <div class="discovery-name" style="color:${locked ? "#1e2535" : "var(--gold)"}">${locked ? "???" : m.name}</div>
-         <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${m.value} 🪙` : ""}</div>
+         <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${m.value} den` : ""}</div>
        </div>`;
      }).join("");
 
@@ -669,9 +667,8 @@ export function showTreasureDetail(treasureId) {
   const descHTML = t.desc ? `<div style="font-size:11px;color:#94a3b8;font-family:'Inter',sans-serif;text-align:center;padding:0 12px 10px;line-height:1.4;">${t.desc}</div>` : "";
 
   box.innerHTML = `
-  <div class="modal-title"> ${isArea ? "Materiale" : "Tesoro"}</div>
-  <div style="text-align:center;font-size:48px;padding:16px 0 8px">${t.icon || (isArea ? "📦" : "🪙")}</div>
-  <div style="text-align:center;margin-bottom:4px">
+  <div class="modal-title">Tesoro</div>
+  <div style="text-align:center;margin:16px 0 4px">
   <span style="font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold)">${t.name}</span>
   </div>
   <div style="text-align:center;margin-bottom:14px">
@@ -680,7 +677,7 @@ export function showTreasureDetail(treasureId) {
   ${descHTML}
   <div style="display:flex;gap:8px;margin:12px 0">
   <div class="detail-stat-box" style="flex:1;text-align:center">
-  <div class="detail-stat-val" style="color:var(--gold)">${valText} 🪙</div>
+  <div class="detail-stat-val" style="color:var(--gold)">${valText} den</div>
   <div class="detail-stat-lbl">VALORE</div>
   </div>
   <div class="detail-stat-box" style="flex:1;text-align:center">

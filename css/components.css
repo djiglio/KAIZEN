@@ -442,6 +442,9 @@
   white-space: nowrap;
 }
 .discovery-sub  { font-family: "JetBrains Mono", monospace; font-size: 7px; color: #64748b; }
+.discovery-card.treasure-card { padding: 18px 8px 12px; min-height: 58px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.discovery-card.treasure-card .discovery-name { font-size: 9px; margin-bottom: 4px; line-height: 1.25; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.discovery-card.treasure-card .discovery-sub { font-size: 8px; }
 .discovery-tier {
   position: absolute;
   top: 5px; right: 5px;
