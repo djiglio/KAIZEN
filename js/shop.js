@@ -568,12 +568,15 @@ export function renderEquipment() {
       totalRelicsCount += count;
       const refund = 5;
       const countBadge = count > 1 
-        ? `<span class="zaino-qty-badge">x${count}</span>` 
+        ? `<span class="zaino-qty-badge">×${count}</span>` 
         : "";
       return `<div class="zaino-item">
         <span class="zaino-item-icon">${rel.icon}</span>
         <div class="zaino-item-body">
-          <div class="zaino-item-name">${rel.name}${countBadge}</div>
+          <div class="zaino-item-header">
+            <span class="zaino-item-name">${rel.name}</span>
+            ${countBadge}
+          </div>
           <div class="zaino-item-sub">${rel.desc}</div>
         </div>
         <div class="zaino-item-actions">
