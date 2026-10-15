@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.31";
+export const APP_VERSION = "6.32";
 export const APP_RELEASE = "15/10/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -1349,71 +1349,85 @@ export const MATERIALS = [
 export const MATERIAL_COATING_CONFIG = {
   mat_legno: {
     reqQty: 5,
+    durabilityRes: 0.25, // -25% usura
     arma:     { attacco: 1 },
     armatura: { difesa: 1, velocita: 1 },
   },
   mat_ambra: {
     reqQty: 5,
+    durabilityRes: 0.35, // -35% usura
     arma:     { attacco: 2, velocita: 1 },
     armatura: { difesa: 2, velocita: 1 },
   },
   mat_carbone: {
     reqQty: 5,
+    durabilityRes: 0.35, // -35% usura
     arma:     { attacco: 2, critico: 1 },
     armatura: { difesa: 2, critico: 1 },
   },
   mat_rame: {
     reqQty: 4,
+    durabilityRes: 0.45, // -45% usura
     arma:     { attacco: 3, difesa: 1 },
     armatura: { difesa: 3, attacco: 1 },
   },
   mat_bronzo: {
     reqQty: 4,
+    durabilityRes: 0.45, // -45% usura
     arma:     { attacco: 3, velocita: 2 },
     armatura: { difesa: 3, velocita: 2 },
   },
   mat_ferro: {
     reqQty: 4,
+    durabilityRes: 0.55, // -55% usura
     arma:     { attacco: 5, critico: 1 },
     armatura: { difesa: 5, attacco: 1 },
   },
   mat_granito: {
     reqQty: 4,
+    durabilityRes: 0.55, // -55% usura
     arma:     { attacco: 4, difesa: 3 },
     armatura: { difesa: 6 },
   },
   mat_argento: {
     reqQty: 3,
+    durabilityRes: 0.65, // -65% usura
     arma:     { attacco: 6, velocita: 3, critico: 1 },
     armatura: { difesa: 6, velocita: 3, critico: 1 },
   },
   mat_oro: {
     reqQty: 3,
+    durabilityRes: 0.65, // -65% usura
     arma:     { attacco: 7, critico: 3 },
     armatura: { difesa: 7, velocita: 2, critico: 2 },
   },
   mat_topazio: {
     reqQty: 3,
+    durabilityRes: 0.75, // -75% usura
     arma:     { attacco: 8, critico: 4 },
     armatura: { difesa: 8, velocita: 3, critico: 2 },
   },
   mat_ossidiana: {
     reqQty: 3,
+    durabilityRes: 0.75, // -75% usura
     arma:     { attacco: 10, critico: 3 },
     armatura: { difesa: 9, attacco: 3 },
   },
   mat_rubino: {
     reqQty: 2,
+    durabilityRes: 0.85, // -85% usura
     arma:     { attacco: 12, critico: 5 },
     armatura: { difesa: 11, critico: 4, attacco: 2 },
   },
   mat_platino: {
     reqQty: 2,
+    durabilityRes: 0.85, // -85% usura
     arma:     { attacco: 14, difesa: 4, velocita: 2 },
     armatura: { difesa: 13, attacco: 4, velocita: 2 },
   },
   mat_diamante: {
     reqQty: 2,
+    durabilityRes: 0.90, // -90% usura
     arma:     { attacco: 18, critico: 6, velocita: 3 },
     armatura: { difesa: 16, attacco: 5, critico: 4 },
   },
@@ -1423,6 +1437,11 @@ export function getCoatingBonus(matId, slot) {
   const cfg = MATERIAL_COATING_CONFIG[matId];
   if (!cfg) return null;
   return slot === "arma" ? cfg.arma : cfg.armatura;
+}
+
+export function getCoatingWearReduction(matId) {
+  const cfg = MATERIAL_COATING_CONFIG[matId];
+  return cfg?.durabilityRes || 0;
 }
 
 export function calculateCoatingCost(piece, mat) {

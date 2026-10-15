@@ -6,7 +6,7 @@
 
 import { store, save } from "./state.js";
 import { BESTIARY, TREASURES, RELICS,
-         EQUIPMENT_POOL, AREA_LOOT_POOL, MATERIALS,
+         EQUIPMENT_POOL, AREA_LOOT_POOL, MATERIALS, getCoatingWearReduction,
          WORLD_AREAS, EMPIREO_GODS, EMPIREO_LOOT,
          getEnemiesForArea } from "./data.js";
 import { showToast, formatDate } from "./ui.js";
@@ -655,7 +655,11 @@ function pickAreaLoot(areaId, fortunaStat) {
    if (!piece) continue;
    let rate = degradeRates[piece.tier] || 1;
    if (eqObj.rivestimento) {
-     rate = Math.max(1, Math.floor(rate * 0.5));
+     const res = getCoatingWearReduction(eqObj.rivestimento);
+     const effRate = rate * (1 - res);
+     let intRate = Math.floor(effRate);
+     if (Math.random() < (effRate - intRate)) intRate++;
+     rate = intRate;
    }
    eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - rate);
  }

@@ -5,7 +5,7 @@
 
 import { store, save } from "./state.js";
 import { POTIONS, EQUIPMENT_POOL,
- RELICS, AREA_LOOT_POOL, MATERIALS, MATERIAL_COATING_CONFIG, calculateCoatingCost, getCoatingBonus } from "./data.js";
+ RELICS, AREA_LOOT_POOL, MATERIALS, MATERIAL_COATING_CONFIG, calculateCoatingCost, getCoatingBonus, getCoatingWearReduction } from "./data.js";
 import { showToast } from "./ui.js";
 import { resolveImgs } from "./img.js";
 import { getHeroStats } from "./engine.js";
@@ -285,7 +285,7 @@ export function openCoatingModal(slot) {
           ${isCurrent ? `<span style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#38bdf8;border:1px solid #38bdf8;padding:1px 4px;border-radius:3px;">ATTIVO</span>` : ""}
         </div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#38bdf8;margin:3px 0 2px;">
-          ${bonusStr} · Usura dimezzata (-50%)
+          ${bonusStr} · Usura -${Math.round((cfg.durabilityRes||0)*100)}%
         </div>
         <div class="shop-item-desc" style="font-size:8px;color:#64748b;">${m.desc}</div>
       </div>
@@ -302,10 +302,10 @@ export function openCoatingModal(slot) {
     <div style="font-size:24px;margin-bottom:4px;">${piece.icon}</div>
     <div style="font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--gold);">${piece.name}</div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#94a3b8;margin-top:3px;">
-      ${currentMat ? `✦ Rivestito con ${currentMat.name} (${currentBonusStr})` : "Nessun rivestimento attuale"}
+      ${currentMat ? `✦ Rivestito con ${currentMat.name} (${currentBonusStr} · Usura -${Math.round(getCoatingWearReduction(currentMat.id)*100)}%)` : "Nessun rivestimento attuale"}
     </div>
     <div style="font-family:'Inter',sans-serif;font-size:9px;color:#64748b;margin-top:6px;line-height:1.4;">
-      Rivestire l'equipaggiamento ne aumenta le statistiche e ne dimezza l'usura in combattimento. Sostituisce l'eventuale rivestimento precedente.
+      Rivestire l'equipaggiamento ne aumenta le statistiche e ne riduce l'usura in combattimento (fino a -90% in base alla rarità). Sostituisce l'eventuale rivestimento precedente.
     </div>
   </div>
   <div style="max-height:320px;overflow-y:auto;padding-right:4px;">
@@ -440,49 +440,99 @@ export function renderShop() {
  </div>`);
  }
 
- // ── Fabbro: Riparazioni ──
- let fabbroHTML = "";
- const eqSlots = ["arma","elmo","scudo","corazza","gambali","bracciali"];
- let repairableItems = [];
- for (const slot of eqSlots) {
-   const eqObj = store.state.equipment.equipped[slot];
-   if (!eqObj) continue;
-   const dur = eqObj.dur !== undefined ? eqObj.dur : 100;
-   if (dur < 100) {
-     const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
-     if (piece) repairableItems.push({ slot, piece, dur });
-   }
- }
+ // ── Fabbro: Forgia (Rivestimento) e Riparazioni ──
+  const eqSlots = ["arma","elmo","scudo","corazza","gambali","bracciali"];
+  const slotLabelsFabbro = {
+    arma:"Arma", elmo:"Elmo", scudo:"Scudo",
+    corazza:"Corazza", gambali:"Gambali", bracciali:"Bracciali"
+  };
 
- if (repairableItems.length === 0) {
-   fabbroHTML = `<div class="mercato-soon">
- <strong>Tutto perfetto!</strong>
- Il tuo equipaggiamento attuale non necessita di riparazioni.
- </div>`;
- } else {
-   fabbroHTML = `<div class="mercato-body">
- <div class="shop-section-note">Fabbro · ripara gli oggetti equipaggiati logorati</div>
- <div class="zaino-list">
- ${repairableItems.map(item => {
-   const { slot, piece, dur } = item;
-   const missing = 100 - dur;
-   const cost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
-   const canBuy = w.denari >= cost;
-   const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
-   return `<div class="shop-item">
-   <div class="shop-item-icon">${piece.icon}</div>
-   <div class="shop-item-body">
-   <div class="shop-item-name">${piece.name}</div>
-   <div style="height:2px; background:rgba(255,255,255,0.1); margin-top:2px; margin-bottom:2px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>
-   <div class="shop-item-desc">Slot: ${slot} · Usura: ${missing}%</div>
-   </div>
-   <button class="shop-buy-btn ${canBuy?"":"disabled"}" style="background:rgba(212,160,23,0.1); border-color:rgba(212,160,23,0.3); color:var(--gold);"
-   onclick="${canBuy?`window.__kaizen.repairItem('${slot}')`:""}">${cost} 🪙</button>
-   </div>`;
- }).join("")}
- </div>
- </div>`;
- }
+  // 1. Forgia: Rivestimenti con materiali
+  let forgeRowsHTML = "";
+  let equippedCount = 0;
+  for (const slot of eqSlots) {
+    const eqObj = store.state.equipment.equipped[slot];
+    if (!eqObj) continue;
+    const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+    if (!piece) continue;
+    equippedCount++;
+    const mat = eqObj.rivestimento ? MATERIALS.find(m => m.id === eqObj.rivestimento) : null;
+    const cBonus = mat ? getCoatingBonus(mat.id, slot) : null;
+    const cBonusStr = cBonus ? Object.entries(cBonus).map(([k,v]) => `+${v} ${k==="attacco"?"ATK":k==="difesa"?"DEF":k==="velocita"?"VEL":"CRI"}`).join(", ") : "";
+    const resPct = mat ? Math.round(getCoatingWearReduction(mat.id) * 100) : 0;
+    const coatingStatus = mat 
+      ? `<span style="color:#38bdf8;">✦ Rivestito: ${mat.name} (${cBonusStr} · Usura -${resPct}%)</span>`
+      : `<span style="color:#64748b;">Nessun rivestimento</span>`;
+
+    forgeRowsHTML += `
+    <div class="shop-item">
+      <div class="shop-item-icon">${piece.icon}</div>
+      <div class="shop-item-body">
+        <div class="shop-item-name">${piece.name}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#94a3b8;margin-top:2px;">
+          ${slotLabelsFabbro[slot].toUpperCase()} · T${piece.tier}
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;margin-top:2px;">
+          ${coatingStatus}
+        </div>
+      </div>
+      <button class="shop-buy-btn" style="background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.35);color:#38bdf8;font-size:9px;"
+        onclick="window.__kaizen.openCoatingModal('${slot}')">
+        ${mat ? "Modifica" : "Rivesti"}
+      </button>
+    </div>`;
+  }
+
+  if (equippedCount === 0) {
+    forgeRowsHTML = `<div class="mercato-soon">Nessun equipaggiamento indossato da rivestire. Indossa armi o armature per rinforzarle dal Fabbro.</div>`;
+  }
+
+  // 2. Riparazioni
+  let repairableItems = [];
+  for (const slot of eqSlots) {
+    const eqObj = store.state.equipment.equipped[slot];
+    if (!eqObj) continue;
+    const dur = eqObj.dur !== undefined ? eqObj.dur : 100;
+    if (dur < 100) {
+      const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+      if (piece) repairableItems.push({ slot, piece, dur });
+    }
+  }
+
+  let repairsHTML = "";
+  if (repairableItems.length === 0) {
+    repairsHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#64748b;padding:4px 2px;">Tutto il tuo equipaggiamento è in perfette condizioni (100%).</div>`;
+  } else {
+    repairsHTML = `<div class="zaino-list">
+      ${repairableItems.map(item => {
+        const { slot, piece, dur } = item;
+        const missing = 100 - dur;
+        const cost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
+        const canBuy = w.denari >= cost;
+        const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
+        return `<div class="shop-item">
+          <div class="shop-item-icon">${piece.icon}</div>
+          <div class="shop-item-body">
+            <div class="shop-item-name">${piece.name}</div>
+            <div style="height:2px; background:rgba(255,255,255,0.1); margin-top:2px; margin-bottom:2px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>
+            <div class="shop-item-desc">Slot: ${slotLabelsFabbro[slot]} · Usura: ${missing}%</div>
+          </div>
+          <button class="shop-buy-btn ${canBuy?"":"disabled"}" style="background:rgba(212,160,23,0.1); border-color:rgba(212,160,23,0.3); color:var(--gold);"
+            onclick="${canBuy?`window.__kaizen.repairItem('${slot}')`:""}">${cost} 🪙</button>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  const fabbroHTML = `
+  <div class="mercato-body">
+    <div class="shop-section-note">Forgia · rinforza armi e armature con materiali rari per aumentarne statistiche e resistenza all'usura (fino a -90%)</div>
+    <div class="zaino-list" style="margin-bottom:14px;">
+      ${forgeRowsHTML}
+    </div>
+    <div class="shop-section-note" style="margin-top:16px;">Riparazioni · ripara gli oggetti logorati</div>
+    ${repairsHTML}
+  </div>`;
 
  const pvPct = Math.min(100, (w.pvAttuali / heroS.pvMax) * 100).toFixed(1);
  const paPct = Math.min(100, (w.paAttuali / heroS.paMax) * 100).toFixed(1);
@@ -567,6 +617,18 @@ export function renderEquipment() {
  : "#374151";
  const durColor = dur > 50 ? "#10b981" : (dur > 20 ? "#f59e0b" : "#ef4444");
  const durBar = piece ? `<div style="height:2px; background:rgba(255,255,255,0.1); margin-top:3px; border-radius:1px; width:100%;"><div style="height:100%; background:${durColor}; width:${dur}%; border-radius:1px;"></div></div>` : "";
+
+ let coatingHTML = "";
+ if (eqObj && eqObj.rivestimento) {
+   const mat = MATERIALS.find(m => m.id === eqObj.rivestimento);
+   if (mat) {
+     const bObj = getCoatingBonus(mat.id, slot);
+     const bStrCoating = bObj ? Object.entries(bObj).map(([k,v]) => `+${v} ${k==="attacco"?"ATK":k==="difesa"?"DEF":k==="velocita"?"VEL":"CRI"}`).join(", ") : "";
+     const resPct = Math.round(getCoatingWearReduction(mat.id) * 100);
+     coatingHTML = `<div class="equip-slot-coating">✦ Rivestito: ${mat.name} (${bStrCoating} · Usura -${resPct}%)</div>`;
+   }
+ }
+
  return `<div class="equip-slot ${piece?"equip-slot-filled":"equip-slot-empty"}">
  <div class="equip-slot-header">
  <span class="equip-slot-icon">${piece ? piece.icon : icon}</span>
@@ -574,6 +636,7 @@ export function renderEquipment() {
  <div class="equip-slot-name">${piece ? piece.name : label}</div>
  ${durBar}
  <div class="equip-slot-bonus" style="color:${bColor}; margin-top:2px;">${bStr}${piece?" · T"+piece.tier:""}</div>
+ ${coatingHTML}
  </div>
  ${piece ? `<button class="equip-remove-btn" onclick="window.__kaizen.unequipItem('${slot}')">×</button>` : ""}
  </div>
@@ -581,7 +644,6 @@ export function renderEquipment() {
  </div>`;
  }).join("");
 
- // Totali bonus
  const atkTotal = stats.eqBonus.attacco || 0;
  const defTotal = stats.eqBonus.difesa || 0;
  const velTotal = stats.eqBonus.velocita || 0;
@@ -638,7 +700,7 @@ export function renderEquipment() {
         <div class="zaino-item-body">
         <div class="zaino-item-name">${piece.name}</div>
         ${durBar}
-        <div class="zaino-item-sub">${bStr} · T${piece.tier}</div>
+        <div class="zaino-item-sub">${bStr} · T${piece.tier}${zItem.rivestimento && MATERIALS.find(m => m.id === zItem.rivestimento) ? ` · <span style="color:#38bdf8;">✦ ${MATERIALS.find(m => m.id === zItem.rivestimento).name}</span>` : ""}</div>
         </div>
         <div class="zaino-item-actions">
         <button class="zaino-equip-btn" onclick="window.__kaizen.equipItem(${idx})">Equip</button>
