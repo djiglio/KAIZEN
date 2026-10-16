@@ -1,6 +1,6 @@
 /* ============================================================
  render.js — aggiorna tutto il DOM in base allo stato
- KAIZEN v6.1
+ KAIZEN v6.37
  ============================================================ */
 
 import { store } from "./state.js";
@@ -9,7 +9,7 @@ import { HABITS, STAT_DEFS, rankTitles,
          EQUIPMENT_POOL, AREA_LOOT_POOL,
          QUEST_POOL_EVO, QUEST_POOL_WORLD,
          titleMetalColors,
-         WORLD_AREAS, AREA_QUESTS , EMPIREO_GODS } from './data.js';
+         WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS } from "./data.js";
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel } from "./engine.js";
@@ -19,175 +19,184 @@ import { regenPV, regenPA,
 import { renderShop, renderEquipment } from "./shop.js";
 import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, resolveImgs } from "./img.js";
 
+const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"];
+const roman = n => ROMAN[n] || String(n);
+const fmtDen = n => Math.floor(n || 0).toLocaleString("it-IT");
+const COIN = `<span class="mk-coin"></span>`;
+
 /* ══════════════════════════════════════════════════════════
  RENDER PRINCIPALE
 ══════════════════════════════════════════════════════════ */
 export function render() {
- regenPV();
- regenPA();
+  regenPV();
+  regenPA();
 
- const state = store.state;
- const w = state.world;
- const heroS = getHeroStats();
- const rank = getHeroRank();
- const title = getRankTitle(rank);
+  const state = store.state;
+  const w = state.world;
+  const heroS = getHeroStats();
+  const rank = getHeroRank();
+  const title = getRankTitle(rank);
 
- renderHabits(state, title);
- renderHero(state, heroS, rank, title);
- renderQuests(state);
- renderWorld(heroS, w);
- renderBacheca(state, w);
- renderShop();
- renderLog(state);
+  renderHabits(state, rank, title);
+  renderHero(state, heroS, rank, title);
+  renderQuests(state);
+  renderWorld(heroS, w);
+  renderBacheca(state, w);
+  renderShop();
+  renderLog(state);
 }
 
 /* ── Pagina ABITUDINI ── */
-function renderHabits(state) {
- const el = document.getElementById("habit-list");
- if (!el) return;
+function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
+  const el = document.getElementById("habit-list");
+  if (!el) return;
 
- el.innerHTML = HABITS.map(hd => {
- const h = state.habits[hd.id] || { xp:0, last:null, result:null };
- const lv = habitLevel(hd.id);
- const xp = habitXpInLevel(hd.id);
- const done = isDone(h.last) && h.result === "done";
- const failed = isDone(h.last) && h.result === "failed";
- const marked = done || failed;
+  let doneCount = 0;
+  let markedCount = 0;
 
- const borderCol = done ? "#4ecca3" : failed ? "#dc2626" : hd.color;
- const barCol = done ? "#4ecca3" : failed ? "#dc2626" : hd.color;
+  const tilesHTML = HABITS.map((hd, idx) => {
+    const h = state.habits[hd.id] || { xp: 0, last: null, result: null };
+    const lv = habitLevel(hd.id);
+    const xp = habitXpInLevel(hd.id);
+    const done = isDone(h.last) && h.result === "done";
+    const failed = isDone(h.last) && h.result === "failed";
+    const marked = done || failed;
+    if (done) doneCount++;
+    if (marked) markedCount++;
 
- const badgeHTML = done
- ? `<span class="habit-result-badge habit-result-done">&#10003;</span>`
- : failed
- ? `<span class="habit-result-badge habit-result-failed">&#10005;</span>`
- : "";
+    const sdef = STAT_DEFS.find(s => s.habit === hd.id);
+    const statLabel = sdef ? sdef.label : hd.stat.toUpperCase();
+    const acc = done ? "#4ecca3" : failed ? "#e0533d" : hd.color;
+    const spanFull = idx === HABITS.length - 1 && HABITS.length % 2 === 1 ? "grid-column:1/-1;" : "";
 
- return `<div class="habit-row ${marked?"done":""}" style="border-left-color:${borderCol}">
- <div class="habit-top">
- <span class="habit-label">
- ${hd.label}${badgeHTML}
- </span>
- <span class="habit-level-badge">LV ${lv}</span>
- </div>
- <div class="habit-xp-text">
- <span>${Math.floor(h.xp)} XP totali</span>
- <span>${xp} / 100</span>
- </div>
- <div class="habit-xp-bar-wrap">
- <div class="habit-xp-bar" style="width:${xp}%;background:${barCol};box-shadow:0 0 8px ${barCol}44"></div>
- </div>
- <div class="btn-row">
- <button class="btn-up"
- onclick="window.__kaizen.updateXP('${hd.id}',true)"
- ${marked?"disabled":""}>&#10003;</button>
- <button class="btn-down"
- onclick="window.__kaizen.updateXP('${hd.id}',false)"
- ${marked?"disabled":""}>&#10005;</button>
- </div>
- </div>`;
- }).join("");
+    const actionBar = done
+      ? `<button class="mk-price mk-price--ok" disabled><span class="mk-price-row">✦ Compiuta oggi</span></button>`
+      : failed
+      ? `<button class="mk-price mk-price--danger" disabled><span class="mk-price-row">✕ Mancata oggi</span></button>`
+      : `<div class="mk-split-actions">
+           <button class="mk-act mk-act--ok" onclick="window.__kaizen.updateXP('${hd.id}',true)">✓ Compiuta</button>
+           <button class="mk-act mk-act--no" onclick="window.__kaizen.updateXP('${hd.id}',false)">✕ Mancata</button>
+         </div>`;
+
+    return `
+    <div class="mk-tile ${done ? "is-active" : failed ? "is-off" : ""}" style="--acc:${acc};${spanFull}">
+      <div class="mk-tile-cap">${statLabel} · Grado ${lv}</div>
+      <div class="mk-tile-name">${hd.label}</div>
+      <div class="mk-tile-big">${xp}<small>/ 100 XP</small></div>
+      <div class="mk-vital-bar mk-dur"><i style="width:${xp}%;background:${acc}"></i></div>
+      <div class="mk-tile-desc">${fmtDen(h.xp)} XP complessivi</div>
+      ${actionBar}
+    </div>`;
+  }).join("");
+
+  el.innerHTML = `
+  <div class="mk">
+    <div class="mk-purse">
+      <div class="mk-purse-cap">Disciplina Quotidiana</div>
+      <div class="mk-purse-val">${doneCount}<small style="font-size:15px;color:#8b7b5c;margin-left:6px;font-weight:700;">/ ${HABITS.length}</small></div>
+      <div class="mk-purse-sub">prove compiute oggi · ${title} (Rango ${rank})</div>
+    </div>
+    <div class="mk-grid">${tilesHTML}</div>
+  </div>`;
 }
 
 /* ── Pagina EROE ── */
 function renderHero(state, heroS, rank, title) {
- // Avatar: SVG procedurale + immagine rango sovrapposta
- const avViewport = document.getElementById("avatar-viewport-inner");
- if (avViewport) {
-    avViewport.innerHTML = heroAvatarHTML(title, '100%', 'auto');
+  const avViewport = document.getElementById("avatar-viewport-inner");
+  if (avViewport) {
+    avViewport.innerHTML = heroAvatarHTML(title, "100%", "auto");
     resolveImgs(avViewport);
   }
 
- // Nome titolo
- const nameEl = document.getElementById("char-spec");
- if (nameEl) {
- nameEl.innerText = title;
- nameEl.style.color = titleMetalColors[title] || "#9090a0";
- nameEl.style.textShadow = `0 0 30px ${titleMetalColors[title]||"#9090a0"}55`;
- }
- const rankEl = document.getElementById("char-rank");
- if (rankEl) rankEl.innerText = "RANGO " + rank;
+  const nameEl = document.getElementById("char-spec");
+  if (nameEl) {
+    nameEl.innerText = title;
+    nameEl.style.color = titleMetalColors[title] || "#ece3cf";
+    nameEl.style.textShadow = `0 2px 18px ${titleMetalColors[title] || "#d4a017"}44`;
+  }
+  const rankEl = document.getElementById("char-rank");
+  if (rankEl) rankEl.innerText = "RANGO " + rank + " · ALBO DEI RANGHI";
 
- // Stats — barre orizzontali con nome completo
- const sgEl = document.getElementById("stats-grid");
- if (sgEl) {
-   sgEl.innerHTML = STAT_DEFS.map(sd => {
-     const val     = heroS[sd.id] ?? 0;
-     const lv      = habitLevel(sd.habit);
-     const hdef    = HABITS.find(h => h.id === sd.habit);
-     const col     = hdef?.color || "var(--primary)";
-     const showPct = ["destrezza","critico","furtivita","carisma"].includes(sd.id);
-     const displayVal = `${(typeof val === 'number') ? Math.round(val * 100) / 100 : val}${showPct ? "%" : ""}`;
-     return `<div style="margin-bottom:12px;border-left:2px solid ${col}44;padding-left:10px">
-       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
-         <span style="font-family:'Cinzel',serif;font-size:11px;font-weight:700;
-                      color:${col};letter-spacing:1.5px;
-                      text-shadow:0 0 10px ${col}66">${sd.label}</span>
-         <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;
-                      color:${col}">${displayVal}</span>
-       </div>
-       <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#4b5563;letter-spacing:1px">
-         ${hdef?.label||""} · Lv ${lv} — ${sd.desc}
-       </div>
-     </div>`;
-   }).join("");
- }
+  const sgEl = document.getElementById("stats-grid");
+  if (sgEl) {
+    const statTiles = STAT_DEFS.map(sd => {
+      const val = heroS[sd.id] ?? 0;
+      const lv = habitLevel(sd.habit);
+      const hdef = HABITS.find(h => h.id === sd.habit);
+      const col = hdef?.color || "var(--gold)";
+      const showPct = ["destrezza", "critico", "furtivita", "carisma"].includes(sd.id);
+      const numVal = typeof val === "number" ? Math.round(val * 100) / 100 : val;
+      return `
+      <div class="mk-tile" style="--acc:${col};padding-bottom:12px;">
+        <div class="mk-tile-cap">${hdef?.label || ""} · Lv ${lv}</div>
+        <div class="mk-tile-name" style="min-height:1.8em">${sd.label}</div>
+        <div class="mk-tile-big">${numVal}${showPct ? `<small>%</small>` : ""}</div>
+        <div class="mk-tile-desc" style="margin-bottom:0">${sd.desc}</div>
+      </div>`;
+    }).join("");
 
- renderEquipment();
+    sgEl.innerHTML = `<div class="mk"><div class="mk-grid">${statTiles}</div></div>`;
+  }
+
+  renderEquipment();
 }
 
 /* ── Pagina QUEST SETTIMANALI ── */
 function renderQuests(state) {
- const el = document.getElementById("quest-list");
- if (!el) return;
+  const el = document.getElementById("quest-list");
+  if (!el) return;
 
- const renderQuestSet = (quests, typeLabel, typeCls) =>
- quests.map(q => {
- const perc = Math.min(100, (q.progress / q.target) * 100);
- const bc = q.completed ? "var(--primary)" : (typeCls === "evo" ? "var(--gold)" : "#8b5cf6");
- return `<div class="quest-card ${q.completed?"completed":""} ${typeCls==="world"?"world-quest":""}">
- <span class="quest-type-badge ${typeCls}">${typeLabel}</span>
- <div class="quest-title">${q.text}</div>
- <div class="quest-desc">${q.desc}</div>
- <div class="quest-progress-text">${q.progress} / ${q.target}</div>
- <div class="q-progress-bg">
- <div class="q-progress-bar" style="width:${perc}%;background:${bc};color:${bc}"></div>
- </div>
- </div>`;
- }).join("");
+  const renderQuestTiles = (quests, typeLabel, baseAcc) =>
+    quests.map((q, idx) => {
+      const perc = Math.min(100, (q.progress / q.target) * 100);
+      const acc = q.completed ? "#4ecca3" : baseAcc;
+      const spanFull = idx === quests.length - 1 && quests.length % 2 === 1 ? "grid-column:1/-1;" : "";
+      return `
+      <div class="mk-tile ${q.completed ? "is-active" : ""}" style="--acc:${acc};padding-bottom:12px;${spanFull}">
+        <div class="mk-tile-cap">${typeLabel}</div>
+        <div class="mk-tile-name">${q.text}</div>
+        <div class="mk-tile-big">${q.progress}<small>/ ${q.target}</small></div>
+        <div class="mk-vital-bar mk-dur"><i style="width:${perc}%;background:${acc}"></i></div>
+        <div class="mk-tile-desc" style="margin-bottom:${q.completed ? "8px" : "0"}">${q.desc}</div>
+        ${q.completed ? `<div class="mk-chip mk-chip--ok" style="margin-bottom:0">✦ Impresa Compiuta</div>` : ""}
+      </div>`;
+    }).join("");
 
- // Ricompense
- const evoAll = state.activeQuestsEvo.every(q=>q.completed) && state.activeQuestsEvo.length>0;
- const worldAll = state.activeQuestsWorld.every(q=>q.completed) && state.activeQuestsWorld.length>0;
+  const evoDone = state.activeQuestsEvo.filter(q => q.completed).length;
+  const worldDone = state.activeQuestsWorld.filter(q => q.completed).length;
+  const evoAll = evoDone === state.activeQuestsEvo.length && state.activeQuestsEvo.length > 0;
+  const worldAll = worldDone === state.activeQuestsWorld.length && state.activeQuestsWorld.length > 0;
 
- el.innerHTML = `
- <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--gold);letter-spacing:2px;margin-bottom:12px">
- Evoluzione
- </div>
- ${renderQuestSet(state.activeQuestsEvo, "EVOLUZIONE", "evo")}
- ${evoAll ? `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--primary);text-align:center;padding:8px;border:1px solid rgba(78,204,163,0.2);border-radius:8px;margin-bottom:16px">&#10022; BONUS COMPLETAMENTO: +20 XP ottenuti!</div>` : ""}
+  el.innerHTML = `
+  <div class="mk">
+    <div class="mk-purse">
+      <div class="mk-purse-cap">Imprese della Settimana</div>
+      <div class="mk-purse-val">${evoDone + worldDone}<small style="font-size:15px;color:#8b7b5c;margin-left:6px;font-weight:700;">/ ${state.activeQuestsEvo.length + state.activeQuestsWorld.length}</small></div>
+      <div class="mk-purse-sub">incarichi settimanali portati a termine</div>
+    </div>
 
- <div style="font-family:'Cinzel',serif;font-size:12px;color:#a78bfa;letter-spacing:2px;margin:16px 0 12px">
- Mondo Esterno
- </div>
- ${renderQuestSet(state.activeQuestsWorld, "MONDO", "world")}
- ${worldAll ? `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--primary);text-align:center;padding:8px;border:1px solid rgba(78,204,163,0.2);border-radius:8px;margin-bottom:16px">&#10022; BONUS COMPLETAMENTO: +20 XP ottenuti!</div>` : ""}
- `;
+    <div class="mk-group">Capitolo I · Evoluzione</div>
+    <div class="mk-note">Prove di costanza legate alle tue discipline quotidiane</div>
+    <div class="mk-grid">${renderQuestTiles(state.activeQuestsEvo, "Evoluzione", "var(--gold)")}</div>
+    ${evoAll ? `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);margin-top:8px;">✦ Sigillo dell'Evoluzione compiuto: +20 XP ottenuti</div>` : ""}
+
+    <div class="mk-group">Capitolo II · Mondo Esterno</div>
+    <div class="mk-note">Imprese di caccia, bottino ed esplorazione nelle terre selvagge</div>
+    <div class="mk-grid">${renderQuestTiles(state.activeQuestsWorld, "Mondo Esterno", "#a78bfa")}</div>
+    ${worldAll ? `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);margin-top:8px;">✦ Sigillo del Mondo compiuto: +20 XP ottenuti</div>` : ""}
+  </div>`;
 }
 
 /* ── Pagina MONDO ESTERNO ── */
 export function renderWorld() {
   const state = store.state;
   const w     = state.world;
-  const wp    = w.worldProgress || {};
   const heroS = getHeroStats();
-  // Il pannello mondo è diviso in tre sezioni nell'HTML
-  const elStatus = document.getElementById("world-status-panel");
+  const elStatus  = document.getElementById("world-status-panel");
   const elBtnWrap = document.getElementById("mission-btn-wrap");
-  const elLog    = document.getElementById("world-log-section");
+  const elLog     = document.getElementById("world-log-section");
   if (!elStatus) return;
 
-  // Inizializza worldProgress se mancante (salvataggi precedenti)
   if (!w.worldProgress) {
     w.worldProgress = {
       areaCorrente: "foresta", areeSbloccate: ["foresta"],
@@ -196,61 +205,52 @@ export function renderWorld() {
       deiSconfitti: [], bottiniDivini: [], trofeiEmpirei: [], gameCompleted: false,
     };
   }
-  // Riassegna wp dopo eventuale init
   const wpSafe = w.worldProgress;
   const areaId  = wpSafe.areaCorrente || "foresta";
   const areaCfg = WORLD_AREAS.find(a => a.id === areaId) || WORLD_AREAS[0];
   const areaSbloccate = wpSafe.areeSbloccate || ["foresta"];
 
   /* ── Selettore aree ── */
-  const areaTabs = WORLD_AREAS.map(a => {
+  const areaTabs = WORLD_AREAS.map((a, idx) => {
     const sbloccata = areaSbloccate.includes(a.id);
     const attiva    = a.id === areaId;
     const poolQ     = AREA_QUESTS[a.id] || [];
     const tracker   = wpSafe.missioniPerArea?.[a.id] || {};
     const done      = poolQ.filter(q => tracker[q.id]?.completed).length;
     const total     = poolQ.length;
+    const spanFull  = idx === WORLD_AREAS.length - 1 && WORLD_AREAS.length % 2 === 1 ? "grid-column:1/-1;" : "";
     if (!sbloccata) {
-      return `<div class="area-tab locked" title="Completa le missioni dell'area precedente">
-        🔒 <span>${a.name}</span>
-      </div>`;
+      return `<button class="mk-tab is-locked" style="${spanFull}" disabled title="Completa le missioni della zona precedente">
+        ${roman(idx + 1)} · ${a.name} <b>Bloccata</b>
+      </button>`;
     }
-    return `<div class="area-tab${attiva ? " active" : ""}"
-              onclick="window.__kaizen.setArea('${a.id}')"
-              title="${a.desc}">
-      ${a.icon} <span>${a.name}</span>
-      <small class="area-tab-prog">${done}/${total}</small>
-    </div>`;
+    return `<button class="mk-tab ${attiva ? "is-on" : ""}" style="${spanFull}"
+              onclick="window.__kaizen.setArea('${a.id}')">
+      ${roman(idx + 1)} · ${a.name} <b>${done}/${total}</b>
+    </button>`;
   }).join("");
 
-  /* ── Info area corrente ── */
   const poolQ   = AREA_QUESTS[areaId] || [];
   const tracker = wpSafe.missioniPerArea?.[areaId] || {};
   const doneQ   = poolQ.filter(q => tracker[q.id]?.completed).length;
 
-  // Missioni area in corso (prime 5 non completate)
-  const questePending = poolQ
-    .filter(q => !tracker[q.id]?.completed)
-    .slice(0, 5);
+  const questePending = poolQ.filter(q => !tracker[q.id]?.completed).slice(0, 4);
 
-  const questsHTML = questePending.map(q => {
+  const questsHTML = questePending.map((q, idx) => {
     const t = tracker[q.id] || { progress: 0, completed: false };
     const pct = q.target > 0 ? Math.min(100, Math.round(t.progress / q.target * 100)) : 0;
-    return `<div class="area-quest-item">
-      <div class="area-quest-header">
-        <span class="area-quest-title">${q.n}. ${q.title}</span>
-        <span class="area-quest-prog">${t.progress}/${q.target}</span>
-      </div>
-      <div class="area-quest-desc">${q.desc}</div>
-      <div class="area-quest-bar-bg">
-        <div class="area-quest-bar" style="width:${pct}%"></div>
-      </div>
+    const spanFull = idx === questePending.length - 1 && questePending.length % 2 === 1 ? "grid-column:1/-1;" : "";
+    return `
+    <div class="mk-tile" style="--acc:var(--gold);padding-bottom:12px;${spanFull}">
+      <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}</div>
+      <div class="mk-tile-name">${q.title}</div>
+      <div class="mk-tile-big">${t.progress}<small>/ ${q.target}</small></div>
+      <div class="mk-vital-bar mk-dur"><i style="width:${pct}%"></i></div>
+      <div class="mk-tile-desc" style="margin-bottom:0">${q.desc}</div>
     </div>`;
-  }).join("") || `<div class="area-quest-item" style="color:var(--accent); font-family:'Cinzel', serif; font-size:12px; font-weight:700; text-align:center; padding: 14px 11px;">
-    ✅ Tutte le missioni completate!
-  </div>`;
+  }).join("") || `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);">✦ Tutti gli incarichi di questa regione sono stati compiuti.</div>`;
 
-  // Empireo: pannello dei (unico)
+  // Empireo: pannello divinità
   let empireoPanel = "";
   if (areaId === "empireo") {
     const dei = [
@@ -260,296 +260,291 @@ export function renderWorld() {
       {id:"e187",name:"Solarius"},{id:"e188",name:"Varos"},
       {id:"e189",name:"Morvath"}, {id:"e190",name:"Kaelos"},
     ];
-    const deiSconfitti = wpSafe.deiSconfitti || [];
     const deiHTML = dei.map(d => {
       const morto = (wpSafe.deiSconfitti || []).includes(d.id);
-      return `<div class="empireo-god ${morto ? "dead" : "alive"}">
-        ${morto ? "☠️" : "✨"} ${d.name}
+      return `
+      <div class="mk-tile ${morto ? "is-off" : "is-active"}" style="--acc:${morto ? "#6f6656" : "var(--gold-light)"};padding:10px 6px;">
+        <div class="mk-tile-cap">${morto ? "Caduto" : "Immortale"}</div>
+        <div class="mk-tile-name" style="min-height:1.4em;font-size:10.5px;${morto ? "text-decoration:line-through;" : ""}">${d.name}</div>
       </div>`;
     }).join("");
-    empireoPanel = `<div class="empireo-panel">
-      <div class="empireo-title">⚜️ Divinità dell'Empireo</div>
-      <div class="empireo-gods-grid">${deiHTML}</div>
-      <div class="empireo-note">${(wpSafe.deiSconfitti||[]).length}/10 divinità sconfitte. Ogni divinità può essere affrontata una sola volta.</div>
-    </div>`;
+    empireoPanel = `
+    <div class="mk-group">Pantheon dell'Empireo (${(wpSafe.deiSconfitti || []).length}/10)</div>
+    <div class="mk-note">Ogni divinità può essere affrontata e sconfitta una sola volta</div>
+    <div class="mk-grid" style="margin-bottom:12px;">${deiHTML}</div>`;
   }
 
-  /* ── Stato PV / PA / Denari ── */
-  const pvPct = Math.round(w.pvAttuali / heroS.pvMax * 100);
-  const paPct = Math.round(w.paAttuali / heroS.paMax * 100);
+  const pvPct = Math.min(100, Math.round(w.pvAttuali / heroS.pvMax * 100));
+  const paPct = Math.min(100, Math.round(w.paAttuali / heroS.paMax * 100));
 
-  // Contenuto principale nel pannello status
   elStatus.innerHTML = `
-    <!-- Selettore aree -->
-    <div class="area-tabs-scroll">
-      <div class="area-tabs">${areaTabs}</div>
+  <div class="mk">
+    <div class="mk-group" style="margin-top:0">Atlante delle Regioni</div>
+    <div class="mk-tabs mk-tabs--2">${areaTabs}</div>
+
+    <div class="mk-purse" style="margin-top:12px;">
+      <div class="mk-purse-cap">Livello ${areaCfg.lvlMin}–${areaCfg.lvlMax} · Incarichi ${doneQ}/${poolQ.length}</div>
+      <div class="mk-purse-val" style="font-size:22px;letter-spacing:2px;">${areaCfg.name}</div>
+      <div class="mk-purse-sub">${areaCfg.desc || "Terre inesplorate oltre il confine"}</div>
     </div>
 
-    <!-- Info area corrente -->
-    <div class="area-info-bar">
-      <span class="area-info-name">${areaCfg.icon} ${areaCfg.name}</span>
-      <span class="area-info-range">Lv ${areaCfg.lvlMin}–${areaCfg.lvlMax}</span>
-      <span class="area-info-cost">🪙${areaCfg.costoOro} ⚡${areaCfg.costoPA} PA</span>
-      <span class="area-info-prog">${doneQ}/${poolQ.length} missioni</span>
+    <div class="mk-vitals mk-vitals--3" style="margin-bottom:14px;">
+      <div class="mk-vital" style="--acc:#d9473f">
+        <div class="mk-vital-cap">Vita</div>
+        <div class="mk-vital-val">${Math.floor(w.pvAttuali)}<small>/ ${heroS.pvMax}</small></div>
+        <div class="mk-vital-bar"><i style="width:${pvPct}%"></i></div>
+      </div>
+      <div class="mk-vital" style="--acc:#4a8ee8">
+        <div class="mk-vital-cap">Azione</div>
+        <div class="mk-vital-val">${Math.floor(w.paAttuali)}<small>/ ${heroS.paMax}</small></div>
+        <div class="mk-vital-bar"><i style="width:${paPct}%"></i></div>
+      </div>
+      <div class="mk-vital" style="--acc:var(--gold)">
+        <div class="mk-vital-cap">Borsa</div>
+        <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:5px;">${COIN}${fmtDen(w.denari)}</div>
+        <div class="mk-vital-bar"><i style="width:100%"></i></div>
+      </div>
     </div>
 
     ${empireoPanel}
 
-    <!-- Missioni area in corso -->
-    <div class="world-section-title" style="display:flex;align-items:center;justify-content:space-between;">
-      <span>MISSIONI AREA</span>
-      <button class="btn-all-quests" onclick="window.__kaizen.showAllAreaQuests()">VEDI TUTTE</button>
-    </div>
-    <div class="area-quests-list">${questsHTML}</div>
-    ${doneQ < poolQ.length ? "" : `<div class="area-all-done">✅ Area completata!</div>`}
+    <div class="mk-group">Incarichi di Regione (${doneQ}/${poolQ.length})</div>
+    ${questePending.length ? `<div class="mk-grid">${questsHTML}</div>` : questsHTML}
+    <button class="mk-wide-btn" onclick="window.__kaizen.showAllAreaQuests()">
+      Consulta il Registro Completo (${doneQ}/${poolQ.length})
+    </button>
+  </div>`;
 
-    <!-- PV / PA / Denari -->
-    <div class="world-resources">
-      <div class="world-res-row">
-        <span>❤️ PV</span>
-        <div class="world-res-bar-bg">
-          <div class="world-res-bar pv" style="width:${pvPct}%"></div>
-        </div>
-        <span>${w.pvAttuali}/${heroS.pvMax}</span>
-      </div>
-      <div class="world-res-row">
-        <span>⚡ PA</span>
-        <div class="world-res-bar-bg">
-          <div class="world-res-bar pa" style="width:${paPct}%"></div>
-        </div>
-        <span>${w.paAttuali}/${heroS.paMax}</span>
-      </div>
-      <div class="world-res-row denari-row">
-        <span>🪙 Denari</span>
-        <strong>${w.denari}</strong>
-      </div>
-    </div>
-
-  `;
-
-  // Pulsante spedizione nel wrapper dedicato
   if (elBtnWrap) {
     elBtnWrap.innerHTML = `
-    <button class="btn-expedition" onclick="window.__kaizen.runMission()">
-      ${areaCfg.icon} INVIA SPEDIZIONE
-      <small>🪙${areaCfg.costoOro} · ⚡${areaCfg.costoPA} PA</small>
-    </button>`;
+    <div class="mk">
+      <button class="mk-expedition" onclick="window.__kaizen.runMission()">
+        <span class="mk-expedition-cap">Esplorazione · ${areaCfg.name}</span>
+        <span class="mk-expedition-title">Invia Spedizione</span>
+        <span class="mk-expedition-sub">Costo: ${COIN} <b>${areaCfg.costoOro}</b> denari · <b>${areaCfg.costoPA} PA</b></span>
+      </button>
+    </div>`;
   }
 
-  // Log ultime spedizioni nella sezione log
   if (elLog) {
+    const TYPE_META = {
+      win:      { lbl:"Vittoria",        acc:"#4ecca3" },
+      lose:     { lbl:"Sconfitta",       acc:"#e0533d" },
+      treasure: { lbl:"Tesoro",          acc:"var(--gold)" },
+      relic:    { lbl:"Reliquia",        acc:"#a78bfa" },
+      equip:    { lbl:"Equipaggiamento", acc:"#5fb8ec" },
+      material: { lbl:"Materiale",       acc:"#6cc4ef" },
+      fled:     { lbl:"Ritirata",        acc:"#e3a32b" },
+      empty:    { lbl:"Esplorazione",    acc:"#8b7b5c" },
+    };
+    const logs = (w.missioniLog || []).slice(0, 5);
+    const logsHTML = logs.length
+      ? `<div class="mk-grid">${logs.map((m, idx) => {
+          const meta = TYPE_META[m.tipo] || { lbl:"Evento", acc:"var(--gold)" };
+          const spanFull = idx === logs.length - 1 && logs.length % 2 === 1 ? "grid-column:1/-1;" : "";
+          return `
+          <div class="mk-tile" style="--acc:${meta.acc};padding-bottom:12px;${spanFull}">
+            <div class="mk-tile-cap" style="color:${meta.acc}">${meta.lbl}</div>
+            <div class="mk-tile-name" style="min-height:1.8em;font-size:11px;">${m.nome}</div>
+            ${m.denari ? `<div class="mk-chip mk-chip--gold" style="margin-bottom:0">+${fmtDen(m.denari)} denari</div>` : `<div class="mk-tile-desc" style="margin-bottom:0">registro di viaggio</div>`}
+          </div>`;
+        }).join("")}</div>`
+      : `<div class="mk-empty">Nessuna spedizione registrata nel diario.</div>`;
+
     elLog.innerHTML = `
-    <div class="world-section-title" style="margin-top:14px">ULTIME SPEDIZIONI</div>
-    <div class="mission-log">
-      ${(w.missioniLog || []).slice(0,5).map(m => {
-        const icon = m.tipo==="win"?"⚔️":m.tipo==="lose"?"💀":m.tipo==="treasure"?"💎":
-                     m.tipo==="relic"?"🔮":m.tipo==="equip"?"🗡️":m.tipo==="fled"?"🏃":
-                     m.tipo==="empty"?"🌫️":m.tipo==="material"?"":"❓";
-        return `<div class="mission-log-row ${m.tipo}">
-          ${icon ? icon + " " : ""}${m.nome} ${m.denari ? `<span class="log-gold">+${m.denari}🪙</span>` : ""}
-        </div>`;
-      }).join("") || `<div class="mission-log-row">Nessuna spedizione ancora.</div>`}
+    <div class="mk">
+      <div class="mk-group">Diario delle Ultime Spedizioni</div>
+      ${logsHTML}
     </div>`;
   }
 }
 
-
 const bachecaOpenCats = new Set();
 
 function renderBacheca(state, w) {
- // ── Trofei ──
- const trophyEl = document.getElementById("trophy-list");
- if (trophyEl) {
- const allQuests = [...QUEST_POOL_EVO, ...QUEST_POOL_WORLD];
- const entries = Object.entries(state.trophies);
- if (!entries.length) {
- trophyEl.innerHTML = `<div style="color:#374151;font-family:'JetBrains Mono',monospace;font-size:10px;grid-column:1/-1;text-align:center;padding:28px;letter-spacing:1px">Nessun trofeo ancora</div>`;
- } else {
- trophyEl.innerHTML = entries.map(([id, count]) => {
- const q = allQuests.find(x => x.id === id) ||
- (id === "day_perfect" ? { text:"Sole Invincibile", id } : null);
- if (!q) return "";
- const isWorld = QUEST_POOL_WORLD.some(x => x.id === id);
- const icon = id === "day_perfect" ? "" : isWorld ? "" : "";
- return `<div class="trophy-card" onclick="window.__kaizen.showTrophyDetail('${id}')">
- <span class="trophy-icon">${icon}</span>
- <div class="trophy-name">${q.text}</div>
- <div class="trophy-count">×${count}</div>
- </div>`;
- }).join("");
- }
- }
+  // ── Trofei ──
+  const trophyEl = document.getElementById("trophy-list");
+  if (trophyEl) {
+    const allQuests = [...QUEST_POOL_EVO, ...QUEST_POOL_WORLD];
+    const entries = Object.entries(state.trophies);
+    if (!entries.length) {
+      trophyEl.innerHTML = `<div class="mk" style="grid-column:1/-1;"><div class="mk-empty">Nessun trofeo ancora inciso nella bacheca.</div></div>`;
+    } else {
+      trophyEl.innerHTML = entries.map(([id, count]) => {
+        const q = allQuests.find(x => x.id === id) ||
+          (id === "day_perfect" ? { text: "Sole Invincibile", id } : null);
+        if (!q) return "";
+        const isWorld = QUEST_POOL_WORLD.some(x => x.id === id);
+        const cap = id === "day_perfect" ? "Giornata Perfetta" : isWorld ? "Impresa del Mondo" : "Impresa d'Evoluzione";
+        const acc = id === "day_perfect" ? "var(--gold-light)" : isWorld ? "#a78bfa" : "var(--gold)";
+        return `
+        <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;" onclick="window.__kaizen.showTrophyDetail('${id}')">
+          <div class="mk-tile-cap">${cap}</div>
+          <div class="mk-tile-name">${q.text}</div>
+          <div class="mk-tile-big">×${count}</div>
+          <div class="mk-tile-desc" style="margin-bottom:0">tocca per consultare</div>
+        </div>`;
+      }).join("");
+    }
+  }
 
- // ── Bestiario ──
- const nbSeen = Object.keys(w.nemiciIncontrati||{}).length + Object.keys(w.nemiciAbbattuti||{}).length;
- const seenIds = new Set([...Object.keys(w.nemiciIncontrati||{}), ...Object.keys(w.nemiciAbbattuti||{})]);
- const nKills = Object.values(w.nemiciAbbattuti||{}).reduce((a,b)=>a+b,0);
+  // ── Bestiario ──
+  const seenIds = new Set([...Object.keys(w.nemiciIncontrati || {}), ...Object.keys(w.nemiciAbbattuti || {})]);
+  const nKills = Object.values(w.nemiciAbbattuti || {}).reduce((a, b) => a + b, 0);
 
- const bestStatEl = document.getElementById("bestiary-stats");
- if (bestStatEl) {
- bestStatEl.innerHTML = `
- <div class="bacheca-stat"><div class="bacheca-stat-num">${seenIds.size}</div><div class="bacheca-stat-lbl">INCONTRATI</div></div>
- <div class="bacheca-stat"><div class="bacheca-stat-num">${nKills}</div><div class="bacheca-stat-lbl">UCCISI</div></div>
- <div class="bacheca-stat"><div class="bacheca-stat-num">${BESTIARY.length - seenIds.size}</div><div class="bacheca-stat-lbl">NASCOSTI</div></div>
-    <div class="bacheca-stat"><div class="bacheca-stat-num">${(w.worldProgress?.deiSconfitti||[]).length}/10</div><div class="bacheca-stat-lbl">DEI</div></div>`;
- }
+  const bestStatEl = document.getElementById("bestiary-stats");
+  if (bestStatEl) {
+    bestStatEl.innerHTML = `
+    <div class="mk-vital" style="--acc:var(--gold)"><div class="mk-vital-cap">Incontrati</div><div class="mk-vital-val">${seenIds.size}</div></div>
+    <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Abbattuti</div><div class="mk-vital-val">${nKills}</div></div>
+    <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${BESTIARY.length - seenIds.size}</div></div>
+    <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Divinità</div><div class="mk-vital-val">${(w.worldProgress?.deiSconfitti || []).length}<small>/10</small></div></div>`;
+  }
 
- const bestListEl = document.getElementById("bestiary-list");
- if (bestListEl) {
- const normalCards = BESTIARY.map(e => {
-    const seen = seenIds.has(e.id);
-    const kills = w.nemiciAbbattuti?.[e.id] || 0;
-    const incontri = Math.max(w.nemiciIncontrati?.[e.id]||0, kills);
-    const tier = e.lvl>=121?"tier-5":e.lvl>=81?"tier-4":e.lvl>=41?"tier-3":e.lvl>=11?"tier-2":"tier-1";
+  const bestListEl = document.getElementById("bestiary-list");
+  if (bestListEl) {
+    const tierColors = { 1:"#4a9060", 2:"#4a70b0", 3:"#9060b0", 4:"#c07830", 5:"#c03030" };
+    const normalCards = BESTIARY.map(e => {
+      const seen = seenIds.has(e.id);
+      const kills = w.nemiciAbbattuti?.[e.id] || 0;
+      const incontri = Math.max(w.nemiciIncontrati?.[e.id] || 0, kills);
+      const tNum = e.lvl >= 121 ? 5 : e.lvl >= 81 ? 4 : e.lvl >= 41 ? 3 : e.lvl >= 11 ? 2 : 1;
+      const acc = seen ? tierColors[tNum] : "rgba(255,255,255,.08)";
 
-  const portrait = seen
-  ? enemyImgCard(e, 56)
-  : `<div style="width:56px;height:56px;margin:0 auto 4px;display:flex;
-      align-items:center;justify-content:center;
-      font-size:24px;color:#1e2535">?</div>`;
+      const portrait = seen
+        ? `<div style="margin:4px auto 6px;">${enemyImgCard(e, 58)}</div>`
+        : `<div class="mk-unknown-portrait">?</div>`;
 
-  return `<div class="discovery-card ${seen?"unlocked":"locked"}"
-  onclick="${seen?`window.__kaizen.showBestiaryDetail('${e.id}')`:``}"
-  style="display:flex;flex-direction:column;align-items:center;padding:8px 6px 8px">
-  <div style="font-family:'Cinzel',serif;font-size:8px;font-weight:700;
-              color:${seen?"var(--text)":"#1e2535"};text-align:center;
-              width:100%;margin-bottom:5px;line-height:1.3;min-height:22px
-              ">${seen?e.name:"???"}</div>
-  ${portrait}
-  <span class="discovery-tier ${tier}" style="margin-top:5px;margin-bottom:2px">L${e.lvl}</span>
-  <div class="discovery-sub" style="text-align:center">${seen?`${incontri} inc · ${kills} ucc`:"—"}</div>
-  </div>`;
- }).join("");
+      return `
+      <div class="mk-tile ${seen ? "" : "is-off"}" style="--acc:${acc};padding-bottom:12px;cursor:${seen ? "pointer" : "default"};"
+           onclick="${seen ? `window.__kaizen.showBestiaryDetail('${e.id}')` : ""}">
+        <div class="mk-tile-cap">Livello ${e.lvl} · Grado ${roman(tNum)}</div>
+        <div class="mk-tile-name" style="min-height:2.2em">${seen ? e.name : "Creatura Ignota"}</div>
+        ${portrait}
+        <div class="mk-tile-desc" style="margin-bottom:0">${seen ? `${incontri} incontri · ${kills} uccisi` : "non ancora avvistato"}</div>
+      </div>`;
+    }).join("");
 
-  // ── Sezione Dei dell'Empireo ──
-  const wpSafe2 = w.worldProgress || {};
-  const deiSconfitti = wpSafe2.deiSconfitti || [];
-  const empireoUnlocked = (wpSafe2.areeSbloccate||[]).includes("empireo");
+    const wpSafe2 = w.worldProgress || {};
+    const deiSconfitti = wpSafe2.deiSconfitti || [];
+    const empireoUnlocked = (wpSafe2.areeSbloccate || []).includes("empireo");
 
-  const godDivider = `<div style="grid-column:1/-1;padding:16px 4px 8px;
-    display:flex;align-items:center;gap:10px;">
-    <div style="height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(212,160,23,0.25))"></div>
-    <div style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;
-      color:var(--gold);letter-spacing:3px;white-space:nowrap;text-transform:uppercase;">Dei dell'Empireo</div>
-    <div style="height:1px;flex:1;background:linear-gradient(90deg,rgba(212,160,23,0.25),transparent)"></div>
-  </div>`;
+    const godDivider = `<div class="mk-group" style="grid-column:1/-1;margin-top:20px;">Pantheon dell'Empireo</div>`;
 
-  const godCards = EMPIREO_GODS.map(g => {
-    const sconfitto = deiSconfitti.includes(g.id);
-    const portrait2 = empireoUnlocked
-      ? enemyImgCard(g, 56)
-      : `<div style="width:56px;height:56px;margin:0 auto 4px;display:flex;
-          align-items:center;justify-content:center;
-          font-size:24px;color:#1e2535">?</div>`;
-    const nameStr = empireoUnlocked ? g.name : "???";
-    const subStr  = empireoUnlocked ? (sconfitto ? "✦ sconfitto" : "mai affrontato") : "—";
-    const borderStyle = sconfitto ? "border-color:rgba(78,204,163,0.2);" : empireoUnlocked ? "border-color:rgba(212,160,23,0.22);" : "";
-    const opStyle = sconfitto ? "opacity:.4;filter:grayscale(0.6);" : "";
-    return `<div class="discovery-card ${empireoUnlocked?"unlocked":"locked"}"
-      onclick="${sconfitto?`window.__kaizen.showBestiaryDetail('${g.id}')`:``}"
-      style="display:flex;flex-direction:column;align-items:center;padding:8px 6px 8px;${borderStyle}${opStyle}">
-      <div style="font-family:'Cinzel',serif;font-size:8px;font-weight:700;
-                  color:${empireoUnlocked?"var(--gold-light)":"#1e2535"};text-align:center;
-                  width:100%;margin-bottom:5px;line-height:1.3;min-height:22px">${nameStr}</div>
-      ${portrait2}
-      <span class="discovery-tier tier-5" style="margin-top:5px;margin-bottom:2px;
-        background:rgba(212,160,23,0.1);color:var(--gold);">L${g.lvl}</span>
-      <div class="discovery-sub" style="text-align:center;color:${sconfitto?"var(--primary)":"#374151"}">${subStr}</div>
+    const godCards = EMPIREO_GODS.map(g => {
+      const sconfitto = deiSconfitti.includes(g.id);
+      const portrait2 = empireoUnlocked
+        ? `<div style="margin:4px auto 6px;">${enemyImgCard(g, 58)}</div>`
+        : `<div class="mk-unknown-portrait">?</div>`;
+      const nameStr = empireoUnlocked ? g.name : "Divinità Ignota";
+      const subStr  = empireoUnlocked ? (sconfitto ? "✦ sconfitto" : "mai affrontato") : "avvolto nel mito";
+      return `
+      <div class="mk-tile ${empireoUnlocked ? (sconfitto ? "is-active" : "") : "is-off"}"
+           style="--acc:${sconfitto ? "#4ecca3" : "var(--gold-light)"};padding-bottom:12px;cursor:${sconfitto ? "pointer" : "default"};"
+           onclick="${sconfitto ? `window.__kaizen.showBestiaryDetail('${g.id}')` : ""}">
+        <div class="mk-tile-cap">Livello ${g.lvl} · Divinità</div>
+        <div class="mk-tile-name" style="min-height:2.2em;color:var(--gold-light)">${nameStr}</div>
+        ${portrait2}
+        <div class="mk-tile-desc" style="margin-bottom:0;color:${sconfitto ? "#4ecca3" : "#8f8268"}">${subStr}</div>
+      </div>`;
+    }).join("");
+
+    bestListEl.innerHTML = normalCards + godDivider + godCards;
+    resolveImgs();
+  }
+
+  // ── Tesori (accorpati: generici + specifici per area) ──
+  const tstatEl = document.getElementById("treasure-stats");
+  const tlistEl = document.getElementById("treasure-list");
+  if (tstatEl && tlistEl) {
+    let allAreaItems = [];
+    Object.values(AREA_LOOT_POOL).forEach(pool => {
+      allAreaItems = allAreaItems.concat(pool);
+    });
+    const allCollectibles = [...TREASURES, ...allAreaItems];
+    let totalFound = 0;
+    allCollectibles.forEach(item => {
+      if ((w.tesoriScoperti || {})[item.id]) totalFound++;
+    });
+
+    tstatEl.innerHTML = `
+    <div class="mk-vital" style="--acc:var(--gold)"><div class="mk-vital-cap">Scoperti</div><div class="mk-vital-val">${totalFound}</div></div>
+    <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Denari Totali</div><div class="mk-vital-val">${fmtDen(w.deniariTotaliGuadagnati)}</div></div>
+    <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${allCollectibles.length - totalFound}</div></div>`;
+
+    const makeTendina = (key, num, title, subtitle, countBadge, contentHTML) => {
+      const isOpen = bachecaOpenCats.has(key);
+      return `
+      <details class="mk-shop zaino-details" data-cat="${key}" ${isOpen ? "open" : ""}>
+        <summary>
+          <span class="mk-shop-num">Catalogo ${num} · ${countBadge} scoperti</span>
+          <span class="mk-shop-name">${title}</span>
+          <span class="mk-shop-tag">${subtitle}</span>
+          <span class="mk-shop-toggle"></span>
+        </summary>
+        <div class="mk-shop-body">
+          <div class="mk-grid" style="margin-top:12px;">${contentHTML}</div>
+        </div>
+      </details>`;
+    };
+
+    let genFound = 0;
+    TREASURES.forEach(t => {
+      if ((w.tesoriScoperti || {})[t.id]) genFound++;
+    });
+    const genCards = TREASURES.map(t => {
+      const count = (w.tesoriScoperti || {})[t.id] || 0;
+      const locked = count === 0;
+      return `
+      <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:var(--gold);padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
+           onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
+        <div class="mk-tile-cap">Grado ${roman(t.tier)}</div>
+        <div class="mk-tile-name">${locked ? "Tesoro Ignoto" : t.name}</div>
+        ${!locked ? `<div class="mk-tile-big" style="font-size:20px;">×${count}</div>` : ""}
+        <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `${t.minV}–${t.maxV} denari`}</div>
+      </div>`;
+    }).join("");
+
+    let sectionsHTML = makeTendina("generic", "I", "Tesori Generici", "reperti e monili diffusi in ogni terra", `${genFound}/${TREASURES.length}`, genCards);
+
+    const areasWithLoot = WORLD_AREAS.filter(area => AREA_LOOT_POOL[area.id] && AREA_LOOT_POOL[area.id].length > 0);
+    areasWithLoot.forEach((area, idx) => {
+      const pool = AREA_LOOT_POOL[area.id];
+      let areaFound = 0;
+      pool.forEach(m => {
+        if ((w.tesoriScoperti || {})[m.id]) areaFound++;
+      });
+      const areaCards = pool.map(m => {
+        const count = (w.tesoriScoperti || {})[m.id] || 0;
+        const locked = count === 0;
+        return `
+        <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:var(--gold);padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
+             onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
+          <div class="mk-tile-cap">Rarità ${roman(m.rarity)}</div>
+          <div class="mk-tile-name">${locked ? "Reperto Ignoto" : m.name}</div>
+          ${!locked ? `<div class="mk-tile-big" style="font-size:20px;">×${count}</div>` : ""}
+          <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `valore ${m.value} denari`}</div>
+        </div>`;
+      }).join("");
+
+      sectionsHTML += makeTendina(area.id, roman(idx + 2), area.name, area.desc || "reperti esclusivi della regione", `${areaFound}/${pool.length}`, areaCards);
+    });
+
+    const toggleButtonsHTML = `
+    <div class="mk-tabs mk-tabs--2" style="margin-top:0;margin-bottom:12px;">
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllTreasures(true)">Apri tutti i cataloghi</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllTreasures(false)">Chiudi tutti i cataloghi</button>
     </div>`;
-  }).join("");
 
-  bestListEl.innerHTML = normalCards + godDivider + godCards;
-  resolveImgs();
- }
+    tlistEl.innerHTML = `<div class="mk">${toggleButtonsHTML}${sectionsHTML}</div>`;
 
- // ── Tesori (accorpati: generici + specifici per area) ──
- const tstatEl = document.getElementById("treasure-stats");
- const tlistEl = document.getElementById("treasure-list");
- if (tstatEl && tlistEl) {
-   let allAreaItems = [];
-   Object.values(AREA_LOOT_POOL).forEach(pool => {
-     allAreaItems = allAreaItems.concat(pool);
-   });
-   const allCollectibles = [...TREASURES, ...allAreaItems];
-   let totalFound = 0;
-   allCollectibles.forEach(item => {
-     if ((w.tesoriScoperti || {})[item.id]) totalFound++;
-   });
-
-   tstatEl.innerHTML = `
-   <div class="bacheca-stat"><div class="bacheca-stat-num">${totalFound}</div><div class="bacheca-stat-lbl">TROVATI</div></div>
-   <div class="bacheca-stat"><div class="bacheca-stat-num">${w.deniariTotaliGuadagnati}</div><div class="bacheca-stat-lbl">DENARI TOT.</div></div>
-   <div class="bacheca-stat"><div class="bacheca-stat-num">${allCollectibles.length - totalFound}</div><div class="bacheca-stat-lbl">NASCOSTI</div></div>`;
-
-   const makeTendina = (key, title, countBadge, contentHTML) => {
-     const isOpen = bachecaOpenCats.has(key);
-     return `<details class="zaino-details" data-cat="${key}" ${isOpen ? "open" : ""}>
-     <summary>
-       <span class="zaino-cat-title">${title}</span>
-       <span class="zaino-cat-count">${countBadge}</span>
-       <span class="zaino-cat-chevron"></span>
-     </summary>
-     <div style="padding:10px 4px 6px">
-       <div class="discovery-grid">${contentHTML}</div>
-     </div>
-     </details>`;
-   };
-
-   // 1. In cima: Tesori generici
-   let genFound = 0;
-   TREASURES.forEach(t => {
-     if ((w.tesoriScoperti || {})[t.id]) genFound++;
-   });
-   const genCards = TREASURES.map(t => {
-     const count = (w.tesoriScoperti || {})[t.id] || 0;
-     const locked = count === 0;
-     return `<div class="discovery-card treasure-card ${locked ? "locked" : "unlocked"}"
-       onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
-       <span class="discovery-tier tier-${t.tier}">T${t.tier}</span>
-       <div class="discovery-name" style="color:${locked ? "#1e2535" : "var(--gold)"}">${locked ? "???" : t.name}</div>
-       <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${t.minV}-${t.maxV} den` : ""}</div>
-     </div>`;
-   }).join("");
-
-   let sectionsHTML = makeTendina("generic", "Tesori Generici", `${genFound}/${TREASURES.length}`, genCards);
-
-   // 2. Poi: specifici per ogni zona del Mondo Esterno
-   const areasWithLoot = WORLD_AREAS.filter(area => AREA_LOOT_POOL[area.id] && AREA_LOOT_POOL[area.id].length > 0);
-   areasWithLoot.forEach(area => {
-     const pool = AREA_LOOT_POOL[area.id];
-     let areaFound = 0;
-     pool.forEach(m => {
-       if ((w.tesoriScoperti || {})[m.id]) areaFound++;
-     });
-     const areaCards = pool.map(m => {
-       const count = (w.tesoriScoperti || {})[m.id] || 0;
-       const locked = count === 0;
-       return `<div class="discovery-card ${locked ? "locked" : "unlocked"}"
-         onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
-         <span class="discovery-tier tier-${m.rarity}">R${m.rarity}</span>
-         <div class="discovery-name" style="color:${locked ? "#1e2535" : "var(--gold)"}">${locked ? "???" : m.name}</div>
-         <div class="discovery-sub">${locked ? "—" : count > 0 ? `×${count} · ${m.value} den` : ""}</div>
-       </div>`;
-     }).join("");
-
-     sectionsHTML += makeTendina(area.id, area.name, `${areaFound}/${pool.length}`, areaCards);
-   });
-
-   const toggleButtonsHTML = `
-   <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
-     <button class="zaino-toggle-all-btn" onclick="window.__kaizen.toggleAllTreasures(true)">Espandi tutti</button>
-     <button class="zaino-toggle-all-btn" onclick="window.__kaizen.toggleAllTreasures(false)">Comprimi tutti</button>
-   </div>`;
-
-   tlistEl.innerHTML = toggleButtonsHTML + sectionsHTML;
-
-   tlistEl.querySelectorAll(".zaino-details").forEach(d => {
-     d.addEventListener("toggle", () => {
-       if (d.open) bachecaOpenCats.add(d.dataset.cat);
-       else bachecaOpenCats.delete(d.dataset.cat);
-     });
-   });
- }
+    tlistEl.querySelectorAll(".zaino-details").forEach(d => {
+      d.addEventListener("toggle", () => {
+        if (d.open) bachecaOpenCats.add(d.dataset.cat);
+        else bachecaOpenCats.delete(d.dataset.cat);
+      });
+    });
+  }
 }
 
 export function toggleAllTreasures(open) {
@@ -564,77 +559,76 @@ export function toggleAllTreasures(open) {
 
 /* ── Log in Impostazioni ── */
 function renderLog(state) {
- const el = document.getElementById("settings-log-content");
- if (!el) return;
+  const el = document.getElementById("settings-log-content");
+  if (!el) return;
 
- const now48h = Date.now() - 48 * 3600 * 1000;
- const recent = state.history.filter(l => l.t >= now48h);
+  const now48h = Date.now() - 48 * 3600 * 1000;
+  const recent = state.history.filter(l => l.t >= now48h);
 
- if (!recent.length) {
- el.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#1e2535;text-align:center;padding:20px;letter-spacing:2px">NESSUNA ATTIVITÀ NELLE ULTIME 48 ORE</div>`;
- return;
- }
+  if (!recent.length) {
+    el.innerHTML = `<div class="mk-empty">Nessuna attività registrata nelle ultime 48 ore.</div>`;
+    return;
+  }
 
- el.innerHTML = `<div class="log-list">` +
- recent.map(l => `
- <div class="log-item cat-${l.cat||"system"}">
- <div class="log-item-time">${formatDate(l.t)}</div>
- <div class="log-item-msg">${l.msg}</div>
- </div>`).join("") +
- `</div>`;
+  const CAT_META = {
+    habit:  { lbl:"Disciplina", acc:"#4ecca3" },
+    combat: { lbl:"Battaglia",  acc:"#e0533d" },
+    world:  { lbl:"Mondo",      acc:"var(--gold)" },
+    shop:   { lbl:"Mercato",    acc:"#6cc4ef" },
+    quest:  { lbl:"Impresa",    acc:"#a78bfa" },
+    system: { lbl:"Sistema",    acc:"#8b7b5c" },
+  };
+
+  el.innerHTML = `<div class="mk-log-list">` +
+    recent.map(l => {
+      const meta = CAT_META[l.cat || "system"] || CAT_META.system;
+      return `
+      <div class="mk-log-row" style="--acc:${meta.acc}">
+        <div class="mk-log-cap">${meta.lbl} · ${formatDate(l.t)}</div>
+        <div class="mk-log-msg">${l.msg}</div>
+      </div>`;
+    }).join("") +
+    `</div>`;
 }
 
 /* ══════════════════════════════════════════════════════════
  MODALS DI DETTAGLIO
 ══════════════════════════════════════════════════════════ */
 export function showBestiaryDetail(enemyId) {
- const enemy = BESTIARY.find(e => e.id === enemyId) || EMPIREO_GODS.find(e => e.id === enemyId);
- if (!enemy) return;
- const w = store.state.world;
- const kills = w.nemiciAbbattuti?.[enemyId] || 0;
- const incontri = Math.max(w.nemiciIncontrati?.[enemyId]||0, kills);
- const box = document.getElementById("detail-modal-box");
- if (!box) return;
+  const enemy = BESTIARY.find(e => e.id === enemyId) || EMPIREO_GODS.find(e => e.id === enemyId);
+  if (!enemy) return;
+  const w = store.state.world;
+  const kills = w.nemiciAbbattuti?.[enemyId] || 0;
+  const incontri = Math.max(w.nemiciIncontrati?.[enemyId] || 0, kills);
+  const box = document.getElementById("detail-modal-box");
+  if (!box) return;
 
- document.getElementById("detail-modal").classList.add("show");
- box.innerHTML = `
- <div class="modal-title">Bestiario</div>
+  document.getElementById("detail-modal").classList.add("show");
+  box.innerHTML = `
+  <div class="mk mk-modal">
+    <div class="mk-modal-cap">Bestiario · Livello ${enemy.lvl}</div>
+    <div class="mk-modal-title">${enemy.name}</div>
+    ${enemy.trait ? `<div class="mk-note">${enemy.trait}</div>` : ""}
 
- <div style="text-align:center;margin-bottom:14px">
-   <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;margin-bottom:4px;line-height:1.3">${enemy.name}</div>
-   <span class="enemy-trait-badge">Lv ${enemy.lvl}</span>
-   <div style="margin-top:14px;display:flex;justify-content:center;width:100%">
-     ${enemyImgHTML(enemy, '100%', 'auto')}
-   </div>
-   <div style="font-family:'Inter',sans-serif;font-size:12px;color:#a0a0b0;margin-top:14px;font-style:italic;">
-     ${enemy.trait}
-   </div>
- </div>
+    <div style="margin:10px auto 14px;display:flex;justify-content:center;width:100%;">
+      ${enemyImgHTML(enemy, "100%", "auto")}
+    </div>
 
- <div class="detail-stat-grid">
- <div class="detail-stat-box"><div class="detail-stat-val" style="color:#dc2626">${enemy.forza}</div><div class="detail-stat-lbl">FORZA</div></div>
- <div class="detail-stat-box"><div class="detail-stat-val" style="color:#0ea5e9">${enemy.velocita}</div><div class="detail-stat-lbl">VELOCITÀ</div></div>
- <div class="detail-stat-box"><div class="detail-stat-val" style="color:#10b981">${enemy.destrezza}%</div><div class="detail-stat-lbl">DESTREZZA</div></div>
- <div class="detail-stat-box"><div class="detail-stat-val" style="color:#f97316">${enemy.critico}%</div><div class="detail-stat-lbl">CRITICO</div></div>
- <div class="detail-stat-box" style="grid-column:1/-1">
- <div class="detail-stat-val" style="color:#dc2626">${enemy.costituzione}</div>
- <div class="detail-stat-lbl">PUNTI VITA</div>
- </div>
- </div>
+    <div class="mk-vitals" style="margin-bottom:8px;">
+      <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Forza</div><div class="mk-vital-val" style="color:#e0533d">${enemy.forza}</div></div>
+      <div class="mk-vital" style="--acc:#5fb8ec"><div class="mk-vital-cap">Velocità</div><div class="mk-vital-val" style="color:#5fb8ec">${enemy.velocita}</div></div>
+      <div class="mk-vital" style="--acc:#3fbf8a"><div class="mk-vital-cap">Destrezza</div><div class="mk-vital-val" style="color:#3fbf8a">${enemy.destrezza}%</div></div>
+      <div class="mk-vital" style="--acc:#f0903f"><div class="mk-vital-cap">Critico</div><div class="mk-vital-val" style="color:#f0903f">${enemy.critico}%</div></div>
+      <div class="mk-vital" style="--acc:#e0533d;grid-column:1/-1;"><div class="mk-vital-cap">Punti Vita</div><div class="mk-vital-val" style="color:#e0533d">${enemy.costituzione}</div></div>
+    </div>
 
- <div style="display:flex;gap:8px;margin:10px 0">
- <div class="detail-stat-box" style="flex:1;text-align:center">
- <div class="detail-stat-val" style="color:var(--gold)">${incontri}</div>
- <div class="detail-stat-lbl">INCONTRI</div>
- </div>
- <div class="detail-stat-box" style="flex:1;text-align:center">
- <div class="detail-stat-val" style="color:var(--primary)">${kills}</div>
- <div class="detail-stat-lbl">UCCISI</div>
- </div>
- </div>
+    <div class="mk-vitals" style="margin-top:8px;">
+      <div class="mk-vital" style="--acc:var(--gold)"><div class="mk-vital-cap">Incontri</div><div class="mk-vital-val" style="color:var(--gold-light)">${incontri}</div></div>
+      <div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Abbattuti</div><div class="mk-vital-val" style="color:#4ecca3">${kills}</div></div>
+    </div>
 
- <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
- `;
+    <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+  </div>`;
   resolveImgs();
 }
 
@@ -661,73 +655,69 @@ export function showTreasureDetail(treasureId) {
   if (!box) return;
   document.getElementById("detail-modal").classList.add("show");
 
-  const badgeText = isArea 
-    ? `${areaName.toUpperCase()} · RARITÀ ${t.rarity}` 
-    : `TIER ${t.tier}`;
+  const badgeText = isArea
+    ? `${areaName} · Rarità ${roman(t.rarity)}`
+    : `Tesoro Generico · Grado ${roman(t.tier)}`;
   const valText = isArea ? `${t.value}` : `${t.minV}–${t.maxV}`;
-  const descHTML = t.desc ? `<div style="font-size:11px;color:#94a3b8;font-family:'Inter',sans-serif;text-align:center;padding:0 12px 10px;line-height:1.4;">${t.desc}</div>` : "";
 
   box.innerHTML = `
-  <div class="modal-title">Tesoro</div>
-  <div style="text-align:center;margin:16px 0 4px">
-  <span style="font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold)">${t.name}</span>
-  </div>
-  <div style="text-align:center;margin-bottom:14px">
-  <span class="enemy-trait-badge">${badgeText}</span>
-  </div>
-  ${descHTML}
-  <div style="display:flex;gap:8px;margin:12px 0">
-  <div class="detail-stat-box" style="flex:1;text-align:center">
-  <div class="detail-stat-val" style="color:var(--gold)">${valText} den</div>
-  <div class="detail-stat-lbl">VALORE</div>
-  </div>
-  <div class="detail-stat-box" style="flex:1;text-align:center">
-  <div class="detail-stat-val" style="color:var(--primary)">${count}</div>
-  <div class="detail-stat-lbl">TROVATO</div>
-  </div>
-  </div>
-  <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
-  `;
+  <div class="mk mk-modal">
+    <div class="mk-modal-cap">${badgeText}</div>
+    <div class="mk-modal-title">${t.name}</div>
+    ${t.desc ? `<div class="mk-note">${t.desc}</div>` : ""}
+
+    <div class="mk-vitals" style="margin:12px 0;">
+      <div class="mk-vital" style="--acc:var(--gold)">
+        <div class="mk-vital-cap">Valore Stimato</div>
+        <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:6px;">${COIN}${valText}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#4ecca3">
+        <div class="mk-vital-cap">Ritrovamenti</div>
+        <div class="mk-vital-val" style="color:#4ecca3">×${count}</div>
+      </div>
+    </div>
+
+    <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+  </div>`;
   resolveImgs();
 }
 
 export function showTrophyDetail(questId) {
- const allQ = [...QUEST_POOL_EVO, ...QUEST_POOL_WORLD];
- const q = allQ.find(x => x.id === questId) ||
- (questId==="day_perfect"?{text:"Sole Invincibile",desc:"Completa tutte le abitudini in un giorno",target:1,type:"day"}:null);
- if (!q) return;
- const count = store.state.trophies[questId] || 0;
- const isWorld = QUEST_POOL_WORLD.some(x => x.id === questId);
+  const allQ = [...QUEST_POOL_EVO, ...QUEST_POOL_WORLD];
+  const q = allQ.find(x => x.id === questId) ||
+    (questId === "day_perfect" ? { text: "Sole Invincibile", desc: "Completa tutte le abitudini in un singolo giorno", target: 1, type: "day" } : null);
+  if (!q) return;
+  const count = store.state.trophies[questId] || 0;
+  const isWorld = QUEST_POOL_WORLD.some(x => x.id === questId);
+  const cap = questId === "day_perfect" ? "Trofeo Giornaliero" : isWorld ? "Trofeo del Mondo" : "Trofeo d'Evoluzione";
 
- const box = document.getElementById("detail-modal-box");
- if (!box) return;
- document.getElementById("detail-modal").classList.add("show");
- box.innerHTML = `
- <div class="modal-title"> Trofeo</div>
- <div style="text-align:center;font-size:40px;padding:12px 0 6px">${isWorld?"":""}</div>
- <div style="text-align:center;margin-bottom:4px">
- <span style="font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--gold)">${q.text}</span>
- </div>
- <div style="text-align:center;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#94a3b8">
- ${q.desc || ""}
- </div>
- <div style="display:flex;gap:8px">
- <div class="detail-stat-box" style="flex:1;text-align:center">
- <div class="detail-stat-val" style="color:var(--gold)">${count}</div>
- <div class="detail-stat-lbl">OTTENUTO</div>
- </div>
- <div class="detail-stat-box" style="flex:1;text-align:center">
- <div class="detail-stat-val" style="color:var(--primary)">${q.target||"—"}</div>
- <div class="detail-stat-lbl">OBIETTIVO</div>
- </div>
- </div>
- <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
- `;
+  const box = document.getElementById("detail-modal-box");
+  if (!box) return;
+  document.getElementById("detail-modal").classList.add("show");
+  box.innerHTML = `
+  <div class="mk mk-modal">
+    <div class="mk-modal-cap">${cap}</div>
+    <div class="mk-modal-title">${q.text}</div>
+    <div class="mk-note">${q.desc || ""}</div>
+
+    <div class="mk-vitals" style="margin:12px 0;">
+      <div class="mk-vital" style="--acc:var(--gold)">
+        <div class="mk-vital-cap">Volte Conquistato</div>
+        <div class="mk-vital-val" style="color:var(--gold-light)">×${count}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#4ecca3">
+        <div class="mk-vital-cap">Soglia Impresa</div>
+        <div class="mk-vital-val" style="color:#4ecca3">${q.target || "—"}</div>
+      </div>
+    </div>
+
+    <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+  </div>`;
   resolveImgs();
 }
 
 export function closeDetailModal() {
- document.getElementById("detail-modal")?.classList.remove("show");
+  document.getElementById("detail-modal")?.classList.remove("show");
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -744,67 +734,37 @@ export function showAllAreaQuests() {
   const doneCount = poolQ.filter(q => tracker[q.id]?.completed).length;
   const totalPct  = poolQ.length > 0 ? Math.round(doneCount / poolQ.length * 100) : 0;
 
-  const rows = poolQ.map(q => {
+  const tiles = poolQ.map((q, idx) => {
     const t    = tracker[q.id] || { progress: 0, completed: false };
     const pct  = q.target > 0 ? Math.min(100, Math.round(t.progress / q.target * 100)) : 0;
     const done = t.completed;
-    return `<div class="aq-row${done ? " aq-done" : ""}">
-      <div class="aq-row-header">
-        <span class="aq-num">${q.n}</span>
-        <span class="aq-title">${q.title}</span>
-        <span class="aq-prog">${done ? "✦" : `${t.progress}/${q.target}`}</span>
-      </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4b5563;line-height:1.4;margin-bottom:5px;">${q.desc}</div>
-      <div class="aq-bar-bg"><div class="aq-bar" style="width:${pct}%"></div></div>
+    const acc  = done ? "#4ecca3" : "var(--gold)";
+    const spanFull = idx === poolQ.length - 1 && poolQ.length % 2 === 1 ? "grid-column:1/-1;" : "";
+    return `
+    <div class="mk-tile ${done ? "is-active" : ""}" style="--acc:${acc};padding-bottom:12px;${spanFull}">
+      <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}</div>
+      <div class="mk-tile-name">${q.title}</div>
+      <div class="mk-tile-big">${done ? "✦" : `${t.progress}<small>/ ${q.target}</small>`}</div>
+      <div class="mk-vital-bar mk-dur"><i style="width:${pct}%;background:${acc}"></i></div>
+      <div class="mk-tile-desc" style="margin-bottom:0">${q.desc}</div>
     </div>`;
   }).join("");
 
   const html = `
     <div id="all-quests-overlay" onclick="if(event.target===this)this.remove()"
-      style="position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9999;backdrop-filter:blur(4px);
-        display:flex;align-items:flex-end;justify-content:center;padding:0;">
-      <div style="background:var(--card-solid);border:1px solid rgba(212,160,23,0.2);
-        border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:88vh;
-        display:flex;flex-direction:column;overflow:hidden;
-        box-shadow:0 -20px 60px rgba(0,0,0,0.7);">
-
-        <!-- Header -->
-        <div style="padding:16px 18px 12px;border-bottom:1px solid var(--glass-border);flex-shrink:0;
-          background:linear-gradient(180deg,rgba(212,160,23,0.06),transparent);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div style="font-family:'Cinzel',serif;font-size:15px;font-weight:900;
-                color:var(--gold-light);letter-spacing:1.5px;">${areaCfg.icon} ${areaCfg.name}</div>
-              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;
-                color:#64748b;letter-spacing:1px;margin-top:3px;">
-                MISSIONI — ${doneCount}/${poolQ.length} COMPLETATE
-              </div>
-            </div>
-            <button onclick="document.getElementById('all-quests-overlay').remove()"
-              style="background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
-                color:#64748b;font-size:14px;cursor:pointer;padding:0;
-                width:32px;height:32px;border-radius:8px;display:flex;
-                align-items:center;justify-content:center;flex-shrink:0;">✕</button>
-          </div>
-          <!-- Progress bar totale -->
-          <div style="margin-top:10px;">
-            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
-              <div style="height:100%;width:${totalPct}%;
-                background:linear-gradient(90deg,var(--gold),var(--gold-light));
-                box-shadow:0 0 8px rgba(212,160,23,0.35);border-radius:3px;
-                transition:width .5s cubic-bezier(0.4,0,0.2,1);"></div>
-            </div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;
-              color:var(--gold);text-align:right;margin-top:4px;letter-spacing:0.5px;">${totalPct}%</div>
-          </div>
+      style="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;backdrop-filter:blur(6px);
+        display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div class="modal-box mk mk-modal" style="max-width:440px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="mk-modal-cap">Registro di Regione · ${doneCount}/${poolQ.length} Compiuti (${totalPct}%)</div>
+        <div class="mk-modal-title">${areaCfg.name}</div>
+        <div class="mk-vital-bar" style="--acc:var(--gold);margin:4px 0 14px;"><i style="width:${totalPct}%"></i></div>
+        <div style="overflow-y:auto;padding-right:2px;flex:1;">
+          <div class="mk-grid">${tiles}</div>
         </div>
-
-        <!-- Lista missioni -->
-        <div style="overflow-y:auto;padding:14px 16px 24px;flex:1;">${rows}</div>
+        <button class="modal-close-btn" onclick="document.getElementById('all-quests-overlay').remove()">CHIUDI</button>
       </div>
     </div>`;
 
   document.getElementById("all-quests-overlay")?.remove();
   document.body.insertAdjacentHTML("beforeend", html);
 }
-

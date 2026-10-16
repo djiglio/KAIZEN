@@ -1,10 +1,10 @@
 /* ============================================================
  navigation.js — sidebar, cambio pagina, rank page, tab
- KAIZEN v6.0
+ KAIZEN v6.37
  ============================================================ */
 
 import { store } from "./state.js";
-import { rankTitles } from "./data.js";
+import { rankTitles, titleMetalColors } from "./data.js";
 import { getHeroRank } from "./engine.js";
 
 export function toggleSidebar() {
@@ -33,19 +33,26 @@ export function showRankPage() {
  const listEl = document.getElementById("rank-list");
  if (!listEl) return;
 
- listEl.innerHTML = rankTitles.map((rt, i) => {
- let cls, badgeText;
- if (i < currentTitleIdx) { cls="rank-past"; badgeText="CONQUISTATO"; }
- else if (i === currentTitleIdx){ cls="rank-current"; badgeText="ATTUALE"; }
- else { cls="rank-future"; badgeText=`RANGO ${rt.r}`; }
- const indicator = i === currentTitleIdx
- ? `<span class="rank-current-indicator"></span>` : "";
- return `<div class="rank-entry ${cls}">
- <div class="rank-title-text">${rt.t}</div>
- <div class="rank-badge-label">${badgeText}</div>
- ${indicator}
- </div>`;
- }).join(`<div class="rank-section-divider">· · ·</div>`);
+ const cardsHTML = rankTitles.map((rt, i) => {
+   const isPast = i < currentTitleIdx;
+   const isCurrent = i === currentTitleIdx;
+   const metalCol = titleMetalColors[rt.t] || "var(--gold)";
+   const acc = isCurrent ? "var(--gold-light)" : isPast ? "#4ecca3" : "rgba(255,255,255,0.12)";
+   const chipCls = isCurrent ? "mk-chip--gold" : isPast ? "mk-chip--ok" : "";
+   const statusTxt = isCurrent ? "✦ Titolo Attuale" : isPast ? "Conquistato" : "Da Conquistare";
+
+   return `
+   <div class="mk-tile rank-entry ${isCurrent ? "is-active rank-current" : isPast ? "rank-past" : "is-off rank-future"}"
+        style="--acc:${acc};padding-bottom:12px;">
+     <div class="mk-tile-cap">Soglia · Rango ${rt.r}</div>
+     <div class="mk-tile-name" style="font-size:13px;color:${isCurrent ? "var(--gold-light)" : isPast ? metalCol : "#6f6656"};min-height:1.8em;">
+       ${rt.t}
+     </div>
+     <div class="mk-chip ${chipCls}" style="margin-bottom:0;">${statusTxt}</div>
+   </div>`;
+ }).join("");
+
+ listEl.innerHTML = `<div class="mk"><div class="mk-grid">${cardsHTML}</div></div>`;
 
  document.querySelectorAll(".page, #p-ranks")
  .forEach(p => p.classList.remove("active"));

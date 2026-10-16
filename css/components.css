@@ -897,21 +897,26 @@
 .mk-tile.is-off .mk-tile-name, .mk-tile.is-off .mk-tile-big, .mk-tile.is-off .mk-coat { opacity: .5; }
 .mk-tile-cap { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--cap); margin-bottom: 4px; }
 .mk-tile-name { display: flex; align-items: center; justify-content: center; min-height: 2.5em; font-family: "Cinzel", serif; font-size: 11.5px; font-weight: 700; line-height: 1.25; color: #ece3cf; }
-.mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; }
+.mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .mk-tile-big small { font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; margin-left: 3px; opacity: .85; }
 .mk-tile-desc { font-family: var(--serif-it); font-style: italic; font-size: 13px; line-height: 1.25; color: #8f8268; margin: 2px 0 10px; }
 .mk-dur { width: 70%; margin: 4px 0 12px; }
 .mk-chip { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2px; text-transform: uppercase; color: #b8a274; border: 1px solid rgba(212,160,23,.3); padding: 2px 6px; margin: -2px 0 10px; border-radius: 1px; }
 .mk-chip--ok   { color: #4ecca3; border-color: rgba(78,204,163,.4); }
 .mk-chip--lack { color: #c4675d; border-color: rgba(196,103,93,.4); }
+.mk-chip--gold { color: var(--gold-light); border-color: rgba(212,160,23,.5); background: rgba(212,160,23,.08); }
+.mk-vitals--3 { grid-template-columns: repeat(3, 1fr); }
+.mk-vitals--4 { grid-template-columns: repeat(4, 1fr); }
+.mk-tabs--2 { grid-template-columns: repeat(2, 1fr); }
+.mk-tab.is-locked { opacity: .35; cursor: default; pointer-events: none; }
 .mk-coat { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 4px 0 10px; }
 .mk-coat-name  { font-family: "Cinzel", serif; font-size: 13px; font-weight: 700; color: #6cc4ef; letter-spacing: 1px; }
 .mk-coat-bonus { font-family: "JetBrains Mono", monospace; font-size: 8.5px; color: #a9d8f0; }
 .mk-coat-wear  { font-family: var(--serif-it); font-style: italic; font-size: 13px; color: #7fa9bf; }
 .mk-price { margin: auto -10px 0; width: calc(100% + 20px); display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 9px 6px 10px; border: 0; border-top: 1px dashed rgba(212,160,23,.3); background: rgba(212,160,23,.07);
-  color: var(--gold-light); cursor: pointer; transition: background .15s; font-family: "JetBrains Mono", monospace; }
-.mk-price-row { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; letter-spacing: .5px; }
+  color: var(--gold-light); cursor: pointer; transition: background .15s; font-family: "JetBrains Mono", monospace; text-align: center; }
+.mk-price-row { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px; font-weight: 800; letter-spacing: .5px; }
 .mk-price-lbl { font-family: "Cinzel", serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
 .mk-price s { font-size: 9px; font-weight: 400; opacity: .45; }
 .mk-price em { font-style: normal; font-size: 7.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #b8625a; }
@@ -922,70 +927,45 @@
 .mk-price--blue .mk-price-row { font-family: "Cinzel", serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
 .mk-price--blue .mk-price-row b { font-family: "JetBrains Mono", monospace; font-size: 12.5px; letter-spacing: .5px; }
 .mk-price--blue:active:not([disabled]) { background: rgba(56,189,248,.18); }
+.mk-price--ok { color: #4ecca3; background: rgba(78,204,163,.08); border-top-color: rgba(78,204,163,.3); }
+.mk-price--ok:active:not([disabled]) { background: rgba(78,204,163,.18); }
+.mk-price--danger { color: #c4675d; background: rgba(196,103,93,.08); border-top-color: rgba(196,103,93,.3); }
+.mk-price--danger:active:not([disabled]) { background: rgba(196,103,93,.18); }
+.mk-split-actions { margin: auto -10px 0; width: calc(100% + 20px); display: grid; grid-template-columns: 1fr 1fr; border-top: 1px dashed rgba(212,160,23,.28); }
+.mk-act { border: 0; background: rgba(255,255,255,.02); color: #ece3cf; padding: 9px 4px 10px; cursor: pointer;
+  font-family: "Cinzel", serif; font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: background .15s; text-align: center; }
+.mk-act + .mk-act { border-left: 1px dashed rgba(212,160,23,.22); }
+.mk-act--ok   { color: #4ecca3; background: rgba(78,204,163,.07); }
+.mk-act--ok:active:not([disabled]) { background: rgba(78,204,163,.18); }
+.mk-act--no   { color: #c4675d; background: rgba(196,103,93,.07); }
+.mk-act--no:active:not([disabled]) { background: rgba(196,103,93,.18); }
+.mk-act--gold { color: var(--gold-light); background: rgba(212,160,23,.07); font-family: "JetBrains Mono", monospace; font-size: 10px; }
+.mk-act--gold:active:not([disabled]) { background: rgba(212,160,23,.18); }
+.mk-act[disabled] { opacity: .35; cursor: default; background: rgba(255,255,255,.01); }
+.mk-expedition { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
+  padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(212,160,23,.2), rgba(212,160,23,.05));
+  border: 1px solid rgba(212,160,23,.48); border-radius: 3px; color: var(--gold-light); cursor: pointer; transition: all .2s;
+  box-shadow: inset 0 0 0 3px var(--ink), inset 0 0 0 4px rgba(212,160,23,.14); }
+.mk-expedition:active:not(.is-disabled) { transform: translateY(1px); background: rgba(212,160,23,.22); }
+.mk-expedition.is-disabled { background: var(--ink); border-color: rgba(212,160,23,.15); color: #6f6656; cursor: default; box-shadow: none; }
+.mk-expedition-cap { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 3px; text-transform: uppercase; color: var(--cap); }
+.mk-expedition-title { font-family: "Cinzel", serif; font-size: 14px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
+.mk-expedition-sub { font-family: var(--serif-it); font-style: italic; font-size: 13.5px; color: #9a8a68; display: inline-flex; align-items: center; gap: 5px; }
+.mk-wide-btn { width: 100%; margin-top: 8px; padding: 9px 12px; background: rgba(212,160,23,.06); border: 1px solid rgba(212,160,23,.25);
+  border-radius: 3px; color: var(--gold-light); font-family: "Cinzel", serif; font-size: 9.5px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; cursor: pointer; text-align: center; transition: background .2s; }
+.mk-wide-btn:active { background: rgba(212,160,23,.16); }
+.mk-unknown-portrait { width: 52px; height: 52px; margin: 4px auto 6px; border: 1px dashed rgba(212,160,23,.25); border-radius: 3px;
+  display: flex; align-items: center; justify-content: center; font-family: "Cinzel", serif; font-size: 20px; font-weight: 700; color: #6f6656; background: rgba(0,0,0,.35); }
+.mk-log-list { display: flex; flex-direction: column; gap: 6px; }
+.mk-log-row { --acc: var(--gold); text-align: center; padding: 8px 10px; background: linear-gradient(180deg, #181510 0%, #0f0d0a 100%);
+  border: 1px solid rgba(212,160,23,.13); border-top: 2px solid var(--acc); border-radius: 3px; }
+.mk-log-cap { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--cap); margin-bottom: 2px; }
+.mk-log-msg { font-family: var(--serif-it); font-style: italic; font-size: 13.5px; color: #ece3cf; line-height: 1.3; }
 .mk-modal { text-align: center; }
 .mk-modal-cap { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--cap); }
 .mk-modal-title { font-family: "Cinzel", serif; font-size: 18px; font-weight: 700; color: var(--gold-light); margin: 4px 0 6px; letter-spacing: 1px; }
 .mk-modal-warn { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a6a5a; margin: -4px 0 12px; }
 .mk-modal-list { max-height: 52vh; overflow-y: auto; padding-right: 2px; margin-bottom: 4px; }
 .mk-modal .modal-close-btn { margin-top: 12px; }
-
-/* ══════════════════════════════════════
-   IMPOSTAZIONI
-══════════════════════════════════════ */
-.settings-section { margin-bottom: 24px; }
-.settings-section-title { font-family: "Cinzel", serif; font-size: 12px; font-weight: 700; color: var(--gold); letter-spacing: 2px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(212,160,23,0.15); display: flex; align-items: center; gap: 8px; }
-.settings-btn {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--glass-border);
-  background: rgba(255,255,255,0.02);
-  color: var(--text);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-height: 48px;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.settings-btn:active { background: rgba(212,160,23,0.08); border-color: rgba(212,160,23,0.25); }
-
-.app-info-box { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; }
-.app-info-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.app-info-row:last-child { border-bottom: none; }
-.app-info-key { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #64748b; letter-spacing: 1px; }
-.app-info-val { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--gold); font-weight: 700; }
-
-/* ══════════════════════════════════════
-   LOG PAGE
-══════════════════════════════════════ */
-.log-filter-bar { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
-.log-filter-btn { flex-shrink: 0; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: #64748b; font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; white-space: nowrap; min-height: 32px; }
-.log-filter-btn.active { background: rgba(212,160,23,0.12); color: var(--gold); border-color: rgba(212,160,23,0.3); }
-.log-list { display: flex; flex-direction: column; gap: 5px; }
-.log-item { background: rgba(0,0,0,0.35); border-radius: 9px; padding: 10px 12px; border-left: 2px solid #374151; }
-.log-item.cat-habit   { border-left-color: var(--primary); }
-.log-item.cat-combat  { border-left-color: var(--danger); }
-.log-item.cat-world   { border-left-color: var(--gold); }
-.log-item.cat-shop    { border-left-color: #8faacc; }
-.log-item.cat-quest   { border-left-color: #a78bfa; }
-.log-item.cat-system  { border-left-color: #374151; }
-.log-item-time { font-family: "JetBrains Mono", monospace; font-size: 8px; color: #64748b; margin-bottom: 2px; }
-.log-item-msg  { font-family: "JetBrains Mono", monospace; font-size: 10px; color: #94a3b8; line-height: 1.4; }
-
-/* ══════════════════════════════════════
-   DETAIL MODALS (bestiario, tesori, trofei)
-══════════════════════════════════════ */
-.detail-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
-.detail-stat-box { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 9px; padding: 10px 8px; text-align: center; }
-.detail-stat-val { font-family: "Cinzel", serif; font-size: 16px; font-weight: 900; }
-.detail-stat-lbl { font-family: "JetBrains Mono", monospace; font-size: 7px; color: #64748b; letter-spacing: 1px; margin-top: 2px; }
-
-.enemy-portrait { font-size: 48px; text-align: center; padding: 16px 0 8px; }
-.enemy-trait-badge { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: rgba(212,160,23,0.08); border: 1px solid rgba(212,160,23,0.2); color: var(--gold); letter-spacing: 1px; margin-bottom: 12px; }
