@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.52"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.52"/>
-  <title>KAIZEN v6.52</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.53"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.53"/>
+  <title>KAIZEN v6.53</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.52
+   KAIZEN v6.53
    ============================================================ */
 
 :root {
@@ -1554,10 +1554,10 @@ body::before {
 
 /* Pulsante Spedizione / Largo */
 .mk-expedition { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
-  padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(195, 80, 35, .25), rgba(195, 80, 35, .05));
-  border: 1px solid rgba(200, 85, 45, .55); border-radius: 3px; color: #fde2d4; cursor: pointer; transition: all .2s;
-  box-shadow: inset 0 0 0 3px var(--ink), inset 0 0 0 4px rgba(180, 75, 38, .18); }
-.mk-expedition:active:not(.is-disabled) { transform: translateY(1px); background: rgba(190, 75, 35, .28); }
+  padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(var(--zone-drgb, 140, 55, 25), .32), rgba(var(--zone-drgb, 140, 55, 25), .08)), rgba(15, 13, 10, .85);
+  border: 1px solid rgba(var(--zone-rgb, 195, 80, 35), .55); border-radius: 3px; color: #fde2d4; cursor: pointer; transition: all .2s;
+  box-shadow: inset 0 0 0 3px var(--ink), inset 0 0 0 4px rgba(var(--zone-drgb, 140, 55, 25), .24); }
+.mk-expedition:active:not(.is-disabled) { transform: translateY(1px); background: rgba(var(--zone-drgb, 140, 55, 25), .42) !important; }
 .mk-expedition.is-disabled { background: var(--ink); border-color: rgba(85, 74, 62, .35); color: #6f6656; cursor: default; box-shadow: none; }
 .mk-expedition-cap { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 3px; text-transform: uppercase; color: var(--cap); }
 .mk-expedition-title { font-family: "Cinzel", serif; font-size: 14px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
@@ -1605,7 +1605,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.52" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.53" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1745,7 +1745,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.52</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.53</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -1774,6 +1774,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.52"></script>
+<script type="module" src="js/main.js?v=6.53"></script>
 </body>
 </html>

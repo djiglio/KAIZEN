@@ -174,6 +174,27 @@ function renderQuests(state) {
   </div>`;
 }
 
+function getZoneExpeditionStyle(colorHex) {
+  let c = (colorHex || "#df784b").replace("#", "");
+  if (c.length === 3) c = c.split("").map(x => x + x).join("");
+  const num = parseInt(c, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  // Tonalità leggermente più scura (~30% più scura) e trasparenza
+  const dr = Math.round(r * 0.70);
+  const dg = Math.round(g * 0.70);
+  const db = Math.round(b * 0.70);
+  return {
+    bg: `radial-gradient(ellipse 80% 100% at 50% 0%, rgba(${dr},${dg},${db},0.32), rgba(${dr},${dg},${db},0.08)), rgba(15,13,10,0.85)`,
+    border: `rgba(${r},${g},${b},0.55)`,
+    shadow: `inset 0 0 0 3px var(--ink), inset 0 0 0 4px rgba(${dr},${dg},${db},0.24)`,
+    titleGlow: `0 0 12px rgba(${dr},${dg},${db},0.55)`,
+    drgb: `${dr}, ${dg}, ${db}`,
+    rgb: `${r}, ${g}, ${b}`,
+  };
+}
+
 /* ── Pagina MONDO ESTERNO ── */
 export function renderWorld() {
   const state = store.state;
@@ -193,27 +214,27 @@ export function renderWorld() {
     };
   }
   const wpSafe = w.worldProgress;
-  const areaId  = wpSafe.areaCorrente || "foresta";
-  const areaCfg = WORLD_AREAS.find(a => a.id === areaId) || WORLD_AREAS[0];
   const areaSbloccate = wpSafe.areeSbloccate || ["foresta"];
+  let areaId  = wpSafe.areaCorrente || "foresta";
+  if (!areaSbloccate.includes(areaId)) {
+    areaId = areaSbloccate[0] || "foresta";
+    wpSafe.areaCorrente = areaId;
+  }
+  const areaCfg = WORLD_AREAS.find(a => a.id === areaId) || WORLD_AREAS[0];
 
-  /* ── Selettore aree ── */
-  const areaTabs = WORLD_AREAS.map((a, idx) => {
-    const sbloccata = areaSbloccate.includes(a.id);
+  /* ── Selettore aree (mostra unicamente le zone sbloccate) ── */
+  const unlockedAreas = WORLD_AREAS.filter(a => areaSbloccate.includes(a.id));
+  const areaTabs = unlockedAreas.map((a, uIdx) => {
+    const origIdx   = WORLD_AREAS.findIndex(x => x.id === a.id);
     const attiva    = a.id === areaId;
     const poolQ     = AREA_QUESTS[a.id] || [];
     const tracker   = wpSafe.missioniPerArea?.[a.id] || {};
     const done      = poolQ.filter(q => tracker[q.id]?.completed).length;
     const total     = poolQ.length;
-    const spanFull  = idx === WORLD_AREAS.length - 1 && WORLD_AREAS.length % 2 === 1 ? "grid-column:1/-1;" : "";
-    if (!sbloccata) {
-      return `<button class="mk-tab is-locked" style="${spanFull}" disabled title="Completa le missioni della zona precedente">
-        <span style="opacity:0.6;">${roman(idx + 1)} ·</span> <span class="mk-tab-zone" style="color:${a.color};opacity:0.65;">${a.name}</span> <b>Bloccata</b>
-      </button>`;
-    }
+    const spanFull  = (uIdx === unlockedAreas.length - 1 && unlockedAreas.length % 2 === 1) ? "grid-column:1/-1;" : "";
     return `<button class="mk-tab ${attiva ? "is-on" : ""}" style="${spanFull}${attiva ? `;border-color:${a.color}aa;background:${a.color}18;box-shadow:0 0 10px ${a.color}25;` : ''}"
               onclick="window.__kaizen.setArea('${a.id}')">
-      <span style="opacity:0.7;">${roman(idx + 1)} ·</span> <span class="mk-tab-zone" style="color:${a.color};font-weight:700;">${a.name}</span> <b>${done}/${total}</b>
+      <span style="opacity:0.7;">${roman(origIdx + 1)} ·</span> <span class="mk-tab-zone" style="color:${a.color};font-weight:700;">${a.name}</span> <b>${done}/${total}</b>
     </button>`;
   }).join("");
 
@@ -267,6 +288,7 @@ export function renderWorld() {
 
   const pvPct = Math.min(100, Math.round(w.pvAttuali / heroS.pvMax * 100));
   const paPct = Math.min(100, Math.round(w.paAttuali / heroS.paMax * 100));
+  const zoneExpStyle = getZoneExpeditionStyle(areaCfg.color);
 
   elStatus.innerHTML = `
   <div class="mk">
@@ -300,9 +322,10 @@ export function renderWorld() {
     ${empireoPanel}
 
     <div style="margin:14px 0 18px;">
-      <button class="mk-expedition" onclick="window.__kaizen.runMission()" style="border-color:${areaCfg.color}55;">
+      <button class="mk-expedition" onclick="window.__kaizen.runMission()"
+        style="background:${zoneExpStyle.bg};border-color:${zoneExpStyle.border};box-shadow:${zoneExpStyle.shadow};--zone-drgb:${zoneExpStyle.drgb};--zone-rgb:${zoneExpStyle.rgb};">
         <span class="mk-expedition-cap">Esplorazione · <span style="color:${areaCfg.color};font-weight:700;">${areaCfg.name}</span></span>
-        <span class="mk-expedition-title">Invia Spedizione</span>
+        <span class="mk-expedition-title" style="text-shadow:${zoneExpStyle.titleGlow};">Invia Spedizione</span>
         <span class="mk-expedition-sub">Costo: ${COIN} <b>${areaCfg.costoOro}</b> denari · <b>${areaCfg.costoPA} PA</b></span>
       </button>
     </div>
