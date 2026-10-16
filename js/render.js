@@ -164,7 +164,7 @@ function renderQuests(state) {
   <div class="mk">
     <div class="mk-group">Capitolo I · Evoluzione</div>
     <div class="mk-note">Prove di costanza legate alle tue discipline quotidiane</div>
-    <div class="mk-grid mk-grid--1 mk-grid--quests">${renderQuestTiles(state.activeQuestsEvo, "Evoluzione", "var(--gold)")}</div>
+    <div class="mk-grid mk-grid--1 mk-grid--quests">${renderQuestTiles(state.activeQuestsEvo, "Evoluzione", "#df784b")}</div>
     ${evoAll ? `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);margin-top:8px;">✦ Sigillo dell'Evoluzione compiuto: +20 XP ottenuti</div>` : ""}
 
     <div class="mk-group">Capitolo II · Mondo Esterno</div>
@@ -227,7 +227,7 @@ export function renderWorld() {
     const t = tracker[q.id] || { progress: 0, completed: false };
     const pct = q.target > 0 ? Math.min(100, Math.round(t.progress / q.target * 100)) : 0;
     const done = t.completed;
-    const acc = done ? "#4ecca3" : "var(--gold)";
+    const acc = done ? "#4ecca3" : "#df784b";
     return `
     <div class="mk-tile ${done ? "is-active is-marked" : ""}" style="--acc:${acc};">
       <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}${done ? " · Compiuto" : ""}</div>
@@ -370,7 +370,7 @@ function renderBacheca(state, w) {
         if (!q) return "";
         const isWorld = QUEST_POOL_WORLD.some(x => x.id === id);
         const cap = id === "day_perfect" ? "Giornata Perfetta" : isWorld ? "Impresa del Mondo" : "Impresa d'Evoluzione";
-        const acc = id === "day_perfect" ? "var(--gold-light)" : isWorld ? "#a78bfa" : "var(--gold)";
+        const acc = id === "day_perfect" ? "var(--gold-light)" : isWorld ? "#a78bfa" : "#df784b";
         return `
         <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;" onclick="window.__kaizen.showTrophyDetail('${id}')">
           <div class="mk-tile-cap">${cap}</div>
@@ -389,7 +389,7 @@ function renderBacheca(state, w) {
   const bestStatEl = document.getElementById("bestiary-stats");
   if (bestStatEl) {
     bestStatEl.innerHTML = `
-    <div class="mk-vital" style="--acc:var(--gold)"><div class="mk-vital-cap">Incontrati</div><div class="mk-vital-val">${seenIds.size}</div></div>
+    <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Incontrati</div><div class="mk-vital-val">${seenIds.size}</div></div>
     <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Abbattuti</div><div class="mk-vital-val">${nKills}</div></div>
     <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${BESTIARY.length - seenIds.size}</div></div>
     <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Divinità</div><div class="mk-vital-val">${(w.worldProgress?.deiSconfitti || []).length}<small>/10</small></div></div>`;
@@ -462,7 +462,7 @@ function renderBacheca(state, w) {
     });
 
     tstatEl.innerHTML = `
-    <div class="mk-vital" style="--acc:var(--gold)"><div class="mk-vital-cap">Scoperti</div><div class="mk-vital-val">${totalFound}</div></div>
+    <div class="mk-vital" style="--acc:#df784b"><div class="mk-vital-cap">Scoperti</div><div class="mk-vital-val">${totalFound}</div></div>
     <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Denari Totali</div><div class="mk-vital-val">${fmtDen(w.deniariTotaliGuadagnati)}</div></div>
     <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${allCollectibles.length - totalFound}</div></div>`;
 
@@ -490,7 +490,7 @@ function renderBacheca(state, w) {
       const count = (w.tesoriScoperti || {})[t.id] || 0;
       const locked = count === 0;
       return `
-      <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:var(--gold);padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
+      <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:#df784b;padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
            onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
         <div class="mk-tile-cap">Grado ${roman(t.tier)}</div>
         <div class="mk-tile-name">${locked ? "Tesoro Ignoto" : t.name}</div>
@@ -512,7 +512,7 @@ function renderBacheca(state, w) {
         const count = (w.tesoriScoperti || {})[m.id] || 0;
         const locked = count === 0;
         return `
-        <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:var(--gold);padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
+        <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:#df784b;padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
              onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
           <div class="mk-tile-cap">Rarità ${roman(m.rarity)}</div>
           <div class="mk-tile-name">${locked ? "Reperto Ignoto" : m.name}</div>
@@ -617,7 +617,7 @@ export function showBestiaryDetail(enemyId) {
     </div>
 
     <div class="mk-vitals" style="margin-top:8px;">
-      <div class="mk-vital" style="--acc:var(--gold)"><div class="mk-vital-cap">Incontri</div><div class="mk-vital-val" style="color:var(--gold-light)">${incontri}</div></div>
+      <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Incontri</div><div class="mk-vital-val" style="color:#d4c7b2">${incontri}</div></div>
       <div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Abbattuti</div><div class="mk-vital-val" style="color:#4ecca3">${kills}</div></div>
     </div>
 
@@ -695,9 +695,9 @@ export function showTrophyDetail(questId) {
     <div class="mk-note">${q.desc || ""}</div>
 
     <div class="mk-vitals" style="margin:12px 0;">
-      <div class="mk-vital" style="--acc:var(--gold)">
+      <div class="mk-vital" style="--acc:#df784b">
         <div class="mk-vital-cap">Volte Conquistato</div>
-        <div class="mk-vital-val" style="color:var(--gold-light)">×${count}</div>
+        <div class="mk-vital-val" style="color:#f6b088">×${count}</div>
       </div>
       <div class="mk-vital" style="--acc:#4ecca3">
         <div class="mk-vital-cap">Soglia Impresa</div>
@@ -732,7 +732,7 @@ export function showAllAreaQuests() {
     const t    = tracker[q.id] || { progress: 0, completed: false };
     const pct  = q.target > 0 ? Math.min(100, Math.round(t.progress / q.target * 100)) : 0;
     const done = t.completed;
-    const acc  = done ? "#4ecca3" : "var(--gold)";
+    const acc  = done ? "#4ecca3" : "#df784b";
     return `
     <div class="mk-tile ${done ? "is-active is-marked" : ""}" style="--acc:${acc};">
       <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}${done ? " · Compiuto" : ""}</div>

@@ -610,7 +610,7 @@ export function renderEquipment() {
 
     if (!piece) {
       return `
-      <div class="mk-tile is-off" style="--acc:rgba(212,160,23,.25);padding-bottom:7px;">
+      <div class="mk-tile is-off" style="--acc:rgba(85,74,62,.4);padding-bottom:7px;">
         <div class="mk-tile-cap">Slot ${num} · ${label}</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name" style="color:#6f6656;">Nessun pezzo</span>
