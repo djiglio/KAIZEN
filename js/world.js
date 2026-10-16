@@ -177,8 +177,8 @@ function simulateCombat(enemy, enemyEquip) {
  }
  if (heroHP <= 0 || enemyHP <= 0) break;
 
- // Turno doppio
- if (pDouble > 0 && Math.random() < pDouble) {
+ // Turno doppio (solo se chi ha appena attaccato è il più veloce)
+ if (pDouble > 0 && attacker === fasterIs && Math.random() < pDouble) {
  if (fasterIs === "hero") {
  const isCrit = Math.random() * 100 < heroS.critico;
  const rawDmg = rnd(Math.max(1, Math.floor(heroS.forza * 0.6)), heroS.forza);
@@ -382,6 +382,72 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  (hp > 60 ? "" : hp > 30 ? " mid" : " low");
  }
 
+ const eqArmaObj = store.state.equipment?.equipped?.arma;
+ const eqArmaId = typeof eqArmaObj === "string" ? eqArmaObj : eqArmaObj?.id;
+ const heroWeapon = eqArmaId ? EQUIPMENT_POOL.find(e => e.id === eqArmaId)?.name : null;
+ const enemyWeapon = enemyEquip?.arma?.name || null;
+ const tags = enemy.tags || [];
+
+ function buildHeroHitText(turnIdx, turn) {
+   if (turn.isCrit) {
+     const critPhrases = [
+       `Trovi un varco nella guardia di <strong>${enemy.name}</strong>${heroWeapon ? ` con ${heroWeapon}` : ""} e infliggi <strong>-${turn.dmg} PV</strong>!`,
+       `Colpisci un punto vitale di <strong>${enemy.name}</strong>: danno critico di <strong>-${turn.dmg} PV</strong>!`,
+       `Fendente devastante su <strong>${enemy.name}</strong>: infliggi <strong>-${turn.dmg} PV</strong>!`
+     ];
+     return critPhrases[turnIdx % critPhrases.length];
+   }
+   if (turn.isDouble) {
+     return `Scatti in velocità e colpisci di nuovo <strong>${enemy.name}</strong>: infliggi <strong>-${turn.dmg} PV</strong>`;
+   }
+   const hitPhrases = [
+     `Attacchi <strong>${enemy.name}</strong>${heroWeapon ? ` con ${heroWeapon}` : ""} e infliggi <strong>-${turn.dmg} PV</strong>`,
+     `Superi la difesa di <strong>${enemy.name}</strong> infliggendo <strong>-${turn.dmg} PV</strong>`,
+     `Affondi il colpo su <strong>${enemy.name}</strong>: infliggi <strong>-${turn.dmg} PV</strong>`
+   ];
+   return hitPhrases[turnIdx % hitPhrases.length];
+ }
+
+ function buildEnemyHitText(turnIdx, turn) {
+   if (turn.isCrit) {
+     const critPhrases = [
+       `<strong>${enemy.name}</strong> sfonda la tua guardia con un colpo feroce: subisci <strong>-${turn.dmg} PV</strong>!`,
+       `<strong>${enemy.name}</strong> ti sorprende su un punto scoperto: colpo critico da <strong>-${turn.dmg} PV</strong>!`
+     ];
+     return critPhrases[turnIdx % critPhrases.length];
+   }
+   if (turn.isDouble) {
+     return `<strong>${enemy.name}</strong> approfitta della sua rapidità e ti colpisce ancora: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (enemyWeapon) {
+     return `<strong>${enemy.name}</strong> ti attacca con ${enemyWeapon}: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (enemy.isGod) {
+     return `<strong>${enemy.name}</strong> scatena la sua furia divina contro di te: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (tags.includes("lupo")) {
+     return turnIdx % 2 === 0
+       ? `<strong>${enemy.name}</strong> ti azzanna con ferocia: subisci <strong>-${turn.dmg} PV</strong>`
+       : `<strong>${enemy.name}</strong> ti lacera con gli artigli: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (tags.includes("ragno")) {
+     return `<strong>${enemy.name}</strong> scatta in avanti e ti morde: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (tags.includes("spirito") || tags.includes("demone") || tags.includes("nonmorto")) {
+     return `<strong>${enemy.name}</strong> ti investe con un assalto oscuro: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (tags.includes("golem") || tags.includes("elementale") || tags.includes("troll")) {
+     return `<strong>${enemy.name}</strong> ti travolge con un colpo brutale: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (tags.includes("drago")) {
+     return `<strong>${enemy.name}</strong> ti sferza con furia draconica: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   if (tags.includes("bestia")) {
+     return `<strong>${enemy.name}</strong> si scaglia su di te e ti ferisce: subisci <strong>-${turn.dmg} PV</strong>`;
+   }
+   return `<strong>${enemy.name}</strong> fende la tua guardia e ti colpisce: subisci <strong>-${turn.dmg} PV</strong>`;
+ }
+
  let i = 0;
  function showNextTurn() {
  if (i >= result.turns.length) {
@@ -409,31 +475,38 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  const turn = result.turns[i];
  updateBars(turn);
 
+ const tBadge = `<span class="combat-turn-num">T${i+1}</span>`;
  let line = "";
  if (turn.who === "hero") {
  if (turn.dodged) {
- line = `<div class="combat-line dodge">T${i+1} ${enemy.name} schiva il tuo colpo!</div>`;
+ const dodgeTxt = i % 2 === 0
+   ? `Attacchi <strong>${enemy.name}</strong>, ma balza di lato e <strong>schiva il colpo</strong>!`
+   : `Il tuo affondo va a vuoto: <strong>${enemy.name}</strong> evita agilmente l'attacco!`;
+ line = `<div class="combat-line dodge">${tBadge} ${dodgeTxt}</div>`;
  } else {
  const critTag = turn.isCrit ? `<span class="combat-crit">CRITICO</span>` : "";
- const dblTag = turn.isDouble ? `<span class="combat-double">DOPPIO</span>` : "";
- const defTag = turn.deflected > 0 ? `<span class="combat-def">-${turn.deflected} DEF</span>` : "";
- const cls = turn.isCrit ? "combat-line critical" : "combat-line hero";
+ const dblTag = turn.isDouble ? `<span class="combat-double">ATTACCO RAPIDO</span>` : "";
+ const defTag = turn.deflected > 0 ? `<span class="combat-def">🛡️ -${turn.deflected} parati da armatura nemica</span>` : "";
+ const cls = turn.isCrit ? "combat-line hero critical" : "combat-line hero";
  line = `<div class="${cls}">
- T${i+1} ${dblTag}${critTag} Colpisci: <strong>-${turn.dmg} PV</strong> ${defTag}
- <span class="combat-hp-inline">${turn.enemyHP}/${es.costituzione}</span>
+ <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${buildHeroHitText(i, turn)}</div>
+ <div class="combat-line-meta">${defTag}<span class="combat-hp-inline">PV ${enemy.name}: ${turn.enemyHP}/${es.costituzione}</span></div>
  </div>`;
  }
  } else {
  if (turn.dodged) {
- line = `<div class="combat-line dodge">T${i+1} Schivi l'attacco di ${enemy.name}!</div>`;
+ const dodgeTxt = i % 2 === 0
+   ? `<strong>${enemy.name}</strong> prova a colpirti, ma intuisci la mossa e <strong>schivi l'attacco</strong>!`
+   : `Scarti di lato all'ultimo istante ed eviti l'assalto di <strong>${enemy.name}</strong>!`;
+ line = `<div class="combat-line dodge">${tBadge} ${dodgeTxt}</div>`;
  } else {
- const critTag = turn.isCrit ? `<span class="combat-crit">CRITICO</span>` : "";
- const dblTag = turn.isDouble ? `<span class="combat-double">DOPPIO</span>` : "";
- const defTag = turn.deflected > 0 ? `<span class="combat-def">-${turn.deflected} DEF</span>` : "";
- const cls = turn.isCrit ? "combat-line critical" : "combat-line enemy";
+ const critTag = turn.isCrit ? `<span class="combat-crit">CRITICO NEMICO</span>` : "";
+ const dblTag = turn.isDouble ? `<span class="combat-double">ATTACCO RAPIDO</span>` : "";
+ const defTag = turn.deflected > 0 ? `<span class="combat-def">🛡️ -${turn.deflected} assorbiti dalla tua difesa</span>` : "";
+ const cls = turn.isCrit ? "combat-line enemy critical" : "combat-line enemy";
  line = `<div class="${cls}">
- T${i+1} ${dblTag}${critTag} ${enemy.name}: <strong>-${turn.dmg} PV</strong> ${defTag}
- <span class="combat-hp-inline">${turn.heroHP}/${pvMax}</span>
+ <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${buildEnemyHitText(i, turn)}</div>
+ <div class="combat-line-meta">${defTag}<span class="combat-hp-inline">Tuoi PV: ${turn.heroHP}/${pvMax}</span></div>
  </div>`;
  }
  }
