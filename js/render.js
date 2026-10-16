@@ -134,7 +134,7 @@ function renderHero(state, heroS, rank, title) {
       </div>`;
     }).join("");
 
-    sgEl.innerHTML = `<div class="mk"><div class="mk-grid">${statTiles}</div></div>`;
+    sgEl.innerHTML = `<div class="mk"><div class="mk-grid mk-grid--1">${statTiles}</div></div>`;
   }
 
   renderEquipment();

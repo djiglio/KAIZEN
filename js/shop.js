@@ -677,7 +677,7 @@ export function renderEquipment() {
     }).join("");
     relHTML = `
     <div class="mk-group">Reliquie Attive</div>
-    <div class="mk-grid" style="margin-bottom:16px;">${activeRelTiles}</div>`;
+    <div class="mk-grid mk-grid--1" style="margin-bottom:16px;">${activeRelTiles}</div>`;
   }
 
   // Zaino
@@ -750,7 +750,7 @@ export function renderEquipment() {
       <div class="mk-tile" style="--acc:#a78bfa">
         <div class="mk-tile-cap">Reliquia Antica</div>
         <div class="mk-tile-name">${rel.name}</div>
-        ${count > 1 ? `<div class="mk-tile-big" style="font-size:20px;">×${count}</div>` : ""}
+        <div class="mk-tile-big" style="font-size:20px;">x${count}</div>
         <div class="mk-tile-desc">${rel.desc}</div>
         <div class="mk-split-actions">
           <button class="mk-act mk-act--gold" onclick="window.__kaizen.useRelic('${rel.id}')">Usa</button>
@@ -771,7 +771,7 @@ export function renderEquipment() {
       <div class="mk-tile" style="--acc:#6cc4ef">
         <div class="mk-tile-cap">Rarità ${roman(mat.rarity)}</div>
         <div class="mk-tile-name">${mat.name}</div>
-        <div class="mk-tile-big" style="font-size:20px;">×${count}</div>
+        <div class="mk-tile-big" style="font-size:20px;">x${count}</div>
         <div class="mk-tile-desc">${mat.desc}</div>
         <button class="mk-price" onclick="window.__kaizen.discardItem('${mat.id}')">
           <span class="mk-price-row"><span class="mk-price-lbl">Vendi</span>${COIN}<b>${fmtDen(mat.value)}</b></span>
@@ -791,7 +791,7 @@ export function renderEquipment() {
           <span class="mk-shop-toggle"></span>
         </summary>
         <div class="mk-shop-body">
-          <div class="mk-grid" style="margin-top:12px;">${htmls.join("")}</div>
+          <div class="mk-grid mk-grid--1" style="margin-top:12px;">${htmls.join("")}</div>
         </div>
       </details>`;
     };
@@ -824,7 +824,7 @@ export function renderEquipment() {
     </div>
 
     <div class="mk-group">Dotazione Indossata</div>
-    <div class="mk-grid">${slotsHTML}</div>
+    <div class="mk-grid mk-grid--1">${slotsHTML}</div>
 
     ${relHTML}
 
