@@ -691,7 +691,7 @@ export function renderEquipment() {
   if (!zItems.length) {
     zainoHTML = `<div class="mk-empty">Lo zaino è vuoto. Esplora il Mondo Esterno per raccogliere bottino.</div>`;
   } else {
-    let equipHTMLs = [];
+    const equipEntries = [];
     const relicMap = new Map();
     const materialMap = new Map();
 
@@ -699,27 +699,7 @@ export function renderEquipment() {
       if (zItem.type === "equip") {
         const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
         if (!piece) return;
-        const dur = zItem.dur !== undefined ? zItem.dur : 100;
-        const bStat = Object.keys(piece.bonus)[0];
-        const bVal = Math.ceil(Object.values(piece.bonus)[0] * (dur / 100));
-        const meta = STAT_META[bStat] || { lbl: bStat, acc: "var(--gold)" };
-        const refund = Math.floor(piece.prezzo * 0.30);
-        const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
-        const coatMat = zItem.rivestimento ? MATERIALS.find(m => m.id === zItem.rivestimento) : null;
-
-        equipHTMLs.push(`
-        <div class="mk-tile" style="--acc:${meta.acc}">
-          <div class="mk-tile-cap">${SLOT_NAMES[piece.slot] || piece.slot} · Grado ${roman(piece.tier)}${coatMat ? ` · ✦ ${coatMat.name}` : ""}</div>
-          <div class="mk-tile-row-head">
-            <span class="mk-tile-name">${piece.name}</span>
-            <span class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></span>
-          </div>
-          <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
-          <div class="mk-split-actions">
-            <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx})">Indossa</button>
-            <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
-          </div>
-        </div>`);
+        equipEntries.push({ zItem, idx, piece });
       } else if (zItem.type === "relic") {
         const rel = RELICS.find(r => r.id === zItem.id);
         if (!rel) return;
@@ -731,6 +711,38 @@ export function renderEquipment() {
         if (!materialMap.has(mat.id)) materialMap.set(mat.id, { mat, count: 1 });
         else materialMap.get(mat.id).count++;
       }
+    });
+
+    const SLOT_ORDER = ["arma", "elmo", "scudo", "corazza", "gambali", "bracciali"];
+    equipEntries.sort((a, b) => {
+      if (a.piece.tier !== b.piece.tier) return a.piece.tier - b.piece.tier;
+      const slotDiff = SLOT_ORDER.indexOf(a.piece.slot) - SLOT_ORDER.indexOf(b.piece.slot);
+      if (slotDiff !== 0) return slotDiff;
+      return a.piece.name.localeCompare(b.piece.name);
+    });
+
+    const equipHTMLs = equipEntries.map(({ zItem, idx, piece }) => {
+      const dur = zItem.dur !== undefined ? zItem.dur : 100;
+      const bStat = Object.keys(piece.bonus)[0];
+      const bVal = Math.ceil(Object.values(piece.bonus)[0] * (dur / 100));
+      const meta = STAT_META[bStat] || { lbl: bStat, acc: "var(--gold)" };
+      const refund = Math.floor(piece.prezzo * 0.30);
+      const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
+      const coatMat = zItem.rivestimento ? MATERIALS.find(m => m.id === zItem.rivestimento) : null;
+
+      return `
+      <div class="mk-tile" style="--acc:${meta.acc}">
+        <div class="mk-tile-cap">${SLOT_NAMES[piece.slot] || piece.slot} · Grado ${roman(piece.tier)}${coatMat ? ` · ✦ ${coatMat.name}` : ""}</div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name">${piece.name}</span>
+          <span class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></span>
+        </div>
+        <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
+        <div class="mk-split-actions">
+          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx})">Indossa</button>
+          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+        </div>
+      </div>`;
     });
 
     const STAT_ORDER = [
@@ -769,6 +781,7 @@ export function renderEquipment() {
 
     const sortedMaterials = Array.from(materialMap.values()).sort((a, b) => {
       if (a.mat.rarity !== b.mat.rarity) return a.mat.rarity - b.mat.rarity;
+      if (a.mat.value !== b.mat.value) return a.mat.value - b.mat.value;
       return a.mat.name.localeCompare(b.mat.name);
     });
 
@@ -842,13 +855,7 @@ export function renderEquipment() {
 
     ${relHTML}
 
-    <div class="zaino-main-header">
-      <div class="zaino-main-left">
-        <span class="zaino-main-icon">🎒</span>
-        <span class="zaino-main-title">Zaino dell'Eroe</span>
-      </div>
-      <span class="zaino-main-count">${zItems.length} ${zItems.length === 1 ? "oggetto" : "oggetti"}</span>
-    </div>
+    <div class="section-header zaino-main-header">Zaino</div>
     ${zainoHTML}
   </div>`;
 
