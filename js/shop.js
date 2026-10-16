@@ -789,27 +789,31 @@ export function renderEquipment() {
       </div>`;
     });
 
-    const makeZainoSection = (key, num, title, subtitle, htmls, countOverride) => {
+    const makeZainoSection = (key, title, subtitle, htmls, countOverride) => {
       if (!htmls.length) return "";
       const count = countOverride !== undefined ? countOverride : htmls.length;
       return `
-      <details class="mk-shop" data-cat="${key}" ${zainoOpenCats.has(key) ? "open" : ""}>
-        <summary>
-          <span class="mk-shop-num">Scomparto ${num} · ${count} ${count === 1 ? "oggetto" : "oggetti"}</span>
-          <span class="mk-shop-name">${title}</span>
-          <span class="mk-shop-tag">${subtitle}</span>
+      <details class="mk-shop mk-shop--zaino" data-cat="${key}" ${zainoOpenCats.has(key) ? "open" : ""}>
+        <summary class="mk-shop-summary--zaino">
+          <div class="mk-shop-zaino-info">
+            <div class="mk-shop-zaino-row">
+              <span class="mk-shop-zaino-title">${title}</span>
+              <span class="mk-shop-zaino-count">${count} ${count === 1 ? "oggetto" : "oggetti"}</span>
+            </div>
+            <span class="mk-shop-zaino-tag">${subtitle}</span>
+          </div>
           <span class="mk-shop-toggle"></span>
         </summary>
-        <div class="mk-shop-body">
-          <div class="mk-grid mk-grid--1" style="margin-top:12px;">${htmls.join("")}</div>
+        <div class="mk-shop-body mk-shop-body--zaino">
+          <div class="mk-grid mk-grid--1 mk-grid--zaino">${htmls.join("")}</div>
         </div>
       </details>`;
     };
 
     zainoHTML =
-      makeZainoSection("material", "I", "Materiali", "minerali e risorse per la forgia", materialHTMLs, totalMaterialsCount) +
-      makeZainoSection("relic", "II", "Reliquie", "manufatti arcani ad uso temporaneo", relicHTMLs, totalRelicsCount) +
-      makeZainoSection("equip", "III", "Equipaggiamento", "armi e corazze di riserva", equipHTMLs, equipHTMLs.length);
+      makeZainoSection("material", "Materiali", "minerali e risorse per la forgia", materialHTMLs, totalMaterialsCount) +
+      makeZainoSection("relic", "Reliquie", "manufatti arcani ad uso temporaneo", relicHTMLs, totalRelicsCount) +
+      makeZainoSection("equip", "Equipaggiamento", "armi e corazze di riserva", equipHTMLs, equipHTMLs.length);
   }
 
   el.innerHTML = `
@@ -838,7 +842,13 @@ export function renderEquipment() {
 
     ${relHTML}
 
-    <div class="mk-group">Zaino · ${zItems.length} ${zItems.length === 1 ? "oggetto" : "oggetti"}</div>
+    <div class="zaino-main-header">
+      <div class="zaino-main-left">
+        <span class="zaino-main-icon">🎒</span>
+        <span class="zaino-main-title">Zaino dell'Eroe</span>
+      </div>
+      <span class="zaino-main-count">${zItems.length} ${zItems.length === 1 ? "oggetto" : "oggetti"}</span>
+    </div>
     ${zainoHTML}
   </div>`;
 

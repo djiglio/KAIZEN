@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.47"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.47"/>
-  <title>KAIZEN v6.47</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.48"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.48"/>
+  <title>KAIZEN v6.48</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.47
+   KAIZEN v6.48
    ============================================================ */
 
 :root {
@@ -1411,6 +1411,168 @@ body::before {
   white-space: nowrap;
 }
 
+/* Intestazione Zaino Eroe (prominente e leggibile) */
+.zaino-main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 22px 0 10px;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, rgba(48, 36, 26, 0.85) 0%, rgba(24, 19, 15, 0.7) 100%);
+  border: 1px solid rgba(195, 85, 45, 0.55);
+  border-left: 4px solid #df784b;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(195, 85, 45, 0.08);
+}
+.zaino-main-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.zaino-main-icon {
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px rgba(223, 120, 75, 0.4));
+}
+.zaino-main-title {
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #f7ebe1;
+  text-shadow: 0 0 10px rgba(223, 120, 75, 0.3);
+}
+.zaino-main-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #f6b088;
+  background: rgba(180, 75, 38, 0.22);
+  border: 1px solid rgba(195, 85, 45, 0.45);
+  border-radius: 3px;
+  padding: 3px 8px;
+}
+
+/* Riquadri compatti per categorie Zaino (Reliquie, Equipaggiamento, Materiali) */
+.mk-shop--zaino {
+  margin-bottom: 7px;
+  border-radius: 3px;
+}
+.mk-shop-summary--zaino {
+  padding: 9px 12px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  text-align: left !important;
+  gap: 8px !important;
+  min-height: 42px;
+  box-sizing: border-box;
+}
+.mk-shop-summary--zaino .mk-shop-toggle {
+  margin-top: 0 !important;
+  flex-shrink: 0;
+}
+.mk-shop-zaino-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mk-shop-zaino-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mk-shop-zaino-title {
+  font-family: "Cinzel", serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ebdccc;
+}
+.mk-shop-zaino-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8.5px;
+  color: #dfb395;
+  background: rgba(45, 34, 26, 0.65);
+  border: 1px solid rgba(140, 70, 40, 0.4);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.mk-shop-zaino-tag {
+  font-family: var(--serif-it);
+  font-style: italic;
+  font-size: 12px;
+  color: #9a8a68;
+  line-height: 1.1;
+}
+.mk-shop-body--zaino {
+  padding: 5px 8px 10px;
+}
+
+/* Voci compatte degli elementi nello Zaino */
+.mk-grid--zaino {
+  gap: 5px;
+}
+.mk-grid--zaino .mk-tile {
+  padding: 5px 10px 0;
+  border-radius: 2px;
+}
+.mk-grid--zaino .mk-tile-cap {
+  font-size: 7px;
+  letter-spacing: 1.5px;
+  margin-bottom: 1px;
+}
+.mk-grid--zaino .mk-tile-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+}
+.mk-grid--zaino .mk-tile-name {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.2;
+}
+.mk-grid--zaino .mk-tile-big {
+  font-size: 13.5px;
+  font-weight: 800;
+  margin: 0;
+}
+.mk-grid--zaino .mk-tile-desc {
+  font-size: 11.5px;
+  line-height: 1.2;
+  margin: 1px 0 3px;
+  text-align: left;
+  width: 100%;
+}
+.mk-grid--zaino .mk-vital-bar {
+  margin-top: 3px;
+  margin-bottom: 2px;
+  height: 2px;
+}
+.mk-grid--zaino .mk-split-actions {
+  margin: auto -10px 0;
+  width: calc(100% + 20px);
+}
+.mk-grid--zaino .mk-act {
+  padding: 4px 4px 5px;
+  font-size: 8.5px;
+}
+.mk-grid--zaino .mk-price {
+  margin: auto -10px 0;
+  width: calc(100% + 20px);
+  padding: 4px 4px 5px;
+}
+.mk-grid--zaino .mk-price-row {
+  font-size: 10.5px;
+}
+
 /* Pulsante Spedizione / Largo */
 .mk-expedition { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
   padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(195, 80, 35, .25), rgba(195, 80, 35, .05));
@@ -1464,7 +1626,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.47" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.48" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1604,7 +1766,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.47</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.48</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -1633,6 +1795,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.47"></script>
+<script type="module" src="js/main.js?v=6.48"></script>
 </body>
 </html>
