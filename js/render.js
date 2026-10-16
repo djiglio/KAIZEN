@@ -54,7 +54,7 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
   let doneCount = 0;
   let markedCount = 0;
 
-  const tilesHTML = HABITS.map((hd, idx) => {
+  const tilesHTML = HABITS.map((hd) => {
     const h = state.habits[hd.id] || { xp: 0, last: null, result: null };
     const lv = habitLevel(hd.id);
     const xp = habitXpInLevel(hd.id);
@@ -79,11 +79,12 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
 
     return `
     <div class="mk-tile ${done ? "is-active" : failed ? "is-off" : ""}" style="--acc:${acc}">
-      <div class="mk-tile-cap">${statLabel} · Grado ${lv}</div>
-      <div class="mk-tile-name">${hd.label}</div>
-      <div class="mk-tile-big">${xp}<small>/ 100 XP</small></div>
+      <div class="mk-tile-cap">${statLabel} · Grado ${lv} · ${fmtDen(h.xp)} XP tot.</div>
+      <div class="mk-tile-row-head">
+        <span class="mk-tile-name">${hd.label}</span>
+        <span class="mk-tile-big">${xp}<small>/ 100 XP</small></span>
+      </div>
       <div class="mk-vital-bar mk-dur"><i style="width:${xp}%;background:${acc}"></i></div>
-      <div class="mk-tile-desc">${fmtDen(h.xp)} XP complessivi</div>
       ${actionBar}
     </div>`;
   }).join("");
@@ -126,10 +127,12 @@ function renderHero(state, heroS, rank, title) {
       const showPct = ["destrezza", "critico", "furtivita", "carisma"].includes(sd.id);
       const numVal = typeof val === "number" ? Math.round(val * 100) / 100 : val;
       return `
-      <div class="mk-tile" style="--acc:${col};padding-bottom:12px;">
+      <div class="mk-tile" style="--acc:${col};padding-bottom:7px;">
         <div class="mk-tile-cap">${hdef?.label || ""} · Lv ${lv}</div>
-        <div class="mk-tile-name" style="min-height:1.8em">${sd.label}</div>
-        <div class="mk-tile-big">${numVal}${showPct ? `<small>%</small>` : ""}</div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name">${sd.label}</span>
+          <span class="mk-tile-big">${numVal}${showPct ? `<small>%</small>` : ""}</span>
+        </div>
         <div class="mk-tile-desc" style="margin-bottom:0">${sd.desc}</div>
       </div>`;
     }).join("");

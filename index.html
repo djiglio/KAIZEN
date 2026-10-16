@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.39"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.39"/>
-  <title>KAIZEN v6.39</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.40"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.40"/>
+  <title>KAIZEN v6.40</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.39
+   KAIZEN v6.40
    ============================================================ */
 
 :root {
@@ -1073,8 +1073,6 @@ body::before {
 
 /* Griglia di cartellini */
 .mk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.mk-grid--1 { grid-template-columns: 1fr; gap: 10px; }
-.mk-grid--1 .mk-tile-name { min-height: auto; font-size: 13px; margin: 2px 0; }
 .mk-tile { --acc: var(--gold); position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
   padding: 14px 10px 0; overflow: hidden; border-radius: 3px; border: 1px solid rgba(212,160,23,.13);
   background: linear-gradient(180deg, #181510 0%, #0f0d0a 100%); transition: border-color .2s; min-width: 0; }
@@ -1135,6 +1133,26 @@ body::before {
 .mk-act--gold:active:not([disabled]) { background: rgba(212,160,23,.18); }
 .mk-act[disabled] { opacity: .35; cursor: default; background: rgba(255,255,255,.01); }
 
+/* Varianti compatte per righe a colonna singola (Abitudini / Eroe) */
+.mk-grid--1 { grid-template-columns: 1fr; gap: 6px; }
+.mk-grid--1 .mk-tile { padding: 7px 12px 0; }
+.mk-grid--1 .mk-tile-cap { font-size: 7px; letter-spacing: 2px; margin-bottom: 1px; }
+.mk-tile-row-head { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 8px; width: 100%; margin: 1px 0; }
+.mk-grid--1 .mk-tile-name { min-height: auto; width: auto; font-size: 12px; margin: 0; line-height: 1.2; }
+.mk-grid--1 .mk-tile-big { font-size: 16px; margin: 0; }
+.mk-grid--1 .mk-tile-big small { font-size: 8px; margin-left: 2px; }
+.mk-grid--1 .mk-dur { width: 82%; height: 2.5px; margin: 3px 0 5px; }
+.mk-grid--1 .mk-tile-desc { font-size: 12px; line-height: 1.2; margin: 1px 0 5px; }
+.mk-grid--1 .mk-coat { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 1px 0 4px; }
+.mk-grid--1 .mk-coat-name { font-size: 11px; }
+.mk-grid--1 .mk-coat-bonus { font-size: 8px; }
+.mk-grid--1 .mk-coat-wear { font-size: 11.5px; }
+.mk-grid--1 .mk-price { margin: auto -12px 0; width: calc(100% + 24px); padding: 5px 6px 6px; }
+.mk-grid--1 .mk-price-row { font-size: 11px; }
+.mk-grid--1 .mk-price-lbl { font-size: 9px; }
+.mk-grid--1 .mk-split-actions { margin: auto -12px 0; width: calc(100% + 24px); }
+.mk-grid--1 .mk-act { padding: 5px 4px 6px; font-size: 9px; }
+
 /* Pulsante Spedizione / Largo */
 .mk-expedition { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
   padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(212,160,23,.2), rgba(212,160,23,.05));
@@ -1188,7 +1206,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.39" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.40" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1328,7 +1346,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.39</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.40</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -1357,6 +1375,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.39"></script>
+<script type="module" src="js/main.js?v=6.40"></script>
 </body>
 </html>

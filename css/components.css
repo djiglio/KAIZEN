@@ -897,8 +897,24 @@
 .mk-tile.is-off .mk-tile-name, .mk-tile.is-off .mk-tile-big, .mk-tile.is-off .mk-coat { opacity: .5; }
 .mk-tile-cap { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--cap); margin-bottom: 4px; }
 .mk-tile-name { display: flex; align-items: center; justify-content: center; min-height: 2.5em; font-family: "Cinzel", serif; font-size: 11.5px; font-weight: 700; line-height: 1.25; color: #ece3cf; }
-.mk-grid--1 { grid-template-columns: 1fr; gap: 10px; }
-.mk-grid--1 .mk-tile-name { min-height: auto; font-size: 13px; margin: 2px 0; }
+.mk-grid--1 { grid-template-columns: 1fr; gap: 6px; }
+.mk-grid--1 .mk-tile { padding: 7px 12px 0; }
+.mk-grid--1 .mk-tile-cap { font-size: 7px; letter-spacing: 2px; margin-bottom: 1px; }
+.mk-tile-row-head { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 8px; width: 100%; margin: 1px 0; }
+.mk-grid--1 .mk-tile-name { min-height: auto; width: auto; font-size: 12px; margin: 0; line-height: 1.2; }
+.mk-grid--1 .mk-tile-big { font-size: 16px; margin: 0; }
+.mk-grid--1 .mk-tile-big small { font-size: 8px; margin-left: 2px; }
+.mk-grid--1 .mk-dur { width: 82%; height: 2.5px; margin: 3px 0 5px; }
+.mk-grid--1 .mk-tile-desc { font-size: 12px; line-height: 1.2; margin: 1px 0 5px; }
+.mk-grid--1 .mk-coat { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 1px 0 4px; }
+.mk-grid--1 .mk-coat-name { font-size: 11px; }
+.mk-grid--1 .mk-coat-bonus { font-size: 8px; }
+.mk-grid--1 .mk-coat-wear { font-size: 11.5px; }
+.mk-grid--1 .mk-price { margin: auto -12px 0; width: calc(100% + 24px); padding: 5px 6px 6px; }
+.mk-grid--1 .mk-price-row { font-size: 11px; }
+.mk-grid--1 .mk-price-lbl { font-size: 9px; }
+.mk-grid--1 .mk-split-actions { margin: auto -12px 0; width: calc(100% + 24px); }
+.mk-grid--1 .mk-act { padding: 5px 4px 6px; font-size: 9px; }
 .mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .mk-tile-big small { font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; margin-left: 3px; opacity: .85; }
 .mk-tile-desc { font-family: var(--serif-it); font-style: italic; font-size: 13px; line-height: 1.25; color: #8f8268; margin: 2px 0 10px; }

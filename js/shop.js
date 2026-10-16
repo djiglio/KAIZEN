@@ -610,10 +610,12 @@ export function renderEquipment() {
 
     if (!piece) {
       return `
-      <div class="mk-tile is-off" style="--acc:rgba(212,160,23,.25);padding-bottom:14px;">
+      <div class="mk-tile is-off" style="--acc:rgba(212,160,23,.25);padding-bottom:7px;">
         <div class="mk-tile-cap">Slot ${num} · ${label}</div>
-        <div class="mk-tile-name" style="min-height:1.8em;color:#6f6656;">Nessun pezzo</div>
-        <div class="mk-tile-desc" style="margin-bottom:0;">slot vuoto</div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name" style="color:#6f6656;">Nessun pezzo</span>
+          <span class="mk-tile-desc" style="margin:0;">slot vuoto</span>
+        </div>
       </div>`;
     }
 
@@ -631,9 +633,9 @@ export function renderEquipment() {
         const resPct = Math.round(getCoatingWearReduction(mat.id) * 100);
         coatHTML = `
         <div class="mk-coat">
-          <div class="mk-coat-name">✦ ${mat.name}</div>
-          <div class="mk-coat-bonus">${bonusLine(bObj)}</div>
-          <div class="mk-coat-wear">usura −${resPct}%</div>
+          <span class="mk-coat-name">✦ ${mat.name}</span>
+          <span class="mk-coat-bonus">${bonusLine(bObj)}</span>
+          <span class="mk-coat-wear">· usura −${resPct}%</span>
         </div>`;
       }
     }
@@ -641,8 +643,10 @@ export function renderEquipment() {
     return `
     <div class="mk-tile ${eqObj?.rivestimento ? "is-coated" : ""}" style="--acc:${meta.acc}">
       <div class="mk-tile-cap">${label} · Grado ${roman(piece.tier)}</div>
-      <div class="mk-tile-name">${piece.name}</div>
-      <div class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></div>
+      <div class="mk-tile-row-head">
+        <span class="mk-tile-name">${piece.name}</span>
+        <span class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></span>
+      </div>
       <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
       ${coatHTML}
       <div class="mk-tile-desc">${piece.desc}</div>
@@ -668,11 +672,12 @@ export function renderEquipment() {
       if (!rel) return "";
       const remaining = Math.ceil((ra.expiry - now) / 3600000);
       return `
-      <div class="mk-tile is-active" style="--acc:#4ecca3;padding-bottom:12px;">
-        <div class="mk-tile-cap">Reliquia Attiva</div>
-        <div class="mk-tile-name">${rel.name}</div>
-        <div class="mk-tile-desc">${rel.desc}</div>
-        <div class="mk-chip mk-chip--ok" style="margin-bottom:0;">${remaining}h rimanenti</div>
+      <div class="mk-tile is-active" style="--acc:#4ecca3;padding-bottom:7px;">
+        <div class="mk-tile-cap">Reliquia Attiva · ${remaining}h rimanenti</div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name">${rel.name}</span>
+        </div>
+        <div class="mk-tile-desc" style="margin-bottom:0;">${rel.desc}</div>
       </div>`;
     }).join("");
     relHTML = `
@@ -704,11 +709,12 @@ export function renderEquipment() {
 
         equipHTMLs.push(`
         <div class="mk-tile" style="--acc:${meta.acc}">
-          <div class="mk-tile-cap">${SLOT_NAMES[piece.slot] || piece.slot} · Grado ${roman(piece.tier)}</div>
-          <div class="mk-tile-name">${piece.name}</div>
-          <div class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></div>
+          <div class="mk-tile-cap">${SLOT_NAMES[piece.slot] || piece.slot} · Grado ${roman(piece.tier)}${coatMat ? ` · ✦ ${coatMat.name}` : ""}</div>
+          <div class="mk-tile-row-head">
+            <span class="mk-tile-name">${piece.name}</span>
+            <span class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></span>
+          </div>
           <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
-          ${coatMat ? `<div class="mk-chip" style="color:#6cc4ef;border-color:rgba(108,196,239,.35);">✦ ${coatMat.name}</div>` : ""}
           <div class="mk-split-actions">
             <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx})">Indossa</button>
             <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
@@ -749,8 +755,10 @@ export function renderEquipment() {
       return `
       <div class="mk-tile" style="--acc:#a78bfa">
         <div class="mk-tile-cap">Reliquia Antica</div>
-        <div class="mk-tile-name">${rel.name}</div>
-        <div class="mk-tile-big" style="font-size:20px;">x${count}</div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name">${rel.name}</span>
+          <span class="mk-tile-big">x${count}</span>
+        </div>
         <div class="mk-tile-desc">${rel.desc}</div>
         <div class="mk-split-actions">
           <button class="mk-act mk-act--gold" onclick="window.__kaizen.useRelic('${rel.id}')">Usa</button>
@@ -770,8 +778,10 @@ export function renderEquipment() {
       return `
       <div class="mk-tile" style="--acc:#6cc4ef">
         <div class="mk-tile-cap">Rarità ${roman(mat.rarity)}</div>
-        <div class="mk-tile-name">${mat.name}</div>
-        <div class="mk-tile-big" style="font-size:20px;">x${count}</div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name">${mat.name}</span>
+          <span class="mk-tile-big">x${count}</span>
+        </div>
         <div class="mk-tile-desc">${mat.desc}</div>
         <button class="mk-price" onclick="window.__kaizen.discardItem('${mat.id}')">
           <span class="mk-price-row"><span class="mk-price-lbl">Vendi</span>${COIN}<b>${fmtDen(mat.value)}</b></span>
