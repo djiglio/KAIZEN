@@ -21,16 +21,17 @@
   border-bottom: 1px solid var(--glass-border);
 }
 .header-logo {
-  font-family: "Cinzel", serif;
-  font-weight: 900;
-  color: var(--gold);
-  letter-spacing: 4px;
-  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  line-height: 0;
 }
-.header-logo::before { content: "⚜"; font-size: 14px; opacity: 0.6; }
+.header-logo img {
+  height: 44px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 6px;
+}
 
 .menu-btn {
   background: rgba(255,255,255,0.03);
