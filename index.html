@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.43"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.43"/>
-  <title>KAIZEN v6.43</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.44"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.44"/>
+  <title>KAIZEN v6.44</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.43
+   KAIZEN v6.44
    ============================================================ */
 
 :root {
@@ -1288,6 +1288,112 @@ body::before {
   text-align: center;
 }
 
+/* Varianti specifiche per Incarichi di Regione (Mondo Esterno, colonna singola) */
+.mk-grid--world-quests { gap: 6px; }
+.mk-grid--world-quests .mk-tile { padding: 6px 12px 7px; }
+.mk-grid--world-quests .mk-tile-cap { font-size: 7.5px; letter-spacing: 2px; margin-bottom: 2px; }
+.mk-grid--world-quests .mk-tile-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+  margin: 1px 0 2px;
+  flex-wrap: nowrap;
+}
+.mk-grid--world-quests .mk-tile-name {
+  min-height: auto;
+  width: auto;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: left;
+  justify-content: flex-start;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.25;
+  padding-left: 2px;
+  flex: 1 1 auto;
+}
+.mk-grid--world-quests .mk-tile-big {
+  font-size: 16.5px;
+  font-weight: 900;
+  text-align: right;
+  justify-content: flex-end;
+  margin: 0 0 0 auto;
+  padding-right: 2px;
+  flex-shrink: 0;
+}
+.mk-grid--world-quests .mk-tile-big small {
+  font-size: 8.5px;
+  margin-left: 3px;
+  opacity: .75;
+}
+.mk-grid--world-quests .mk-dur {
+  width: calc(100% - 4px);
+  height: 3px;
+  margin: 2px auto 5px;
+}
+.mk-grid--world-quests .mk-tile-desc,
+.mk-grid--quests .mk-tile-desc {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #f1ebd8;
+  margin: 1px 0 2px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Varianti specifiche per Diario Spedizioni (Mondo Esterno, colonna singola compatto) */
+.mk-grid--logs { gap: 5px; }
+.mk-grid--logs .mk-tile {
+  padding: 5px 12px 6px;
+  min-height: auto;
+}
+.mk-grid--logs .mk-tile-cap {
+  font-size: 7.5px;
+  letter-spacing: 2px;
+  margin-bottom: 1px;
+}
+.mk-grid--logs .mk-tile-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+  margin: 0;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.mk-grid--logs .mk-tile-name {
+  min-height: auto;
+  width: auto;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  justify-content: flex-start;
+  margin: 0;
+  line-height: 1.2;
+  padding-left: 2px;
+  flex: 1 1 auto;
+}
+.mk-grid--logs .mk-chip {
+  margin: 0;
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.mk-grid--logs .mk-log-tag {
+  font-family: var(--serif-it);
+  font-style: italic;
+  font-size: 12px;
+  color: #8b7b5c;
+  white-space: nowrap;
+}
+
 /* Pulsante Spedizione / Largo */
 .mk-expedition { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
   padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(212,160,23,.2), rgba(212,160,23,.05));
@@ -1341,7 +1447,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.43" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.44" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1481,7 +1587,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.43</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.44</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -1510,6 +1616,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.43"></script>
+<script type="module" src="js/main.js?v=6.44"></script>
 </body>
 </html>

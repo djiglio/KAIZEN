@@ -223,17 +223,20 @@ export function renderWorld() {
 
   const questePending = poolQ.filter(q => !tracker[q.id]?.completed).slice(0, 4);
 
-  const questsHTML = questePending.map((q, idx) => {
+  const questsHTML = questePending.map((q) => {
     const t = tracker[q.id] || { progress: 0, completed: false };
     const pct = q.target > 0 ? Math.min(100, Math.round(t.progress / q.target * 100)) : 0;
-    const spanFull = idx === questePending.length - 1 && questePending.length % 2 === 1 ? "grid-column:1/-1;" : "";
+    const done = t.completed;
+    const acc = done ? "#4ecca3" : "var(--gold)";
     return `
-    <div class="mk-tile" style="--acc:var(--gold);padding-bottom:12px;${spanFull}">
-      <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}</div>
-      <div class="mk-tile-name">${q.title}</div>
-      <div class="mk-tile-big">${t.progress}<small>/ ${q.target}</small></div>
-      <div class="mk-vital-bar mk-dur"><i style="width:${pct}%"></i></div>
-      <div class="mk-tile-desc" style="margin-bottom:0">${q.desc}</div>
+    <div class="mk-tile ${done ? "is-active" : ""}" style="--acc:${acc};">
+      <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}${done ? " · Compiuto" : ""}</div>
+      <div class="mk-tile-row-head">
+        <span class="mk-tile-name">${q.title}</span>
+        <span class="mk-tile-big">${done ? "✦" : `${t.progress}<small>/ ${q.target}</small>`}</span>
+      </div>
+      <div class="mk-vital-bar mk-dur"><i style="width:${pct}%;background:${acc}"></i></div>
+      <div class="mk-tile-desc">${q.desc}</div>
     </div>`;
   }).join("") || `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);">✦ Tutti gli incarichi di questa regione sono stati compiuti.</div>`;
 
@@ -296,7 +299,7 @@ export function renderWorld() {
     ${empireoPanel}
 
     <div class="mk-group">Incarichi di Regione (${doneQ}/${poolQ.length})</div>
-    ${questePending.length ? `<div class="mk-grid">${questsHTML}</div>` : questsHTML}
+    ${questePending.length ? `<div class="mk-grid mk-grid--1 mk-grid--world-quests">${questsHTML}</div>` : questsHTML}
     <button class="mk-wide-btn" onclick="window.__kaizen.showAllAreaQuests()">
       Consulta il Registro Completo (${doneQ}/${poolQ.length})
     </button>
@@ -326,14 +329,15 @@ export function renderWorld() {
     };
     const logs = (w.missioniLog || []).slice(0, 5);
     const logsHTML = logs.length
-      ? `<div class="mk-grid">${logs.map((m, idx) => {
+      ? `<div class="mk-grid mk-grid--1 mk-grid--logs">${logs.map((m) => {
           const meta = TYPE_META[m.tipo] || { lbl:"Evento", acc:"var(--gold)" };
-          const spanFull = idx === logs.length - 1 && logs.length % 2 === 1 ? "grid-column:1/-1;" : "";
           return `
-          <div class="mk-tile" style="--acc:${meta.acc};padding-bottom:12px;${spanFull}">
+          <div class="mk-tile mk-tile--log" style="--acc:${meta.acc};">
             <div class="mk-tile-cap" style="color:${meta.acc}">${meta.lbl}</div>
-            <div class="mk-tile-name" style="min-height:1.8em;font-size:11px;">${m.nome}</div>
-            ${m.denari ? `<div class="mk-chip mk-chip--gold" style="margin-bottom:0">+${fmtDen(m.denari)} denari</div>` : `<div class="mk-tile-desc" style="margin-bottom:0">registro di viaggio</div>`}
+            <div class="mk-tile-row-head">
+              <span class="mk-tile-name">${m.nome}</span>
+              ${m.denari ? `<span class="mk-chip mk-chip--gold">+${fmtDen(m.denari)} denari</span>` : `<span class="mk-log-tag">registro di viaggio</span>`}
+            </div>
           </div>`;
         }).join("")}</div>`
       : `<div class="mk-empty">Nessuna spedizione registrata nel diario.</div>`;
@@ -721,19 +725,20 @@ export function showAllAreaQuests() {
   const doneCount = poolQ.filter(q => tracker[q.id]?.completed).length;
   const totalPct  = poolQ.length > 0 ? Math.round(doneCount / poolQ.length * 100) : 0;
 
-  const tiles = poolQ.map((q, idx) => {
+  const tiles = poolQ.map((q) => {
     const t    = tracker[q.id] || { progress: 0, completed: false };
     const pct  = q.target > 0 ? Math.min(100, Math.round(t.progress / q.target * 100)) : 0;
     const done = t.completed;
     const acc  = done ? "#4ecca3" : "var(--gold)";
-    const spanFull = idx === poolQ.length - 1 && poolQ.length % 2 === 1 ? "grid-column:1/-1;" : "";
     return `
-    <div class="mk-tile ${done ? "is-active" : ""}" style="--acc:${acc};padding-bottom:12px;${spanFull}">
-      <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}</div>
-      <div class="mk-tile-name">${q.title}</div>
-      <div class="mk-tile-big">${done ? "✦" : `${t.progress}<small>/ ${q.target}</small>`}</div>
+    <div class="mk-tile ${done ? "is-active" : ""}" style="--acc:${acc};">
+      <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}${done ? " · Compiuto" : ""}</div>
+      <div class="mk-tile-row-head">
+        <span class="mk-tile-name">${q.title}</span>
+        <span class="mk-tile-big">${done ? "✦" : `${t.progress}<small>/ ${q.target}</small>`}</span>
+      </div>
       <div class="mk-vital-bar mk-dur"><i style="width:${pct}%;background:${acc}"></i></div>
-      <div class="mk-tile-desc" style="margin-bottom:0">${q.desc}</div>
+      <div class="mk-tile-desc">${q.desc}</div>
     </div>`;
   }).join("");
 
@@ -746,7 +751,7 @@ export function showAllAreaQuests() {
         <div class="mk-modal-title">${areaCfg.name}</div>
         <div class="mk-vital-bar" style="--acc:var(--gold);margin:4px 0 14px;"><i style="width:${totalPct}%"></i></div>
         <div style="overflow-y:auto;padding-right:2px;flex:1;">
-          <div class="mk-grid">${tiles}</div>
+          <div class="mk-grid mk-grid--1 mk-grid--world-quests">${tiles}</div>
         </div>
         <button class="modal-close-btn" onclick="document.getElementById('all-quests-overlay').remove()">CHIUDI</button>
       </div>

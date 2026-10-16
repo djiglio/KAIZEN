@@ -1050,6 +1050,112 @@
   margin: 1px 0 3px;
   text-align: center;
 }
+
+/* Varianti specifiche per Incarichi di Regione (Mondo Esterno, colonna singola) */
+.mk-grid--world-quests { gap: 6px; }
+.mk-grid--world-quests .mk-tile { padding: 6px 12px 7px; }
+.mk-grid--world-quests .mk-tile-cap { font-size: 7.5px; letter-spacing: 2px; margin-bottom: 2px; }
+.mk-grid--world-quests .mk-tile-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+  margin: 1px 0 2px;
+  flex-wrap: nowrap;
+}
+.mk-grid--world-quests .mk-tile-name {
+  min-height: auto;
+  width: auto;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: left;
+  justify-content: flex-start;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.25;
+  padding-left: 2px;
+  flex: 1 1 auto;
+}
+.mk-grid--world-quests .mk-tile-big {
+  font-size: 16.5px;
+  font-weight: 900;
+  text-align: right;
+  justify-content: flex-end;
+  margin: 0 0 0 auto;
+  padding-right: 2px;
+  flex-shrink: 0;
+}
+.mk-grid--world-quests .mk-tile-big small {
+  font-size: 8.5px;
+  margin-left: 3px;
+  opacity: .75;
+}
+.mk-grid--world-quests .mk-dur {
+  width: calc(100% - 4px);
+  height: 3px;
+  margin: 2px auto 5px;
+}
+.mk-grid--world-quests .mk-tile-desc,
+.mk-grid--quests .mk-tile-desc {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #f1ebd8;
+  margin: 1px 0 2px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Varianti specifiche per Diario Spedizioni (Mondo Esterno, colonna singola compatto) */
+.mk-grid--logs { gap: 5px; }
+.mk-grid--logs .mk-tile {
+  padding: 5px 12px 6px;
+  min-height: auto;
+}
+.mk-grid--logs .mk-tile-cap {
+  font-size: 7.5px;
+  letter-spacing: 2px;
+  margin-bottom: 1px;
+}
+.mk-grid--logs .mk-tile-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+  margin: 0;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.mk-grid--logs .mk-tile-name {
+  min-height: auto;
+  width: auto;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  justify-content: flex-start;
+  margin: 0;
+  line-height: 1.2;
+  padding-left: 2px;
+  flex: 1 1 auto;
+}
+.mk-grid--logs .mk-chip {
+  margin: 0;
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.mk-grid--logs .mk-log-tag {
+  font-family: var(--serif-it);
+  font-style: italic;
+  font-size: 12px;
+  color: #8b7b5c;
+  white-space: nowrap;
+}
 .mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .mk-tile-big small { font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; margin-left: 3px; opacity: .85; }
 .mk-tile-desc { font-family: var(--serif-it); font-style: italic; font-size: 13px; line-height: 1.25; color: #8f8268; margin: 2px 0 10px; }
