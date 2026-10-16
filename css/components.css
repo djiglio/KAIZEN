@@ -916,6 +916,88 @@
 .mk-grid--1 .mk-price-lbl { font-size: 9px; }
 .mk-grid--1 .mk-split-actions { margin: auto -12px 0; width: calc(100% + 24px); }
 .mk-grid--1 .mk-act { padding: 5px 4px 6px; font-size: 9px; }
+
+/* Varianti specifiche per cartellini Abitudini (colonna singola) */
+.mk-grid--habits { gap: 8px; }
+.mk-grid--habits .mk-tile { padding: 8px 12px 0; }
+.mk-grid--habits .mk-tile-cap { font-size: 7.5px; letter-spacing: 2px; margin-bottom: 2px; }
+.mk-grid--habits .mk-tile-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+  margin: 1px 0 3px;
+  flex-wrap: nowrap;
+}
+.mk-grid--habits .mk-tile-name {
+  min-height: auto;
+  width: auto;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  justify-content: flex-start;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.25;
+  padding-left: 2px;
+  flex: 1 1 auto;
+}
+.mk-grid--habits .mk-tile-big {
+  font-size: 17px;
+  font-weight: 900;
+  text-align: right;
+  justify-content: flex-end;
+  margin: 0 0 0 auto;
+  padding-right: 2px;
+  flex-shrink: 0;
+}
+.mk-grid--habits .mk-tile-big small {
+  font-size: 8.5px;
+  margin-left: 3px;
+  opacity: .75;
+}
+.mk-grid--habits .mk-dur {
+  width: calc(100% - 4px);
+  height: 3px;
+  margin: 3px auto 7px;
+}
+.mk-grid--habits .mk-split-actions {
+  margin: auto -12px 0;
+  width: calc(100% + 24px);
+}
+.mk-grid--habits .mk-act {
+  padding: 8px 6px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  min-height: 36px;
+}
+.mk-grid--habits .mk-act--ok {
+  background: rgba(78, 204, 163, 0.12);
+  color: #4ecca3;
+}
+.mk-grid--habits .mk-act--ok:active:not([disabled]) {
+  background: rgba(78, 204, 163, 0.24);
+}
+.mk-grid--habits .mk-act--no {
+  background: rgba(196, 103, 93, 0.12);
+  color: #e67d71;
+}
+.mk-grid--habits .mk-act--no:active:not([disabled]) {
+  background: rgba(196, 103, 93, 0.24);
+}
+.mk-grid--habits .mk-price {
+  margin: auto -12px 0;
+  width: calc(100% + 24px);
+  padding: 8px 6px 9px;
+  min-height: 36px;
+}
+.mk-grid--habits .mk-price-row {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
 .mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .mk-tile-big small { font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; margin-left: 3px; opacity: .85; }
 .mk-tile-desc { font-family: var(--serif-it); font-style: italic; font-size: 13px; line-height: 1.25; color: #8f8268; margin: 2px 0 10px; }

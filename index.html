@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.41"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.41"/>
-  <title>KAIZEN v6.41</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.42"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.42"/>
+  <title>KAIZEN v6.42</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.41
+   KAIZEN v6.42
    ============================================================ */
 
 :root {
@@ -1154,6 +1154,88 @@ body::before {
 .mk-grid--1 .mk-split-actions { margin: auto -12px 0; width: calc(100% + 24px); }
 .mk-grid--1 .mk-act { padding: 5px 4px 6px; font-size: 9px; }
 
+/* Varianti specifiche per cartellini Abitudini (colonna singola) */
+.mk-grid--habits { gap: 8px; }
+.mk-grid--habits .mk-tile { padding: 8px 12px 0; }
+.mk-grid--habits .mk-tile-cap { font-size: 7.5px; letter-spacing: 2px; margin-bottom: 2px; }
+.mk-grid--habits .mk-tile-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+  margin: 1px 0 3px;
+  flex-wrap: nowrap;
+}
+.mk-grid--habits .mk-tile-name {
+  min-height: auto;
+  width: auto;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  justify-content: flex-start;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.25;
+  padding-left: 2px;
+  flex: 1 1 auto;
+}
+.mk-grid--habits .mk-tile-big {
+  font-size: 17px;
+  font-weight: 900;
+  text-align: right;
+  justify-content: flex-end;
+  margin: 0 0 0 auto;
+  padding-right: 2px;
+  flex-shrink: 0;
+}
+.mk-grid--habits .mk-tile-big small {
+  font-size: 8.5px;
+  margin-left: 3px;
+  opacity: .75;
+}
+.mk-grid--habits .mk-dur {
+  width: calc(100% - 4px);
+  height: 3px;
+  margin: 3px auto 7px;
+}
+.mk-grid--habits .mk-split-actions {
+  margin: auto -12px 0;
+  width: calc(100% + 24px);
+}
+.mk-grid--habits .mk-act {
+  padding: 8px 6px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  min-height: 36px;
+}
+.mk-grid--habits .mk-act--ok {
+  background: rgba(78, 204, 163, 0.12);
+  color: #4ecca3;
+}
+.mk-grid--habits .mk-act--ok:active:not([disabled]) {
+  background: rgba(78, 204, 163, 0.24);
+}
+.mk-grid--habits .mk-act--no {
+  background: rgba(196, 103, 93, 0.12);
+  color: #e67d71;
+}
+.mk-grid--habits .mk-act--no:active:not([disabled]) {
+  background: rgba(196, 103, 93, 0.24);
+}
+.mk-grid--habits .mk-price {
+  margin: auto -12px 0;
+  width: calc(100% + 24px);
+  padding: 8px 6px 9px;
+  min-height: 36px;
+}
+.mk-grid--habits .mk-price-row {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
 /* Pulsante Spedizione / Largo */
 .mk-expedition { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
   padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(212,160,23,.2), rgba(212,160,23,.05));
@@ -1207,7 +1289,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.41" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.42" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1347,7 +1429,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.41</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.42</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -1376,6 +1458,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.41"></script>
+<script type="module" src="js/main.js?v=6.42"></script>
 </body>
 </html>

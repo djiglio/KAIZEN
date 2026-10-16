@@ -51,9 +51,6 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
   const el = document.getElementById("habit-list");
   if (!el) return;
 
-  let doneCount = 0;
-  let markedCount = 0;
-
   const tilesHTML = HABITS.map((hd) => {
     const h = state.habits[hd.id] || { xp: 0, last: null, result: null };
     const lv = habitLevel(hd.id);
@@ -61,8 +58,6 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
     const done = isDone(h.last) && h.result === "done";
     const failed = isDone(h.last) && h.result === "failed";
     const marked = done || failed;
-    if (done) doneCount++;
-    if (marked) markedCount++;
 
     const sdef = STAT_DEFS.find(s => s.habit === hd.id);
     const statLabel = sdef ? sdef.label : hd.stat.toUpperCase();
@@ -91,12 +86,7 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
 
   el.innerHTML = `
   <div class="mk">
-    <div class="mk-purse">
-      <div class="mk-purse-cap">Disciplina Quotidiana</div>
-      <div class="mk-purse-val">${doneCount}<small style="font-size:15px;color:#8b7b5c;margin-left:6px;font-weight:700;">/ ${HABITS.length}</small></div>
-      <div class="mk-purse-sub">prove compiute oggi · ${title} (Rango ${rank})</div>
-    </div>
-    <div class="mk-grid mk-grid--1">${tilesHTML}</div>
+    <div class="mk-grid mk-grid--1 mk-grid--habits">${tilesHTML}</div>
   </div>`;
 }
 
