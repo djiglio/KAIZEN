@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="icon" type="image/png" href="img/icon.png?v=6.34"/>
   <link rel="apple-touch-icon" href="img/icon.png?v=6.34"/>
-  <title>KAIZEN v6.35</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <title>KAIZEN v6.36</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
@@ -1235,6 +1235,122 @@ body::before {
 .mercato-soon strong { display: block; font-family: "Cinzel", serif; font-size: 11px; letter-spacing: 2px; color: var(--gold); margin-bottom: 4px; }
 
 /* ══════════════════════════════════════
+   MERCATO · stile "bottega" (v6.36)
+══════════════════════════════════════ */
+.mk { --ink: #0f0d0a; --line: rgba(212,160,23,.16); --cap: #8b7b5c; --serif-it: "Cormorant Garamond", Georgia, serif; }
+.mk-coin { display: inline-block; width: .78em; height: .78em; border-radius: 50%; flex-shrink: 0;
+  background: radial-gradient(circle at 34% 30%, #fff1b8 0%, #e9b937 38%, #a67a10 78%, #6d4f08 100%);
+  box-shadow: inset 0 0 0 1px rgba(60,40,0,.45), 0 0 0 1px rgba(245,200,66,.15); }
+.mk-mono { font-family: "JetBrains Mono", monospace; font-style: normal; font-size: 9px; letter-spacing: .5px; color: #6cc4ef; }
+
+/* Borsa */
+.mk-purse { position: relative; text-align: center; padding: 18px 14px 15px; margin-bottom: 18px;
+  border-top: 1px solid rgba(212,160,23,.32); border-bottom: 1px solid rgba(212,160,23,.32);
+  background: radial-gradient(ellipse 70% 100% at 50% 0%, rgba(212,160,23,.11), transparent 75%); }
+.mk-purse::before, .mk-purse::after { content: ""; position: absolute; left: 50%; width: 6px; height: 6px; background: var(--gold); transform: translateX(-50%) rotate(45deg); }
+.mk-purse::before { top: -3.5px; }
+.mk-purse::after  { bottom: -3.5px; }
+.mk-purse-cap { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 4px; text-transform: uppercase; color: var(--cap); }
+.mk-purse-val { display: inline-flex; align-items: center; gap: 10px; margin-top: 4px; font-family: "Cinzel", serif; font-size: 30px; font-weight: 900; line-height: 1.1; color: var(--gold-light); font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0,0,0,.6); }
+.mk-purse-val .mk-coin { width: 22px; height: 22px; }
+.mk-purse-sub { font-family: var(--serif-it); font-style: italic; font-size: 14px; color: #9a8a68; margin-top: 1px; }
+.mk-stamp { position: absolute; right: 8px; top: 50%; transform: translateY(-50%) rotate(-9deg); display: flex; flex-direction: column; align-items: center;
+  padding: 4px 7px 5px; border: 1.5px solid rgba(78,204,163,.55); border-radius: 2px; color: #4ecca3; font-family: "JetBrains Mono", monospace; font-size: 7px; letter-spacing: 2px; text-transform: uppercase; opacity: .9; }
+.mk-stamp b { font-size: 12px; letter-spacing: 1px; margin-top: 1px; }
+
+/* Insegna della bottega */
+.mk-shop { margin-bottom: 14px; background: var(--ink); border: 1px solid var(--line); border-radius: 3px;
+  box-shadow: inset 0 0 0 3px var(--ink), inset 0 0 0 4px rgba(212,160,23,.07); }
+.mk-shop[open] { border-color: rgba(212,160,23,.3); }
+.mk-shop > summary { list-style: none; cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 15px 16px 13px; }
+.mk-shop > summary::-webkit-details-marker { display: none; }
+.mk-shop-num { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 4px; text-transform: uppercase; color: rgba(212,160,23,.5); }
+.mk-shop-name { display: flex; align-items: center; gap: 12px; width: 100%; font-family: "Cinzel", serif; font-size: 17px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: var(--gold-light); }
+.mk-shop-name::before, .mk-shop-name::after { content: ""; flex: 1; height: 1px; }
+.mk-shop-name::before { background: linear-gradient(90deg, transparent, rgba(212,160,23,.45)); }
+.mk-shop-name::after  { background: linear-gradient(270deg, transparent, rgba(212,160,23,.45)); }
+.mk-shop-tag { font-family: var(--serif-it); font-style: italic; font-size: 14px; color: #9a8a68; }
+.mk-shop-toggle { width: 6px; height: 6px; margin-top: 7px; border: 1px solid var(--gold); transform: rotate(45deg); transition: background .25s, transform .25s; }
+.mk-shop[open] .mk-shop-toggle { background: var(--gold); transform: rotate(225deg); }
+.mk-shop-body { padding: 2px 12px 16px; border-top: 1px solid rgba(212,160,23,.08); }
+
+/* Titoletti e note */
+.mk-group { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: var(--cap); }
+.mk-group::before, .mk-group::after { content: ""; flex: 1; height: 1px; background: rgba(212,160,23,.14); }
+.mk-note { text-align: center; font-family: var(--serif-it); font-style: italic; font-size: 14px; line-height: 1.35; color: #8f8268; margin: -2px 6px 12px; }
+.mk-note b { font-family: "Cinzel", serif; font-style: normal; font-size: 12px; color: #6cc4ef; }
+.mk-empty { text-align: center; font-family: var(--serif-it); font-style: italic; font-size: 14px; color: #6f6656; padding: 14px 10px; border: 1px dashed rgba(212,160,23,.12); border-radius: 3px; }
+
+/* Stato PV / PA */
+.mk-vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.mk-vital { text-align: center; padding: 10px 10px 11px; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.05); border-radius: 3px; }
+.mk-vital-cap { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--cap); }
+.mk-vital-val { font-family: "Cinzel", serif; font-size: 17px; font-weight: 700; color: #ece3cf; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.mk-vital-val small { font-size: 10px; color: #6f6656; margin-left: 4px; font-weight: 400; }
+.mk-vital-bar { height: 3px; background: rgba(255,255,255,.07); margin-top: 7px; overflow: hidden; }
+.mk-vital-bar > i { display: block; height: 100%; background: var(--acc); transition: width .4s; }
+
+/* Tab Armaiolo */
+.mk-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 14px 0 12px; }
+.mk-tab { background: transparent; border: 1px solid rgba(212,160,23,.14); border-radius: 2px; color: #9b8f78; padding: 9px 4px; cursor: pointer;
+  font-family: "Cinzel", serif; font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; transition: all .2s; }
+.mk-tab b { font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 400; opacity: .55; margin-left: 5px; }
+.mk-tab.is-on { background: rgba(212,160,23,.12); border-color: rgba(212,160,23,.5); color: var(--gold-light); }
+.mk-tab:active { transform: scale(.97); }
+
+/* Griglia di cartellini */
+.mk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mk-tile { --acc: var(--gold); position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 14px 10px 0; overflow: hidden; border-radius: 3px; border: 1px solid rgba(212,160,23,.13);
+  background: linear-gradient(180deg, #181510 0%, #0f0d0a 100%); transition: border-color .2s; }
+.mk-tile::before, .mk-tile::after { content: ""; position: absolute; top: 5px; width: 8px; height: 8px; border-top: 1px solid var(--acc); opacity: .7; }
+.mk-tile::before { left: 5px;  border-left:  1px solid var(--acc); }
+.mk-tile::after  { right: 5px; border-right: 1px solid var(--acc); }
+.mk-tile.is-active  { border-color: rgba(78,204,163,.45); }
+.mk-tile.is-coated  { border-color: rgba(108,196,239,.28); }
+.mk-tile.is-off .mk-tile-name, .mk-tile.is-off .mk-tile-big, .mk-tile.is-off .mk-coat { opacity: .5; }
+.mk-tile-cap { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--cap); margin-bottom: 4px; }
+.mk-tile-name { display: flex; align-items: center; justify-content: center; min-height: 2.5em; font-family: "Cinzel", serif; font-size: 11.5px; font-weight: 700; line-height: 1.25; color: #ece3cf; }
+.mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; }
+.mk-tile-big small { font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; margin-left: 3px; opacity: .85; }
+.mk-tile-desc { font-family: var(--serif-it); font-style: italic; font-size: 13px; line-height: 1.25; color: #8f8268; margin: 2px 0 10px; }
+.mk-dur { width: 70%; margin: 4px 0 12px; }
+.mk-chip { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2px; text-transform: uppercase; color: #b8a274; border: 1px solid rgba(212,160,23,.3); padding: 2px 6px; margin: -2px 0 10px; border-radius: 1px; }
+.mk-chip--ok   { color: #4ecca3; border-color: rgba(78,204,163,.4); }
+.mk-chip--lack { color: #c4675d; border-color: rgba(196,103,93,.4); }
+
+/* Rivestimento */
+.mk-coat { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 4px 0 10px; }
+.mk-coat-name  { font-family: "Cinzel", serif; font-size: 13px; font-weight: 700; color: #6cc4ef; letter-spacing: 1px; }
+.mk-coat-bonus { font-family: "JetBrains Mono", monospace; font-size: 8.5px; color: #a9d8f0; }
+.mk-coat-wear  { font-family: var(--serif-it); font-style: italic; font-size: 13px; color: #7fa9bf; }
+
+/* Cartellino del prezzo (a strappo) */
+.mk-price { margin: auto -10px 0; width: calc(100% + 20px); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 9px 6px 10px; border: 0; border-top: 1px dashed rgba(212,160,23,.3); background: rgba(212,160,23,.07);
+  color: var(--gold-light); cursor: pointer; transition: background .15s; font-family: "JetBrains Mono", monospace; }
+.mk-price-row { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; letter-spacing: .5px; }
+.mk-price-lbl { font-family: "Cinzel", serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
+.mk-price s { font-size: 9px; font-weight: 400; opacity: .45; }
+.mk-price em { font-style: normal; font-size: 7.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #b8625a; }
+.mk-price:active:not([disabled]) { background: rgba(212,160,23,.2); }
+.mk-price[disabled] { cursor: default; color: #6f675a; background: rgba(255,255,255,.015); }
+.mk-price[disabled] .mk-coin { filter: grayscale(1) brightness(.6); }
+.mk-price--blue { color: #7cc8f0; background: rgba(56,189,248,.07); border-top-color: rgba(56,189,248,.3); }
+.mk-price--blue .mk-price-row { font-family: "Cinzel", serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
+.mk-price--blue .mk-price-row b { font-family: "JetBrains Mono", monospace; font-size: 12.5px; letter-spacing: .5px; }
+.mk-price--blue:active:not([disabled]) { background: rgba(56,189,248,.18); }
+
+/* Modale della forgia */
+.mk-modal { text-align: center; }
+.mk-modal-cap { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--cap); }
+.mk-modal-title { font-family: "Cinzel", serif; font-size: 18px; font-weight: 700; color: var(--gold-light); margin: 4px 0 6px; letter-spacing: 1px; }
+.mk-modal-warn { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a6a5a; margin: -4px 0 12px; }
+.mk-modal-list { max-height: 52vh; overflow-y: auto; padding-right: 2px; margin-bottom: 4px; }
+.mk-modal .modal-close-btn { margin-top: 12px; }
+
+
+/* ══════════════════════════════════════
    IMPOSTAZIONI
 ══════════════════════════════════════ */
 .settings-section { margin-bottom: 24px; }
@@ -1591,7 +1707,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.35" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.36" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1747,6 +1863,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.35"></script>
+<script type="module" src="js/main.js?v=6.36"></script>
 </body>
 </html>
