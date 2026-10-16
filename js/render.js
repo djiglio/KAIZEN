@@ -139,17 +139,18 @@ function renderQuests(state) {
   if (!el) return;
 
   const renderQuestTiles = (quests, typeLabel, baseAcc) =>
-    quests.map((q, idx) => {
+    quests.map((q) => {
       const perc = Math.min(100, (q.progress / q.target) * 100);
       const acc = q.completed ? "#4ecca3" : baseAcc;
-      const spanFull = idx === quests.length - 1 && quests.length % 2 === 1 ? "grid-column:1/-1;" : "";
       return `
-      <div class="mk-tile ${q.completed ? "is-active" : ""}" style="--acc:${acc};padding-bottom:12px;${spanFull}">
+      <div class="mk-tile ${q.completed ? "is-active" : ""}" style="--acc:${acc};padding-bottom:9px;">
         <div class="mk-tile-cap">${typeLabel}</div>
-        <div class="mk-tile-name">${q.text}</div>
-        <div class="mk-tile-big">${q.progress}<small>/ ${q.target}</small></div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name">${q.text}</span>
+          <span class="mk-tile-big">${q.progress}<small>/ ${q.target}</small></span>
+        </div>
         <div class="mk-vital-bar mk-dur"><i style="width:${perc}%;background:${acc}"></i></div>
-        <div class="mk-tile-desc" style="margin-bottom:${q.completed ? "8px" : "0"}">${q.desc}</div>
+        <div class="mk-tile-desc" style="margin-bottom:${q.completed ? "6px" : "0"}">${q.desc}</div>
         ${q.completed ? `<div class="mk-chip mk-chip--ok" style="margin-bottom:0">✦ Impresa Compiuta</div>` : ""}
       </div>`;
     }).join("");
@@ -161,20 +162,14 @@ function renderQuests(state) {
 
   el.innerHTML = `
   <div class="mk">
-    <div class="mk-purse">
-      <div class="mk-purse-cap">Imprese della Settimana</div>
-      <div class="mk-purse-val">${evoDone + worldDone}<small style="font-size:15px;color:#8b7b5c;margin-left:6px;font-weight:700;">/ ${state.activeQuestsEvo.length + state.activeQuestsWorld.length}</small></div>
-      <div class="mk-purse-sub">incarichi settimanali portati a termine</div>
-    </div>
-
     <div class="mk-group">Capitolo I · Evoluzione</div>
     <div class="mk-note">Prove di costanza legate alle tue discipline quotidiane</div>
-    <div class="mk-grid">${renderQuestTiles(state.activeQuestsEvo, "Evoluzione", "var(--gold)")}</div>
+    <div class="mk-grid mk-grid--1 mk-grid--quests">${renderQuestTiles(state.activeQuestsEvo, "Evoluzione", "var(--gold)")}</div>
     ${evoAll ? `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);margin-top:8px;">✦ Sigillo dell'Evoluzione compiuto: +20 XP ottenuti</div>` : ""}
 
     <div class="mk-group">Capitolo II · Mondo Esterno</div>
     <div class="mk-note">Imprese di caccia, bottino ed esplorazione nelle terre selvagge</div>
-    <div class="mk-grid">${renderQuestTiles(state.activeQuestsWorld, "Mondo Esterno", "#a78bfa")}</div>
+    <div class="mk-grid mk-grid--1 mk-grid--quests">${renderQuestTiles(state.activeQuestsWorld, "Mondo Esterno", "#a78bfa")}</div>
     ${worldAll ? `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);margin-top:8px;">✦ Sigillo del Mondo compiuto: +20 XP ottenuti</div>` : ""}
   </div>`;
 }

@@ -998,6 +998,58 @@
   font-weight: 800;
   letter-spacing: 1px;
 }
+
+/* Varianti specifiche per cartellini Missioni Settimanali (colonna singola) */
+.mk-grid--quests { gap: 8px; }
+.mk-grid--quests .mk-tile { padding: 8px 12px 9px; }
+.mk-grid--quests .mk-tile-cap { font-size: 7.5px; letter-spacing: 2px; margin-bottom: 2px; }
+.mk-grid--quests .mk-tile-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+  margin: 1px 0 3px;
+  flex-wrap: nowrap;
+}
+.mk-grid--quests .mk-tile-name {
+  min-height: auto;
+  width: auto;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: left;
+  justify-content: flex-start;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.25;
+  padding-left: 2px;
+  flex: 1 1 auto;
+}
+.mk-grid--quests .mk-tile-big {
+  font-size: 16.5px;
+  font-weight: 900;
+  text-align: right;
+  justify-content: flex-end;
+  margin: 0 0 0 auto;
+  padding-right: 2px;
+  flex-shrink: 0;
+}
+.mk-grid--quests .mk-tile-big small {
+  font-size: 8.5px;
+  margin-left: 3px;
+  opacity: .75;
+}
+.mk-grid--quests .mk-dur {
+  width: calc(100% - 4px);
+  height: 3px;
+  margin: 3px auto 6px;
+}
+.mk-grid--quests .mk-tile-desc {
+  font-size: 12.5px;
+  line-height: 1.25;
+  margin: 1px 0 3px;
+  text-align: center;
+}
 .mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .mk-tile-big small { font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; margin-left: 3px; opacity: .85; }
 .mk-tile-desc { font-family: var(--serif-it); font-style: italic; font-size: 13px; line-height: 1.25; color: #8f8268; margin: 2px 0 10px; }
