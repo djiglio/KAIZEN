@@ -67,7 +67,6 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
     const sdef = STAT_DEFS.find(s => s.habit === hd.id);
     const statLabel = sdef ? sdef.label : hd.stat.toUpperCase();
     const acc = done ? "#4ecca3" : failed ? "#e0533d" : hd.color;
-    const spanFull = idx === HABITS.length - 1 && HABITS.length % 2 === 1 ? "grid-column:1/-1;" : "";
 
     const actionBar = done
       ? `<button class="mk-price mk-price--ok" disabled><span class="mk-price-row">✦ Compiuta oggi</span></button>`
@@ -79,7 +78,7 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
          </div>`;
 
     return `
-    <div class="mk-tile ${done ? "is-active" : failed ? "is-off" : ""}" style="--acc:${acc};${spanFull}">
+    <div class="mk-tile ${done ? "is-active" : failed ? "is-off" : ""}" style="--acc:${acc}">
       <div class="mk-tile-cap">${statLabel} · Grado ${lv}</div>
       <div class="mk-tile-name">${hd.label}</div>
       <div class="mk-tile-big">${xp}<small>/ 100 XP</small></div>
@@ -96,7 +95,7 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
       <div class="mk-purse-val">${doneCount}<small style="font-size:15px;color:#8b7b5c;margin-left:6px;font-weight:700;">/ ${HABITS.length}</small></div>
       <div class="mk-purse-sub">prove compiute oggi · ${title} (Rango ${rank})</div>
     </div>
-    <div class="mk-grid">${tilesHTML}</div>
+    <div class="mk-grid mk-grid--1">${tilesHTML}</div>
   </div>`;
 }
 
