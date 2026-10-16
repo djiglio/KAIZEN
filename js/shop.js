@@ -672,7 +672,7 @@ export function renderEquipment() {
       if (!rel) return "";
       const remaining = Math.ceil((ra.expiry - now) / 3600000);
       return `
-      <div class="mk-tile is-active" style="--acc:#4ecca3;padding-bottom:7px;">
+      <div class="mk-tile mk-tile--relic is-active" style="--acc:#4ecca3;padding-bottom:7px;">
         <div class="mk-tile-cap">Reliquia Attiva · ${remaining}h rimanenti</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name">${rel.name}</span>
@@ -765,7 +765,7 @@ export function renderEquipment() {
       totalRelicsCount += count;
       const refund = 5;
       return `
-      <div class="mk-tile" style="--acc:#a78bfa">
+      <div class="mk-tile mk-tile--relic" style="--acc:#a78bfa">
         <div class="mk-tile-row-head">
           <span class="mk-tile-name">${rel.name}</span>
           <span class="mk-tile-big">x${count}</span>
