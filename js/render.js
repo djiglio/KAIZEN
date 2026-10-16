@@ -143,7 +143,7 @@ function renderQuests(state) {
       const perc = Math.min(100, (q.progress / q.target) * 100);
       const acc = q.completed ? "#4ecca3" : baseAcc;
       return `
-      <div class="mk-tile ${q.completed ? "is-active" : ""}" style="--acc:${acc};padding-bottom:9px;">
+      <div class="mk-tile ${q.completed ? "is-active is-marked" : ""}" style="--acc:${acc};padding-bottom:9px;">
         <div class="mk-tile-cap">${typeLabel}</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name">${q.text}</span>
@@ -229,7 +229,7 @@ export function renderWorld() {
     const done = t.completed;
     const acc = done ? "#4ecca3" : "var(--gold)";
     return `
-    <div class="mk-tile ${done ? "is-active" : ""}" style="--acc:${acc};">
+    <div class="mk-tile ${done ? "is-active is-marked" : ""}" style="--acc:${acc};">
       <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}${done ? " · Compiuto" : ""}</div>
       <div class="mk-tile-row-head">
         <span class="mk-tile-name">${q.title}</span>
@@ -237,6 +237,7 @@ export function renderWorld() {
       </div>
       <div class="mk-vital-bar mk-dur"><i style="width:${pct}%;background:${acc}"></i></div>
       <div class="mk-tile-desc">${q.desc}</div>
+      ${done ? `<div class="mk-chip mk-chip--ok" style="margin:2px 0 0;">✦ Incarico Compiuto</div>` : ""}
     </div>`;
   }).join("") || `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);">✦ Tutti gli incarichi di questa regione sono stati compiuti.</div>`;
 
@@ -298,6 +299,14 @@ export function renderWorld() {
 
     ${empireoPanel}
 
+    <div style="margin:14px 0 18px;">
+      <button class="mk-expedition" onclick="window.__kaizen.runMission()">
+        <span class="mk-expedition-cap">Esplorazione · ${areaCfg.name}</span>
+        <span class="mk-expedition-title">Invia Spedizione</span>
+        <span class="mk-expedition-sub">Costo: ${COIN} <b>${areaCfg.costoOro}</b> denari · <b>${areaCfg.costoPA} PA</b></span>
+      </button>
+    </div>
+
     <div class="mk-group">Incarichi di Regione (${doneQ}/${poolQ.length})</div>
     ${questePending.length ? `<div class="mk-grid mk-grid--1 mk-grid--world-quests">${questsHTML}</div>` : questsHTML}
     <button class="mk-wide-btn" onclick="window.__kaizen.showAllAreaQuests()">
@@ -306,14 +315,8 @@ export function renderWorld() {
   </div>`;
 
   if (elBtnWrap) {
-    elBtnWrap.innerHTML = `
-    <div class="mk">
-      <button class="mk-expedition" onclick="window.__kaizen.runMission()">
-        <span class="mk-expedition-cap">Esplorazione · ${areaCfg.name}</span>
-        <span class="mk-expedition-title">Invia Spedizione</span>
-        <span class="mk-expedition-sub">Costo: ${COIN} <b>${areaCfg.costoOro}</b> denari · <b>${areaCfg.costoPA} PA</b></span>
-      </button>
-    </div>`;
+    elBtnWrap.innerHTML = "";
+    elBtnWrap.style.display = "none";
   }
 
   if (elLog) {
@@ -731,7 +734,7 @@ export function showAllAreaQuests() {
     const done = t.completed;
     const acc  = done ? "#4ecca3" : "var(--gold)";
     return `
-    <div class="mk-tile ${done ? "is-active" : ""}" style="--acc:${acc};">
+    <div class="mk-tile ${done ? "is-active is-marked" : ""}" style="--acc:${acc};">
       <div class="mk-tile-cap">Incarico ${roman(q.n) || q.n}${done ? " · Compiuto" : ""}</div>
       <div class="mk-tile-row-head">
         <span class="mk-tile-name">${q.title}</span>
@@ -739,6 +742,7 @@ export function showAllAreaQuests() {
       </div>
       <div class="mk-vital-bar mk-dur"><i style="width:${pct}%;background:${acc}"></i></div>
       <div class="mk-tile-desc">${q.desc}</div>
+      ${done ? `<div class="mk-chip mk-chip--ok" style="margin:2px 0 0;">✦ Incarico Compiuto</div>` : ""}
     </div>`;
   }).join("");
 

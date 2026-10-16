@@ -1044,12 +1044,6 @@
   height: 3px;
   margin: 3px auto 6px;
 }
-.mk-grid--quests .mk-tile-desc {
-  font-size: 12.5px;
-  line-height: 1.25;
-  margin: 1px 0 3px;
-  text-align: center;
-}
 
 /* Varianti specifiche per Incarichi di Regione (Mondo Esterno, colonna singola) */
 .mk-grid--world-quests { gap: 6px; }
@@ -1098,15 +1092,16 @@
 }
 .mk-grid--world-quests .mk-tile-desc,
 .mk-grid--quests .mk-tile-desc {
-  font-family: "Inter", sans-serif;
+  font-family: "Cormorant Garamond", Georgia, serif;
   font-style: normal;
-  font-size: 12px;
+  font-size: 14.5px;
   font-weight: 600;
-  line-height: 1.35;
-  color: #f1ebd8;
-  margin: 1px 0 2px;
+  line-height: 1.3;
+  color: #f5eedb;
+  letter-spacing: 0.3px;
+  margin: 2px 0 3px;
   text-align: center;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.85);
 }
 
 /* Varianti specifiche per Diario Spedizioni (Mondo Esterno, colonna singola compatto) */
