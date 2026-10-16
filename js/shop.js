@@ -766,7 +766,6 @@ export function renderEquipment() {
       const refund = 5;
       return `
       <div class="mk-tile" style="--acc:#a78bfa">
-        <div class="mk-tile-cap">Reliquia Antica</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name">${rel.name}</span>
           <span class="mk-tile-big">x${count}</span>
