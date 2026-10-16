@@ -78,7 +78,7 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
          </div>`;
 
     return `
-    <div class="mk-tile ${done ? "is-active" : failed ? "is-off" : ""}" style="--acc:${acc}">
+    <div class="mk-tile ${done ? "is-active" : failed ? "is-off" : ""} ${marked ? "is-marked" : ""}" style="--acc:${acc}">
       <div class="mk-tile-cap">${statLabel} · Grado ${lv} · ${fmtDen(h.xp)} XP tot.</div>
       <div class="mk-tile-row-head">
         <span class="mk-tile-name">${hd.label}</span>

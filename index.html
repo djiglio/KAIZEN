@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.40"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.40"/>
-  <title>KAIZEN v6.40</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.41"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.41"/>
+  <title>KAIZEN v6.41</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.40
+   KAIZEN v6.41
    ============================================================ */
 
 :root {
@@ -1082,6 +1082,7 @@ body::before {
 .mk-tile.is-active  { border-color: rgba(78,204,163,.45); }
 .mk-tile.is-coated  { border-color: rgba(108,196,239,.28); }
 .mk-tile.is-off .mk-tile-name, .mk-tile.is-off .mk-tile-big, .mk-tile.is-off .mk-coat { opacity: .5; }
+.mk-tile.is-marked  { opacity: .42; filter: saturate(.65) brightness(.78); transition: opacity .25s, filter .25s; }
 .mk-tile-cap { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--cap); margin-bottom: 4px; }
 .mk-tile-name { display: flex; align-items: center; justify-content: center; min-height: 2.5em; font-family: "Cinzel", serif; font-size: 11.5px; font-weight: 700; line-height: 1.25; color: #ece3cf; width: 100%; }
 .mk-tile-big { font-family: "Cinzel", serif; font-size: 24px; font-weight: 900; line-height: 1; color: var(--acc); margin: 6px 0 3px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
@@ -1206,7 +1207,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.40" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.41" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1346,7 +1347,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.40</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.41</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -1375,6 +1376,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.40"></script>
+<script type="module" src="js/main.js?v=6.41"></script>
 </body>
 </html>
