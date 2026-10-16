@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.46";
+export const APP_VERSION = "6.47";
 export const APP_RELEASE = "16/10/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -795,6 +795,7 @@ export const WORLD_AREAS = [
   {
     id: "foresta",
     name: "Foresta Crepuscolare",
+    color: "#4ade80",
     icon: "",
     costoOro: 20,
     costoPA: 5,
@@ -806,6 +807,7 @@ export const WORLD_AREAS = [
   {
     id: "miniere",
     name: "Miniere Sepolte",
+    color: "#e07a5f",
     icon: "",
     costoOro: 40,
     costoPA: 7,
@@ -817,6 +819,7 @@ export const WORLD_AREAS = [
   {
     id: "isole",
     name: "Isole dei Naufraghi",
+    color: "#38bdf8",
     icon: "",
     costoOro: 70,
     costoPA: 9,
@@ -828,6 +831,7 @@ export const WORLD_AREAS = [
   {
     id: "montagne",
     name: "Montagne Silenti",
+    color: "#a5f3fc",
     icon: "",
     costoOro: 110,
     costoPA: 11,
@@ -839,6 +843,7 @@ export const WORLD_AREAS = [
   {
     id: "deserto",
     name: "Deserto delle Ossa",
+    color: "#e9c46a",
     icon: "",
     costoOro: 150,
     costoPA: 13,
@@ -850,6 +855,7 @@ export const WORLD_AREAS = [
   {
     id: "oltretomba",
     name: "Oltretomba",
+    color: "#c084fc",
     icon: "",
     costoOro: 200,
     costoPA: 15,
@@ -861,6 +867,7 @@ export const WORLD_AREAS = [
   {
     id: "empireo",
     name: "Empireo",
+    color: "#ffd166",
     icon: "",
     costoOro: 300,
     costoPA: 20,

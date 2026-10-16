@@ -882,6 +882,7 @@
 .mk-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 14px 0 12px; }
 .mk-tab { background: transparent; border: 1px solid rgba(80, 70, 60, .4); border-radius: 2px; color: #8e806d; padding: 9px 4px; cursor: pointer;
   font-family: "Cinzel", serif; font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; transition: all .2s; }
+.mk-tab-zone { display: inline; letter-spacing: 0.5px; transition: color .2s; }
 .mk-tab b { font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 400; opacity: .55; margin-left: 5px; }
 .mk-tab.is-on { background: rgba(180, 75, 38, .16); border-color: rgba(195, 85, 45, .55); color: #f6b088; }
 .mk-tab:active { transform: scale(.97); }

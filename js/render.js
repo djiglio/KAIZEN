@@ -208,12 +208,12 @@ export function renderWorld() {
     const spanFull  = idx === WORLD_AREAS.length - 1 && WORLD_AREAS.length % 2 === 1 ? "grid-column:1/-1;" : "";
     if (!sbloccata) {
       return `<button class="mk-tab is-locked" style="${spanFull}" disabled title="Completa le missioni della zona precedente">
-        ${roman(idx + 1)} · ${a.name} <b>Bloccata</b>
+        <span style="opacity:0.6;">${roman(idx + 1)} ·</span> <span class="mk-tab-zone" style="color:${a.color};opacity:0.65;">${a.name}</span> <b>Bloccata</b>
       </button>`;
     }
-    return `<button class="mk-tab ${attiva ? "is-on" : ""}" style="${spanFull}"
+    return `<button class="mk-tab ${attiva ? "is-on" : ""}" style="${spanFull}${attiva ? `;border-color:${a.color}aa;background:${a.color}18;box-shadow:0 0 10px ${a.color}25;` : ''}"
               onclick="window.__kaizen.setArea('${a.id}')">
-      ${roman(idx + 1)} · ${a.name} <b>${done}/${total}</b>
+      <span style="opacity:0.7;">${roman(idx + 1)} ·</span> <span class="mk-tab-zone" style="color:${a.color};font-weight:700;">${a.name}</span> <b>${done}/${total}</b>
     </button>`;
   }).join("");
 
@@ -273,9 +273,9 @@ export function renderWorld() {
     <div class="mk-group" style="margin-top:0">Atlante delle Regioni</div>
     <div class="mk-tabs mk-tabs--2">${areaTabs}</div>
 
-    <div class="mk-purse" style="margin-top:12px;">
+    <div class="mk-purse" style="margin-top:12px;border-color:${areaCfg.color}40;">
       <div class="mk-purse-cap">Livello ${areaCfg.lvlMin}–${areaCfg.lvlMax} · Incarichi ${doneQ}/${poolQ.length}</div>
-      <div class="mk-purse-val" style="font-size:22px;letter-spacing:2px;">${areaCfg.name}</div>
+      <div class="mk-purse-val" style="font-size:22px;letter-spacing:2px;color:${areaCfg.color};text-shadow:0 0 14px ${areaCfg.color}40;">${areaCfg.name}</div>
       <div class="mk-purse-sub">${areaCfg.desc || "Terre inesplorate oltre il confine"}</div>
     </div>
 
@@ -300,8 +300,8 @@ export function renderWorld() {
     ${empireoPanel}
 
     <div style="margin:14px 0 18px;">
-      <button class="mk-expedition" onclick="window.__kaizen.runMission()">
-        <span class="mk-expedition-cap">Esplorazione · ${areaCfg.name}</span>
+      <button class="mk-expedition" onclick="window.__kaizen.runMission()" style="border-color:${areaCfg.color}55;">
+        <span class="mk-expedition-cap">Esplorazione · <span style="color:${areaCfg.color};font-weight:700;">${areaCfg.name}</span></span>
         <span class="mk-expedition-title">Invia Spedizione</span>
         <span class="mk-expedition-sub">Costo: ${COIN} <b>${areaCfg.costoOro}</b> denari · <b>${areaCfg.costoPA} PA</b></span>
       </button>
@@ -750,10 +750,10 @@ export function showAllAreaQuests() {
     <div id="all-quests-overlay" onclick="if(event.target===this)this.remove()"
       style="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;backdrop-filter:blur(6px);
         display:flex;align-items:center;justify-content:center;padding:16px;">
-      <div class="modal-box mk mk-modal" style="max-width:440px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div class="modal-box mk mk-modal" style="max-width:440px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;border-color:${areaCfg.color}55;">
         <div class="mk-modal-cap">Registro di Regione · ${doneCount}/${poolQ.length} Compiuti (${totalPct}%)</div>
-        <div class="mk-modal-title">${areaCfg.name}</div>
-        <div class="mk-vital-bar" style="--acc:var(--gold);margin:4px 0 14px;"><i style="width:${totalPct}%"></i></div>
+        <div class="mk-modal-title" style="color:${areaCfg.color};text-shadow:0 0 12px ${areaCfg.color}44;">${areaCfg.name}</div>
+        <div class="mk-vital-bar" style="--acc:${areaCfg.color};margin:4px 0 14px;"><i style="width:${totalPct}%;background:${areaCfg.color};"></i></div>
         <div style="overflow-y:auto;padding-right:2px;flex:1;">
           <div class="mk-grid mk-grid--1 mk-grid--world-quests">${tiles}</div>
         </div>
