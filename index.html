@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.53"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.53"/>
-  <title>KAIZEN v6.53</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.54"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.54"/>
+  <title>KAIZEN v6.54</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.53
+   KAIZEN v6.54
    ============================================================ */
 
 :root {
@@ -1584,14 +1584,18 @@ body::before {
 .mk-modal-warn { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a6a5a; margin: -4px 0 12px; }
 .mk-modal-list { max-height: 52vh; overflow-y: auto; padding-right: 2px; margin-bottom: 4px; }
 .mk-modal .modal-close-btn { margin-top: 12px; }
+.mk-vitals--compact { gap: 5px; margin-top: 6px; }
+.mk-vitals--compact .mk-vital { padding: 4px 6px 5px; }
+.mk-vitals--compact .mk-vital-cap { font-size: 6.5px; letter-spacing: 1.8px; line-height: 1.1; }
+.mk-vitals--compact .mk-vital-val { font-size: 14px; margin-top: 1px; line-height: 1.15; }
 
 /* ══════════════════════════════════════
    DETAIL MODALS (pre-combat & bacheca)
 ══════════════════════════════════════ */
-.detail-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
-.detail-stat-box { background: var(--ink); border: 1px solid rgba(85, 74, 62, 0.4); border-radius: 3px; padding: 10px 8px; text-align: center; }
-.detail-stat-val { font-family: "Cinzel", serif; font-size: 17px; font-weight: 900; }
-.detail-stat-lbl { font-family: "JetBrains Mono", monospace; font-size: 7.5px; color: var(--cap); letter-spacing: 2px; margin-top: 2px; }
+.detail-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 6px 0; }
+.detail-stat-box { background: var(--ink); border: 1px solid rgba(85, 74, 62, 0.4); border-radius: 3px; padding: 4px 6px; text-align: center; }
+.detail-stat-val { font-family: "Cinzel", serif; font-size: 14px; font-weight: 900; line-height: 1.15; }
+.detail-stat-lbl { font-family: "JetBrains Mono", monospace; font-size: 6.5px; color: var(--cap); letter-spacing: 1.8px; margin-top: 1px; line-height: 1.1; }
 
 .enemy-portrait { font-size: 48px; text-align: center; padding: 12px 0 6px; display: flex; justify-content: center; }
 .enemy-trait-badge { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 700; padding: 3px 9px; border-radius: 2px; background: rgba(180, 75, 38, 0.12); border: 1px solid rgba(195, 85, 45, 0.35); color: #f2a879; letter-spacing: 2px; margin-bottom: 12px; text-transform: uppercase; }
@@ -1605,7 +1609,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.53" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.54" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1745,7 +1749,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.53</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.54</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -1774,6 +1778,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.53"></script>
+<script type="module" src="js/main.js?v=6.54"></script>
 </body>
 </html>

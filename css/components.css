@@ -1366,3 +1366,11 @@
 .mk-modal-warn { font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a6a5a; margin: -4px 0 12px; }
 .mk-modal-list { max-height: 52vh; overflow-y: auto; padding-right: 2px; margin-bottom: 4px; }
 .mk-modal .modal-close-btn { margin-top: 12px; }
+.mk-vitals--compact { gap: 5px; margin-top: 6px; }
+.mk-vitals--compact .mk-vital { padding: 4px 6px 5px; }
+.mk-vitals--compact .mk-vital-cap { font-size: 6.5px; letter-spacing: 1.8px; line-height: 1.1; }
+.mk-vitals--compact .mk-vital-val { font-size: 14px; margin-top: 1px; line-height: 1.15; }
+.detail-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 6px 0; }
+.detail-stat-box { background: var(--ink); border: 1px solid rgba(85, 74, 62, 0.4); border-radius: 3px; padding: 4px 6px; text-align: center; }
+.detail-stat-val { font-family: "Cinzel", serif; font-size: 14px; font-weight: 900; line-height: 1.15; }
+.detail-stat-lbl { font-family: "JetBrains Mono", monospace; font-size: 6.5px; color: var(--cap); letter-spacing: 1.8px; margin-top: 1px; line-height: 1.1; }

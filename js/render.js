@@ -624,14 +624,14 @@ export function showBestiaryDetail(enemyId) {
   box.innerHTML = `
   <div class="mk mk-modal">
     <div class="mk-modal-cap">Bestiario · Livello ${enemy.lvl}</div>
-    <div class="mk-modal-title">${enemy.name}</div>
-    ${enemy.trait ? `<div class="mk-note">${enemy.trait}</div>` : ""}
+    <div class="mk-modal-title" style="margin:2px 0 4px;">${enemy.name}</div>
+    ${enemy.trait ? `<div class="mk-note" style="margin-bottom:6px;">${enemy.trait}</div>` : ""}
 
-    <div style="margin:10px auto 14px;display:flex;justify-content:center;width:100%;">
+    <div style="margin:4px auto 8px;display:flex;justify-content:center;width:100%;max-width:240px;">
       ${enemyImgHTML(enemy, "100%", "auto")}
     </div>
 
-    <div class="mk-vitals" style="margin-bottom:8px;">
+    <div class="mk-vitals mk-vitals--compact" style="margin-bottom:5px;margin-top:4px;">
       <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Forza</div><div class="mk-vital-val" style="color:#e0533d">${enemy.forza}</div></div>
       <div class="mk-vital" style="--acc:#5fb8ec"><div class="mk-vital-cap">Velocità</div><div class="mk-vital-val" style="color:#5fb8ec">${enemy.velocita}</div></div>
       <div class="mk-vital" style="--acc:#3fbf8a"><div class="mk-vital-cap">Destrezza</div><div class="mk-vital-val" style="color:#3fbf8a">${enemy.destrezza}%</div></div>
@@ -639,12 +639,12 @@ export function showBestiaryDetail(enemyId) {
       <div class="mk-vital" style="--acc:#e0533d;grid-column:1/-1;"><div class="mk-vital-cap">Punti Vita</div><div class="mk-vital-val" style="color:#e0533d">${enemy.costituzione}</div></div>
     </div>
 
-    <div class="mk-vitals" style="margin-top:8px;">
+    <div class="mk-vitals mk-vitals--compact" style="margin-top:5px;">
       <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Incontri</div><div class="mk-vital-val" style="color:#d4c7b2">${incontri}</div></div>
       <div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Abbattuti</div><div class="mk-vital-val" style="color:#4ecca3">${kills}</div></div>
     </div>
 
-    <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+    <button class="modal-close-btn" style="margin-top:10px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
   </div>`;
   resolveImgs();
 }

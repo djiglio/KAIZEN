@@ -232,16 +232,16 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
 
  inner.innerHTML = `
  <div class="combat-header">${enemy.name}</div>
- <div class="combat-sub">LVL ${enemy.lvl} · ${enemy.trait || ""}</div>
+ <div class="combat-sub" style="margin-bottom:6px">LVL ${enemy.lvl} · ${enemy.trait || ""}</div>
  ${equipStr}
 
  <!-- Immagine nemico -->
- <div style="display:flex;justify-content:center;padding:14px 0 10px;width:100%">
+ <div style="display:flex;justify-content:center;padding:4px 0 6px;width:100%;max-width:270px;margin:0 auto;">
  ${enemyImgHTML(enemy, '100%', 'auto')}
  </div>
 
  <!-- Statistiche nemico -->
- <div class="detail-stat-grid" style="margin-bottom:14px">
+ <div class="detail-stat-grid" style="margin:6px 0 8px">
  <div class="detail-stat-box">
  <div class="detail-stat-val" style="color:#dc2626">${eneS.forza}</div>
  <div class="detail-stat-lbl">FORZA</div>
@@ -264,15 +264,15 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
  </div>
  </div>
 
- <div class="flee-panel">
- <div class="flee-title">[!] Nemico in vista!</div>
- <div class="flee-text">
+ <div class="flee-panel" style="padding:11px 12px;margin-bottom:0">
+ <div class="flee-title" style="margin-bottom:4px">[!] Nemico in vista!</div>
+ <div class="flee-text" style="margin-bottom:10px;font-size:13px;line-height:1.3">
  Furtività: <strong style="color:var(--primary)">${heroS.furtivita}%</strong> probabilità di fuga riuscita.<br>
  Se combatti e vinci, ottieni bottino e denari.
  </div>
  <div class="flee-btns">
- <button class="flee-btn fight" id="btn-fight">COMBATTI</button>
- <button class="flee-btn flee" id="btn-flee">FUGGI (${fleeChance}%)</button>
+ <button class="flee-btn fight" id="btn-fight" style="padding:9px;min-height:38px">COMBATTI</button>
+ <button class="flee-btn flee" id="btn-flee" style="padding:9px;min-height:38px">FUGGI (${fleeChance}%)</button>
  </div>
  </div>
  `;
