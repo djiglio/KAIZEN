@@ -101,7 +101,11 @@ function migrate(p) {
  const dw = defaultWorld();
  p.world = { ...dw, ...p.world };
  if (!p.world.wq) p.world.wq = dw.wq;
- else p.world.wq = { ...dw.wq, ...p.world.wq };
+ else {
+   p.world.wq = { ...dw.wq, ...p.world.wq };
+   if (!Array.isArray(p.world.wq.unique_enemies)) p.world.wq.unique_enemies = [];
+   if (!Array.isArray(p.world.wq.unique_finds)) p.world.wq.unique_finds = [];
+ }
  if (!p.world.reliquieAttive) p.world.reliquieAttive = [];
     if (!p.world.worldProgress) {
       p.world.worldProgress = defaultWorld().worldProgress;

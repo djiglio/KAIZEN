@@ -625,6 +625,8 @@ export function runMission() {
     w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0) + 1;
 
     // Tracker unique enemies
+    if (!state.world.wq) state.world.wq = {};
+    if (!Array.isArray(state.world.wq.unique_enemies)) state.world.wq.unique_enemies = [];
     if (!state.world.wq.unique_enemies.includes(enemy.id)) {
       state.world.wq.unique_enemies.push(enemy.id);
     }
@@ -721,6 +723,7 @@ function executeCombat(enemy, enemyEquip) {
   const result = simulateCombat(enemy, enemyEquip);
 
   updateWorldQuests("combat", {});
+  updateWorldQuests("unique_enemy", { id: enemy.id });
 
   w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
   w.pvAttuali = result.heroHPFinal;

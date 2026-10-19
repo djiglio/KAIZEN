@@ -177,10 +177,25 @@ export function refreshQuests() {
         const def = QUEST_POOL_WORLD.find(p => p.id === q.id);
         if (!def) return q;
         const merged = { ...q, ...def };
+        if (merged.type === "unique_enemies") {
+          if (!Array.isArray(merged.seenIds)) merged.seenIds = [];
+          if (merged.progress === 0 && merged.seenIds.length === 0 && Array.isArray(state.world?.wq?.unique_enemies) && state.world.wq.unique_enemies.length > 0) {
+            merged.seenIds = [...new Set(state.world.wq.unique_enemies)].slice(0, merged.target);
+            merged.progress = merged.seenIds.length;
+          }
+        }
+        if (merged.type === "unique_finds") {
+          if (!Array.isArray(merged.seenIds)) merged.seenIds = [];
+          if (merged.progress === 0 && merged.seenIds.length === 0 && Array.isArray(state.world?.wq?.unique_finds) && state.world.wq.unique_finds.length > 0) {
+            merged.seenIds = [...new Set(state.world.wq.unique_finds)].slice(0, merged.target);
+            merged.progress = merged.seenIds.length;
+          }
+        }
         if (merged.completed) merged.progress = merged.target;
         else merged.progress = Math.min(merged.target, merged.progress || 0);
         return merged;
       });
+      save();
     }
     return;
   }
@@ -420,11 +435,12 @@ export function updateWorldQuests(type, payload = {}) {
         }
         break;
       case "unique_enemies":
-        if (type === "unique_enemy") {
-          if (payload.id) {
-            if (!q.seenIds) q.seenIds = [];
-            if (!q.seenIds.includes(payload.id)) {
-              q.seenIds.push(payload.id);
+        if (type === "unique_enemy" || type === "unique_enemies") {
+          const eId = payload.id || payload.enemyId;
+          if (!Array.isArray(q.seenIds)) q.seenIds = [];
+          if (eId) {
+            if (!q.seenIds.includes(eId)) {
+              q.seenIds.push(eId);
               inc = 1;
               hit = true;
             }
@@ -438,6 +454,9 @@ export function updateWorldQuests(type, payload = {}) {
 
     if (hit) {
       q.progress = Math.min(q.target, (q.progress || 0) + inc);
+      if (Array.isArray(q.seenIds) && q.seenIds.length > q.progress) {
+        q.progress = Math.min(q.target, q.seenIds.length);
+      }
       if (q.progress >= q.target && !q.completed) {
         q.completed = true;
         grantQuestReward(q, "world");
