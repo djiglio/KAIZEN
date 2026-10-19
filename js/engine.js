@@ -180,6 +180,14 @@ export function refreshQuests() {
         if (merged.type === "unique_enemies" || merged.type === "unique_finds") {
           if (!Array.isArray(merged.seenIds)) merged.seenIds = [];
         }
+        if (merged.type === "unique_enemies" && Array.isArray(state.world?.wq?.unique_enemies)) {
+          for (const eid of state.world.wq.unique_enemies) {
+            if (!merged.seenIds.includes(eid)) merged.seenIds.push(eid);
+          }
+        }
+        if (Array.isArray(merged.seenIds) && merged.seenIds.length > (merged.progress || 0)) {
+          merged.progress = Math.min(merged.target, merged.seenIds.length);
+        }
         if (merged.completed) merged.progress = merged.target;
         else merged.progress = Math.min(merged.target, merged.progress || 0);
         return merged;
@@ -451,6 +459,7 @@ export function updateWorldQuests(type, payload = {}) {
         grantQuestReward(q, "world");
         checkAllWorldComplete();
       }
+      save();
     }
   }
 }

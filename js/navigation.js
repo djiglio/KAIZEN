@@ -6,6 +6,7 @@
 import { store } from "./state.js";
 import { rankTitles, titleMetalColors } from "./data.js";
 import { getHeroRank } from "./engine.js";
+import { render } from "./render.js";
 
 export function toggleSidebar() {
  const isOpen = document.getElementById("sidebar").classList.toggle("open");
@@ -22,6 +23,7 @@ export function showPage(id, el) {
  if (el) el.classList.add("active");
  const sidebar = document.getElementById("sidebar");
  if (sidebar.classList.contains("open")) toggleSidebar();
+ render();
  window.scrollTo({ top:0, behavior:"instant" });
 }
 
