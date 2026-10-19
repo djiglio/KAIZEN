@@ -621,73 +621,76 @@ export function runMission() {
       save();
       return;
     }
- const enemyEquip = generateEnemyEquip(enemy);
- w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0) + 1;
+    const enemyEquip = generateEnemyEquip(enemy);
+    w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0) + 1;
 
- // Tracker unique enemies
- if (!state.world.wq.unique_enemies.includes(enemy.id)) {
- state.world.wq.unique_enemies.push(enemy.id);
- updateWorldQuests("unique_enemy", {});
- }
- updateWorldQuests("combat", {});
- save();
+    // Tracker unique enemies
+    if (!state.world.wq.unique_enemies.includes(enemy.id)) {
+      state.world.wq.unique_enemies.push(enemy.id);
+    }
+    updateWorldQuests("unique_enemy", { id: enemy.id });
+    save();
 
- // Mostra pre-combat con opzione fuga
- showPreCombat(
- enemy, enemyEquip,
- /* onFight */ () => executeCombat(enemy, enemyEquip),
- /* onFlee */ (fleeChance) => executeFlee(enemy, fleeChance)
- );
+    // Mostra pre-combat con opzione fuga
+    showPreCombat(
+      enemy, enemyEquip,
+      /* onFight */ () => executeCombat(enemy, enemyEquip),
+      /* onFlee */ (fleeChance) => executeFlee(enemy, fleeChance)
+    );
 
- } else if (roll < 0.90) {
- // SCOPERTA
- executeDiscovery();
- } else {
- // ZONA DESERTA
- w.missioniLog.unshift({ tipo:"empty", nome:"Zona deserta", denari:0, t:Date.now() });
- addHistory(" Zona deserta, risorse sprecate.", "world");
- if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
- save();
- showToast(" Zona deserta...");
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
- }
+  } else if (roll < 0.90) {
+    // SCOPERTA
+    executeDiscovery();
+  } else {
+    // ZONA DESERTA
+    updateWorldQuests("no_damage", {});
+    w.missioniLog.unshift({ tipo:"empty", nome:"Zona deserta", denari:0, t:Date.now() });
+    addHistory(" Zona deserta, risorse sprecate.", "world");
+    if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
+    save();
+    showToast(" Zona deserta...");
+    if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  }
 }
 
 /* ── Fuga ── */
 function executeFlee(enemy, fleeChance) {
- const overlay = document.getElementById("combat-overlay");
- const inner = document.getElementById("combat-inner");
- const w = store.state.world;
+  const overlay = document.getElementById("combat-overlay");
+  const inner = document.getElementById("combat-inner");
+  const w = store.state.world;
 
- const success = Math.random() * 100 < fleeChance;
- updateWorldQuests("fled", {});
+  const success = Math.random() * 100 < fleeChance;
 
- if (success) {
- inner.innerHTML = `
- <div class="combat-header"> FUGA RIUSCITA</div>
- <div style="text-align:center;font-size:48px;padding:20px"></div>
- <div class="combat-line result-fled">✦ Sei riuscito a fuggire da ${enemy.name}!</div>
- `;
- resolveImgs(inner);
- w.missioniLog.unshift({ tipo:"fled", nome:enemy.name, denari:0, t:Date.now() });
- addHistory(` Fuggito da ${enemy.name}`, "combat");
- } else {
- // Fuga fallita → combattimento forzato
- inner.innerHTML = `
- <div class="combat-header"> FUGA FALLITA</div>
- <div class="combat-sub">${enemy.name} ti blocca la via!</div>
- `;
- resolveImgs(inner);
- setTimeout(() => {
- inner.innerHTML = "";
- executeCombat(enemy, generateEnemyEquip(enemy));
- }, 1200);
- return;
- }
+  if (success) {
+    updateWorldQuests("fled", {});
+    updateWorldQuests("no_damage", {});
+    w.wq.current_streak = 0;
+    updateWorldQuests("win_streak", { count: 0, reset: true });
+    inner.innerHTML = `
+    <div class="combat-header"> FUGA RIUSCITA</div>
+    <div style="text-align:center;font-size:48px;padding:20px"></div>
+    <div class="combat-line result-fled">✦ Sei riuscito a fuggire da ${enemy.name}!</div>
+    `;
+    resolveImgs(inner);
+    w.missioniLog.unshift({ tipo:"fled", nome:enemy.name, denari:0, t:Date.now() });
+    addHistory(` Fuggito da ${enemy.name}`, "combat");
+  } else {
+    // Fuga fallita → combattimento forzato
+    inner.innerHTML = `
+    <div class="combat-header"> FUGA FALLITA</div>
+    <div class="combat-sub">${enemy.name} ti blocca la via!</div>
+    `;
+    resolveImgs(inner);
+    setTimeout(() => {
+      inner.innerHTML = "";
+      executeCombat(enemy, generateEnemyEquip(enemy));
+    }, 1200);
+    return;
+  }
 
- if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
- save();
- appendCloseBtn();
+  if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
+  save();
+  appendCloseBtn();
 }
 
 
@@ -710,163 +713,208 @@ function pickAreaLoot(areaId, fortunaStat) {
 }
 
 /* ── Combattimento ── */
- function executeCombat(enemy, enemyEquip) {
- const state = store.state;
- const w = state.world;
- const heroS = getHeroStats();
- const result = simulateCombat(enemy, enemyEquip);
+function executeCombat(enemy, enemyEquip) {
+  const state = store.state;
+  const w = state.world;
+  const heroS = getHeroStats();
+  const hpBefore = w.pvAttuali;
+  const result = simulateCombat(enemy, enemyEquip);
 
- w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
- w.pvAttuali = result.heroHPFinal;
+  updateWorldQuests("combat", {});
 
- // Usura equipaggiamento
- const degradeRates = [0, 10, 9, 8, 7, 6, 5, 4, 4, 3, 2]; // Indice = Tier
- for (const slot of ["arma", "elmo", "scudo", "corazza", "gambali", "bracciali"]) {
-   const eqObj = state.equipment.equipped[slot];
-   if (!eqObj) continue;
-   const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
-   if (!piece) continue;
-   let rate = degradeRates[piece.tier] || 1;
-   if (eqObj.rivestimento) {
-     const res = getCoatingWearReduction(eqObj.rivestimento);
-     const effRate = rate * (1 - res);
-     let intRate = Math.floor(effRate);
-     if (Math.random() < (effRate - intRate)) intRate++;
-     rate = intRate;
-   }
-   eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - rate);
- }
+  w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
+  w.pvAttuali = result.heroHPFinal;
 
- let reward = 0, loot = null, areaLootObj = null;
+  // Usura equipaggiamento
+  const degradeRates = [0, 10, 9, 8, 7, 6, 5, 4, 4, 3, 2]; // Indice = Tier
+  for (const slot of ["arma", "elmo", "scudo", "corazza", "gambali", "bracciali"]) {
+    const eqObj = state.equipment.equipped[slot];
+    if (!eqObj) continue;
+    const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+    if (!piece) continue;
+    let rate = degradeRates[piece.tier] || 1;
+    if (eqObj.rivestimento) {
+      const res = getCoatingWearReduction(eqObj.rivestimento);
+      const effRate = rate * (1 - res);
+      let intRate = Math.floor(effRate);
+      if (Math.random() < (effRate - intRate)) intRate++;
+      rate = intRate;
+    }
+    eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - rate);
+  }
 
- if (result.victory) {
- const lvl = enemy.lvl || 1;
- reward = rnd(Math.max(4, Math.round(4 + lvl * 0.55)), Math.max(10, Math.round(8 + lvl * 0.80)));
- w.denari += reward;
- w.deniariTotaliGuadagnati += reward;
- w.nemiciAbbattuti[enemy.id] = (w.nemiciAbbattuti[enemy.id] || 0) + 1;
+  let reward = 0, loot = null, areaLootObj = null;
 
- // Aggiorna tracker quest
- updateWorldQuests("kill", { tags: enemy.tags||[], lvl: enemy.lvl, human: enemy.human });
- updateWorldQuests("denari", { value: reward });
+  if (result.victory) {
+    const lvl = enemy.lvl || 1;
+    const _areaId = store.state.world.worldProgress?.areaCorrente || "foresta";
+    reward = rnd(Math.max(4, Math.round(4 + lvl * 0.55)), Math.max(10, Math.round(8 + lvl * 0.80)));
+    w.denari += reward;
+    w.deniariTotaliGuadagnati += reward;
+    w.nemiciAbbattuti[enemy.id] = (w.nemiciAbbattuti[enemy.id] || 0) + 1;
 
- // Loot equipaggiamento
- loot = pickEquipmentLoot(enemy.lvl, heroS.fortuna);
- if (loot) {
- state.equipment.zaino.push({ id:loot.id, type:"equip" });
- updateWorldQuests("equip_loot", {});
- if (loot.tier >= 4) updateWorldQuests("rare_find", {});
- addHistory(` Loot: ${loot.icon} ${loot.name} → zaino`, "world");
- }
+    // Aggiorna tracker quest
+    updateWorldQuests("kill", { tags: enemy.tags || [], lvl: enemy.lvl, human: enemy.human });
+    updateWorldQuests("denari", { value: reward });
 
- // Razzia equip nemico umano
- if (enemyEquip && result.victory) {
- for (const piece of Object.values(enemyEquip)) {
- state.equipment.zaino.push({ id:piece.id, type:"equip" });
- updateWorldQuests("equip_loot", {});
- }
- const names = Object.values(enemyEquip).map(p=>p.name).join(", ");
- addHistory(` Razziato: ${names}`, "world");
- }
+    let _areaLootItemsCount = 0;
 
- // Bottino area specifico
- areaLootObj = pickAreaLoot(store.state.world.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
- if (areaLootObj) {
- const val = areaLootObj.value;
- w.denari += val;
- w.deniariTotaliGuadagnati += val;
- store.state.world.tesoriScoperti[areaLootObj.id] = (store.state.world.tesoriScoperti[areaLootObj.id] || 0) + 1;
- updateWorldQuests("loot", { value: val });
- updateWorldQuests("denari", { value: val });
- const _areaLoot = store.state.world.worldProgress?.areaCorrente || "foresta";
- updateAreaQuests([{ type: "loot", areaId: _areaLoot, lootCount: 1, denari: val }]);
- if (!state.world.wq.unique_finds.includes(areaLootObj.id)) {
- state.world.wq.unique_finds.push(areaLootObj.id);
- updateWorldQuests("unique_find", {});
- }
- addHistory(` Trovato: ${areaLootObj.icon} ${areaLootObj.name} +${val} 🪙`, "world");
- }
+    // Loot equipaggiamento
+    loot = pickEquipmentLoot(enemy.lvl, heroS.fortuna);
+    if (loot) {
+      state.equipment.zaino.push({ id: loot.id, type: "equip" });
+      _areaLootItemsCount++;
+      if (loot.prezzo) updateWorldQuests("loot", { value: loot.prezzo });
+      if (loot.tier >= 4) updateWorldQuests("rare_find", {});
+      if (!state.world.wq.unique_finds.includes(loot.id)) {
+        state.world.wq.unique_finds.push(loot.id);
+      }
+      updateWorldQuests("unique_find", { id: loot.id });
+      addHistory(` Loot: ${loot.icon} ${loot.name} → zaino`, "world");
+    }
 
- // Tracker streak vittorie
- w.wq.current_streak = (w.wq.current_streak || 0) + 1;
- if (w.wq.current_streak >= 5) {
- updateWorldQuests("win_streak", { count: w.wq.current_streak });
- }
+    // Razzia equip nemico umano
+    const enemyEquipPieces = enemyEquip ? Object.values(enemyEquip) : [];
+    if (enemyEquipPieces.length > 0 && result.victory) {
+      for (const piece of enemyEquipPieces) {
+        state.equipment.zaino.push({ id: piece.id, type: "equip" });
+        _areaLootItemsCount++;
+        if (piece.prezzo) updateWorldQuests("loot", { value: piece.prezzo });
+        if ((piece.tier || 0) >= 4) updateWorldQuests("rare_find", {});
+        if (!state.world.wq.unique_finds.includes(piece.id)) {
+          state.world.wq.unique_finds.push(piece.id);
+        }
+        updateWorldQuests("unique_find", { id: piece.id });
+      }
+      const names = enemyEquipPieces.map(p => p.name).join(", ");
+      addHistory(` Razziato: ${names}`, "world");
+    }
 
- // Sopravvissuto con HP bassi
- if (result.heroHPFinal / heroS.pvMax < 0.20) {
- updateWorldQuests("survived_low", {});
- }
+    // "Ottieni equipaggiamento da X nemici sconfitti": +1 per nemico sconfitto che rilascia equipaggiamento
+    if (loot || enemyEquipPieces.length > 0) {
+      updateWorldQuests("equip_loot", { count: 1 });
+    }
 
- // Missioni area — kill
- const _areaKill = store.state.world.worldProgress?.areaCorrente || "foresta";
- const _killEvts = [{ type: "kill", areaId: _areaKill, enemyName: enemy.name }];
- if (enemy.isGod) {
-   const _wp = store.state.world.worldProgress;
-   if (!(_wp.deiSconfitti || []).includes(enemy.id)) {
-     _killEvts.push({ type: "kill_god", areaId: "empireo", godId: enemy.id, enemyName: enemy.name });
-     const _dl = EMPIREO_LOOT.find(l => l.godId === enemy.id);
-     if (_dl && !(_wp.bottiniDivini || []).includes(_dl.id)) {
-       _killEvts.push({ type: "loot_god", areaId: "empireo", lootId: _dl.id });
-       addHistory(`✨ Bottino divino: ${_dl.name}`, "world");
-       showToast(`✨ ${_dl.name}!`);
-     }
-   }
- }
- updateAreaQuests(_killEvts);
+    // Bottino area specifico
+    let _areaLootDenari = reward;
+    areaLootObj = pickAreaLoot(_areaId, heroS.fortuna);
+    if (areaLootObj) {
+      const val = areaLootObj.value;
+      w.denari += val;
+      w.deniariTotaliGuadagnati += val;
+      _areaLootDenari += val;
+      _areaLootItemsCount++;
+      store.state.world.tesoriScoperti[areaLootObj.id] = (store.state.world.tesoriScoperti[areaLootObj.id] || 0) + 1;
+      updateWorldQuests("loot", { value: val });
+      updateWorldQuests("denari", { value: val });
+      if ((areaLootObj.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
+      if (!state.world.wq.unique_finds.includes(areaLootObj.id)) {
+        state.world.wq.unique_finds.push(areaLootObj.id);
+      }
+      updateWorldQuests("unique_find", { id: areaLootObj.id });
+      addHistory(` Trovato: ${areaLootObj.icon} ${areaLootObj.name} +${val} 🪙`, "world");
+    }
 
- w.missioniLog.unshift({ tipo:"win", nome:enemy.name, denari:reward, t:Date.now() });
- addHistory(` Sconfitto ${enemy.name} +${reward} denari`, "combat");
- } else {
- w.wq.current_streak = 0;
- w.missioniLog.unshift({ tipo:"lose", nome:enemy.name, denari:0, t:Date.now() });
- addHistory(` Sconfitto da ${enemy.name}`, "combat");
- }
+    // Tracker streak vittorie
+    w.wq.current_streak = (w.wq.current_streak || 0) + 1;
+    updateWorldQuests("win_streak", { count: w.wq.current_streak });
 
- if (state.history.length > 200) state.history = state.history.slice(0,200);
- if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
- save();
+    // Spedizione senza perdere PV
+    if (result.heroHPFinal >= hpBefore) {
+      updateWorldQuests("no_damage", {});
+    }
 
- showCombatModal(enemy, result, reward, loot, result.victory ? enemyEquip : null, areaLootObj);
+    // Sopravvissuto con HP bassi (< 20% PV max)
+    if (result.heroHPFinal > 0 && result.heroHPFinal / heroS.pvMax < 0.20) {
+      updateWorldQuests("survived_low", {});
+    }
+
+    // Missioni area — kill & loot/denari
+    const _killEvts = [
+      { type: "kill", areaId: _areaId, enemyName: enemy.name, tags: enemy.tags || [] },
+      { type: "loot", areaId: _areaId, lootCount: _areaLootItemsCount, denari: _areaLootDenari }
+    ];
+    if (enemy.isGod) {
+      const _wp = store.state.world.worldProgress;
+      if (!(_wp.deiSconfitti || []).includes(enemy.id)) {
+        _killEvts.push({ type: "kill_god", areaId: "empireo", godId: enemy.id, enemyName: enemy.name });
+        const _dl = EMPIREO_LOOT.find(l => l.godId === enemy.id);
+        if (_dl && !(_wp.bottiniDivini || []).includes(_dl.id)) {
+          _killEvts.push({ type: "loot_god", areaId: "empireo", lootId: _dl.id });
+          if (_dl.value) updateWorldQuests("loot", { value: _dl.value });
+          updateWorldQuests("rare_find", {});
+          updateWorldQuests("unique_find", { id: _dl.id });
+          addHistory(`✨ Bottino divino: ${_dl.name}`, "world");
+          showToast(`✨ ${_dl.name}!`);
+        }
+      }
+    }
+    updateAreaQuests(_killEvts);
+
+    w.missioniLog.unshift({ tipo:"win", nome:enemy.name, denari:reward, t:Date.now() });
+    addHistory(` Sconfitto ${enemy.name} +${reward} denari`, "combat");
+  } else {
+    w.wq.current_streak = 0;
+    updateWorldQuests("win_streak", { count: 0, reset: true });
+    w.missioniLog.unshift({ tipo:"lose", nome:enemy.name, denari:0, t:Date.now() });
+    addHistory(` Sconfitto da ${enemy.name}`, "combat");
+  }
+
+  if (state.history.length > 200) state.history = state.history.slice(0,200);
+  if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
+  save();
+
+  showCombatModal(enemy, result, reward, loot, result.victory ? enemyEquip : null, areaLootObj);
 }
 
 /* ── Scoperta ── */
 function executeDiscovery() {
- const state = store.state;
- const w = state.world;
- const heroS = getHeroStats();
- const tr = Math.random();
+  const state = store.state;
+  const w = state.world;
+  const heroS = getHeroStats();
+  const tr = Math.random();
+  const currentArea = w.worldProgress?.areaCorrente || "foresta";
 
- updateWorldQuests("discovery", {});
+  updateWorldQuests("discovery", {});
+  updateWorldQuests("no_damage", {});
 
-    if (tr < 0.18) {
-      // Reliquia
-      const rel = pickRelic();
-      // Aggiungi solo allo zaino, andranno attivate manualmente
-      // (rimossa l'attivazione automatica per evitare duplicazioni e dare il controllo al giocatore)
-      // Aggiungi allo zaino
-      state.equipment.zaino.push({ id:rel.id, type:"relic" });
-      updateWorldQuests("relic", {});
-      w.missioniLog.unshift({ tipo:"relic", nome:rel.name, denari:0, t:Date.now() });
-      addHistory(` Reliquia: ${rel.icon} ${rel.name} — ${rel.desc}`, "world");
-      showToast(`${rel.icon} Reliquia: ${rel.name}!`);
-    } else if (tr < 0.35) {
- // Equipaggiamento da esplorazione
- const pool = EQUIPMENT_POOL.filter(e => e.fonte.includes("esplorazione"));
- if (pool.length) {
- const piece = pool[rnd(0, pool.length - 1)];
- state.equipment.zaino.push({ id:piece.id, type:"equip" });
- updateWorldQuests("equip_loot", {});
- if (piece.tier >= 4) updateWorldQuests("rare_find", {});
- w.missioniLog.unshift({ tipo:"equip", nome:piece.name, denari:0, t:Date.now() });
- addHistory(` Trovato: ${piece.icon} ${piece.name} → zaino`, "world");
- showToast(`${piece.icon} ${piece.name} trovato!`);
- } else {
- pickTreasureReward();
- }
+  if (tr < 0.18) {
+    // Reliquia
+    const rel = pickRelic();
+    state.equipment.zaino.push({ id: rel.id, type: "relic" });
+    updateWorldQuests("relic", {});
+    if (rel.prezzo) updateWorldQuests("loot", { value: rel.prezzo });
+    updateWorldQuests("rare_find", {});
+    if (!state.world.wq.unique_finds.includes(rel.id)) {
+      state.world.wq.unique_finds.push(rel.id);
+    }
+    updateWorldQuests("unique_find", { id: rel.id });
+    updateAreaQuests([{ type: "loot", areaId: currentArea, lootCount: 1, denari: 0 }]);
+    w.missioniLog.unshift({ tipo: "relic", nome: rel.name, denari: 0, t: Date.now() });
+    addHistory(` Reliquia: ${rel.icon} ${rel.name} — ${rel.desc}`, "world");
+    showToast(`${rel.icon} Reliquia: ${rel.name}!`);
+  } else if (tr < 0.35) {
+    // Equipaggiamento da esplorazione
+    const pool = EQUIPMENT_POOL.filter(e => e.fonte.includes("esplorazione"));
+    if (pool.length) {
+      const piece = pool[rnd(0, pool.length - 1)];
+      state.equipment.zaino.push({ id: piece.id, type: "equip" });
+      if (piece.prezzo) updateWorldQuests("loot", { value: piece.prezzo });
+      if (piece.tier >= 4) updateWorldQuests("rare_find", {});
+      if (!state.world.wq.unique_finds.includes(piece.id)) {
+        state.world.wq.unique_finds.push(piece.id);
+      }
+      updateWorldQuests("unique_find", { id: piece.id });
+      updateAreaQuests([{ type: "loot", areaId: currentArea, lootCount: 1, denari: 0 }]);
+      w.missioniLog.unshift({ tipo: "equip", nome: piece.name, denari: 0, t: Date.now() });
+      addHistory(` Trovato: ${piece.icon} ${piece.name} → zaino`, "world");
+      showToast(`${piece.icon} ${piece.name} trovato!`);
+    } else {
+      pickTreasureReward();
+    }
   } else if (tr < 0.80) {
     // Bottino d'area / tesoro (45%)
-    const aLoot = pickAreaLoot(w.worldProgress?.areaCorrente || "foresta", heroS.fortuna);
+    const aLoot = pickAreaLoot(currentArea, heroS.fortuna);
     if (aLoot) {
       const val = aLoot.value;
       w.denari += val;
@@ -874,13 +922,13 @@ function executeDiscovery() {
       w.tesoriScoperti[aLoot.id] = (w.tesoriScoperti[aLoot.id] || 0) + 1;
       updateWorldQuests("loot", { value: val });
       updateWorldQuests("denari", { value: val });
-      const _areaLoot = w.worldProgress?.areaCorrente || "foresta";
-      updateAreaQuests([{ type: "loot", areaId: _areaLoot, lootCount: 1, denari: val }]);
+      if ((aLoot.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
+      updateAreaQuests([{ type: "loot", areaId: currentArea, lootCount: 1, denari: val }]);
       if (!state.world.wq.unique_finds.includes(aLoot.id)) {
         state.world.wq.unique_finds.push(aLoot.id);
-        updateWorldQuests("unique_find", {});
       }
-      w.missioniLog.unshift({ tipo:"treasure", nome:aLoot.name, denari:val, t:Date.now() });
+      updateWorldQuests("unique_find", { id: aLoot.id });
+      w.missioniLog.unshift({ tipo: "treasure", nome: aLoot.name, denari: val, t: Date.now() });
       addHistory(`Trovato: ${aLoot.name} +${val} denari`, "world");
       showToast(`${aLoot.name} +${val} denari!`);
     } else {
@@ -888,7 +936,6 @@ function executeDiscovery() {
     }
   } else {
     // Materiali (20%)
-    const currentArea = w.worldProgress?.areaCorrente || "foresta";
     const areaMats = MATERIALS.filter(m => m.areaId === currentArea);
     if (areaMats.length > 0) {
       areaMats.sort((a, b) => a.rarity - b.rarity);
@@ -897,6 +944,12 @@ function executeDiscovery() {
 
       state.equipment.zaino.push({ id: mat.id, type: "material" });
       updateWorldQuests("loot", { value: mat.value });
+      if ((mat.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
+      if (!state.world.wq.unique_finds.includes(mat.id)) {
+        state.world.wq.unique_finds.push(mat.id);
+      }
+      updateWorldQuests("unique_find", { id: mat.id });
+      updateAreaQuests([{ type: "loot", areaId: currentArea, lootCount: 1, denari: 0 }]);
       w.missioniLog.unshift({ tipo: "material", nome: mat.name, denari: 0, t: Date.now() });
       addHistory(`Materiale trovato: ${mat.name} (${mat.value} denari) → zaino`, "world");
       showToast(`Materiale trovato: ${mat.name} → zaino!`);
@@ -905,37 +958,38 @@ function executeDiscovery() {
     }
   }
 
- if (state.history.length > 200) state.history = state.history.slice(0,200);
- if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
- save();
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  if (state.history.length > 200) state.history = state.history.slice(0,200);
+  if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
+  save();
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
 function pickTreasureReward() {
- const state = store.state;
- const w = state.world;
- const heroS = getHeroStats();
- const t = pickTreasure();
- // Fortuna aumenta il valore del bottino fino al +80%
- const fortunaBonus = 1 + (heroS.fortuna * 0.008);
- const v = Math.round(rnd(t.minV, t.maxV) * fortunaBonus);
- w.denari += v;
- w.deniariTotaliGuadagnati += v;
- w.tesoriScoperti[t.id] = (w.tesoriScoperti[t.id] || 0) + 1;
+  const state = store.state;
+  const w = state.world;
+  const heroS = getHeroStats();
+  const t = pickTreasure();
+  // Fortuna aumenta il valore del bottino fino al +80%
+  const fortunaBonus = 1 + (heroS.fortuna * 0.008);
+  const v = Math.round(rnd(t.minV, t.maxV) * fortunaBonus);
+  w.denari += v;
+  w.deniariTotaliGuadagnati += v;
+  w.tesoriScoperti[t.id] = (w.tesoriScoperti[t.id] || 0) + 1;
 
- updateWorldQuests("loot", { value: v });
- updateWorldQuests("denari",{ value: v });
- // Missioni area — loot
- const _areaLoot = store.state.world.worldProgress?.areaCorrente || "foresta";
- updateAreaQuests([{ type: "loot", areaId: _areaLoot, lootCount: 1, denari: v }]);
+  updateWorldQuests("loot", { value: v });
+  updateWorldQuests("denari", { value: v });
+  if ((t.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
+  // Missioni area — loot
+  const _areaLoot = store.state.world.worldProgress?.areaCorrente || "foresta";
+  updateAreaQuests([{ type: "loot", areaId: _areaLoot, lootCount: 1, denari: v }]);
 
- // Oggetto unico per unique_finds
- if (!state.world.wq.unique_finds.includes(t.id)) {
- state.world.wq.unique_finds.push(t.id);
- updateWorldQuests("unique_find", {});
- }
+  // Oggetto unico per unique_finds
+  if (!state.world.wq.unique_finds.includes(t.id)) {
+    state.world.wq.unique_finds.push(t.id);
+  }
+  updateWorldQuests("unique_find", { id: t.id });
 
- w.missioniLog.unshift({ tipo:"treasure", nome:t.name, denari:v, t:Date.now() });
- addHistory(` ${t.name} +${v} denari`, "world");
- showToast(`${t.icon} ${t.name} +${v} denari!`);
+  w.missioniLog.unshift({ tipo:"treasure", nome:t.name, denari:v, t:Date.now() });
+  addHistory(` ${t.name} +${v} denari`, "world");
+  showToast(`${t.icon} ${t.name} +${v} denari!`);
 }

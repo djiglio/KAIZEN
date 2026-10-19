@@ -158,152 +158,293 @@ export function checkEndOfDay() {
 
 /* ── Refresh missioni settimanali ── */
 export function refreshQuests() {
- const state = store.state;
- const curWeek = getWeekNumber(new Date());
- if (state.lastQuestWeek === curWeek) return;
+  const state = store.state;
+  const curWeek = getWeekNumber(new Date());
+  if (state.lastQuestWeek === curWeek) {
+    // Sincronizza definizioni testuali e parametri con il pool aggiornato
+    if (Array.isArray(state.activeQuestsEvo)) {
+      state.activeQuestsEvo = state.activeQuestsEvo.map(q => {
+        const def = QUEST_POOL_EVO.find(p => p.id === q.id);
+        if (!def) return q;
+        const merged = { ...q, ...def };
+        if (merged.completed) merged.progress = merged.target;
+        else merged.progress = Math.min(merged.target, merged.progress || 0);
+        return merged;
+      });
+    }
+    if (Array.isArray(state.activeQuestsWorld)) {
+      state.activeQuestsWorld = state.activeQuestsWorld.map(q => {
+        const def = QUEST_POOL_WORLD.find(p => p.id === q.id);
+        if (!def) return q;
+        const merged = { ...q, ...def };
+        if (merged.completed) merged.progress = merged.target;
+        else merged.progress = Math.min(merged.target, merged.progress || 0);
+        return merged;
+      });
+    }
+    return;
+  }
 
- // Evoluzione: 3 casuali
- state.activeQuestsEvo = [...QUEST_POOL_EVO]
- .sort(() => Math.random() - 0.5)
- .slice(0, 3)
- .map(q => ({ ...q, progress:0, completed:false }));
+  // Reset flag bonus settimanali e tracker settimanali mondo
+  state._evoAllDone = false;
+  state._worldAllDone = false;
+  if (state.world?.wq) {
+    state.world.wq.unique_finds = [];
+    state.world.wq.unique_enemies = [];
+    state.world.wq.current_streak = 0;
+  }
 
- // Mondo: 3 casuali
- state.activeQuestsWorld = [...QUEST_POOL_WORLD]
- .sort(() => Math.random() - 0.5)
- .slice(0, 3)
- .map(q => ({ ...q, progress:0, completed:false }));
+  // Evoluzione: 3 casuali
+  state.activeQuestsEvo = [...QUEST_POOL_EVO]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3)
+    .map(q => ({ ...q, progress: 0, completed: false, habitCounts: {} }));
 
- state.lastQuestWeek = curWeek;
- addHistory(" Nuove Quest Settimanali Disponibili!", "system");
- save();
+  // Mondo: 3 casuali
+  state.activeQuestsWorld = [...QUEST_POOL_WORLD]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3)
+    .map(q => ({ ...q, progress: 0, completed: false, seenIds: [] }));
+
+  state.lastQuestWeek = curWeek;
+  addHistory(" Nuove Quest Settimanali Disponibili!", "system");
+  save();
 }
 
 /* ── Aggiorna progresso quest evoluzione ── */
 export function updateEvoQuests(habitId, count = 1) {
- const state = store.state;
- let anyCompleted = false;
+  const state = store.state;
+  let anyCompleted = false;
 
- for (const q of state.activeQuestsEvo) {
- if (q.completed) continue;
- let hit = false;
- if (q.type === "total") hit = true;
- else if (q.type === "habit" && q.habit === habitId) hit = true;
- else if (q.type === "multi" && q.habits?.includes(habitId)) hit = true;
- else if (q.type === "all_once" ) hit = true;
- else if (q.type === "all_twice" ) hit = true;
- else if (q.type === "all_three" ) hit = true;
- else if (q.type === "variety5" ) hit = true;
- else if (q.type === "perfect_day") { /* gestito separatamente */ }
+  for (const q of state.activeQuestsEvo) {
+    if (q.completed) continue;
+    if (!q.habitCounts) q.habitCounts = {};
 
- if (hit) {
- q.progress = Math.min(q.target, q.progress + count);
- if (q.progress >= q.target && !q.completed) {
- q.completed = true;
- anyCompleted = true;
- grantQuestReward(q, "evo");
- }
- }
- }
+    let updated = false;
 
- // Controlla se tutte e 3 le evo sono completate
- checkAllEvoComplete();
- return anyCompleted;
+    if (q.type === "total") {
+      q.progress = Math.min(q.target, (q.progress || 0) + count);
+      updated = true;
+    } else if (q.type === "habit" && q.habit === habitId) {
+      q.progress = Math.min(q.target, (q.progress || 0) + count);
+      updated = true;
+    } else if (q.type === "multi" && q.habits?.includes(habitId)) {
+      q.habitCounts[habitId] = (q.habitCounts[habitId] || 0) + count;
+      if (q.each) {
+        let sum = 0;
+        for (const hid of q.habits) {
+          sum += Math.min(q.each, q.habitCounts[hid] || 0);
+        }
+        q.progress = Math.min(q.target, sum);
+      } else {
+        q.progress = Math.min(q.target, (q.progress || 0) + count);
+      }
+      updated = true;
+    } else if (q.type === "all_once" || q.type === "all_twice" || q.type === "all_three") {
+      const cap = q.type === "all_once" ? 1 : (q.type === "all_twice" ? 2 : 3);
+      q.habitCounts[habitId] = (q.habitCounts[habitId] || 0) + count;
+      let sum = 0;
+      for (const hd of HABITS) {
+        sum += Math.min(cap, q.habitCounts[hd.id] || 0);
+      }
+      q.progress = Math.min(q.target, sum);
+      updated = true;
+    } else if (q.type === "variety5") {
+      q.habitCounts[habitId] = (q.habitCounts[habitId] || 0) + count;
+      const distinct = HABITS.filter(hd => (q.habitCounts[hd.id] || 0) >= 1).length;
+      q.progress = Math.min(q.target, distinct);
+      updated = true;
+    } else if (q.type === "perfect_day") {
+      /* gestito separatamente in completePerfectDayQuests */
+    }
+
+    if (updated && q.progress >= q.target && !q.completed) {
+      q.completed = true;
+      anyCompleted = true;
+      grantQuestReward(q, "evo");
+    }
+  }
+
+  // Controlla se tutte e 3 le evo sono completate
+  checkAllEvoComplete();
+  return anyCompleted;
 }
 
 export function completePerfectDayQuests() {
- const state = store.state;
- for (const q of state.activeQuestsEvo) {
- if (q.completed || q.type !== "perfect_day") continue;
- q.progress = Math.min(q.target, q.progress + 1);
- if (q.progress >= q.target) {
- q.completed = true;
- grantQuestReward(q, "evo");
- }
- }
- checkAllEvoComplete();
+  const state = store.state;
+  for (const q of state.activeQuestsEvo) {
+    if (q.completed || q.type !== "perfect_day") continue;
+    q.progress = Math.min(q.target, q.progress + 1);
+    if (q.progress >= q.target) {
+      q.completed = true;
+      grantQuestReward(q, "evo");
+    }
+  }
+  checkAllEvoComplete();
 }
 
 function checkAllEvoComplete() {
- const state = store.state;
- if (state.activeQuestsEvo.length > 0 &&
- state.activeQuestsEvo.every(q => q.completed) &&
- !state._evoAllDone) {
- state._evoAllDone = true;
- // +20 XP a tutte le abitudini
- for (const hd of HABITS) {
- if (state.habits[hd.id]) state.habits[hd.id].xp += 20;
- }
- addHistory(" TUTTE LE QUEST EVOLUZIONE COMPLETATE! +20 XP", "quest");
- showToast(" Tutte le Quest Evoluzione! +20 XP");
- }
+  const state = store.state;
+  if (state.activeQuestsEvo.length > 0 &&
+    state.activeQuestsEvo.every(q => q.completed) &&
+    !state._evoAllDone) {
+    state._evoAllDone = true;
+    // +20 XP a tutte le abitudini
+    for (const hd of HABITS) {
+      if (state.habits[hd.id]) state.habits[hd.id].xp += 20;
+    }
+    addHistory(" TUTTE LE QUEST EVOLUZIONE COMPLETATE! +20 XP", "quest");
+    showToast(" Tutte le Quest Evoluzione! +20 XP");
+  }
 }
 
 export function checkAllWorldComplete() {
- const state = store.state;
- if (state.activeQuestsWorld.length > 0 &&
- state.activeQuestsWorld.every(q => q.completed) &&
- !state._worldAllDone) {
- state._worldAllDone = true;
- for (const hd of HABITS) {
- if (state.habits[hd.id]) state.habits[hd.id].xp += 20;
- }
- addHistory(" TUTTE LE QUEST MONDO COMPLETATE! +20 XP", "quest");
- showToast(" Tutte le Quest Mondo! +20 XP");
- }
+  const state = store.state;
+  if (state.activeQuestsWorld.length > 0 &&
+    state.activeQuestsWorld.every(q => q.completed) &&
+    !state._worldAllDone) {
+    state._worldAllDone = true;
+    for (const hd of HABITS) {
+      if (state.habits[hd.id]) state.habits[hd.id].xp += 20;
+    }
+    addHistory(" TUTTE LE QUEST MONDO COMPLETATE! +20 XP", "quest");
+    showToast(" Tutte le Quest Mondo! +20 XP");
+  }
 }
 
 function grantQuestReward(q, type) {
- const state = store.state;
- // +15 XP a tutte le abitudini
- for (const hd of HABITS) {
- if (state.habits[hd.id]) state.habits[hd.id].xp += 15;
- }
- // +50 denari
- state.world.denari += 50;
- state.trophies[q.id] = (state.trophies[q.id] || 0) + 1;
- addHistory(` Quest completata: ${q.text} — +15 XP +50 denari`, "quest");
- showToast(` ${q.text}! +15 XP +50 🪙`);
+  const state = store.state;
+  // +15 XP a tutte le abitudini
+  for (const hd of HABITS) {
+    if (state.habits[hd.id]) state.habits[hd.id].xp += 15;
+  }
+  // +50 denari
+  state.world.denari += 50;
+  state.trophies[q.id] = (state.trophies[q.id] || 0) + 1;
+  addHistory(` Quest completata: ${q.text} — +15 XP +50 denari`, "quest");
+  showToast(` ${q.text}! +15 XP +50 🪙`);
 }
 
 /* ── Aggiorna progresso quest mondo esterno ── */
 export function updateWorldQuests(type, payload = {}) {
- const state = store.state;
- for (const q of state.activeQuestsWorld) {
- if (q.completed) continue;
- let hit = false;
- let inc = payload.count || 1;
+  const state = store.state;
+  for (const q of state.activeQuestsWorld) {
+    if (q.completed) continue;
+    let hit = false;
+    let inc = payload.count || 1;
 
- switch (q.type) {
- case "kills_any": if (type === "kill") hit = true; break;
- case "kills_tag": if (type === "kill" && payload.tags?.includes(q.tag)) hit = true; break;
- case "kills_lvl": if (type === "kill" && payload.lvl >= (q.minLvl||0)) hit = true; break;
- case "kills_human": if (type === "kill" && payload.human) hit = true; break;
- case "loot_value": if (type === "loot") { inc = payload.value||0; hit = true; } break;
- case "missions_total":if (type === "mission") hit = true; break;
- case "discoveries": if (type === "discovery") hit = true; break;
- case "relics_found": if (type === "relic") hit = true; break;
- case "fled": if (type === "fled") hit = true; break;
- case "denari_earned": if (type === "denari") { inc = payload.value||0; hit = true; } break;
- case "combats_total": if (type === "combat") hit = true; break;
- case "equip_looted": if (type === "equip_loot") hit = true; break;
- case "win_streak": if (type === "win_streak") { inc = payload.count||1; hit = true; } break;
- case "survived_low_hp":if (type === "survived_low") hit = true; break;
- case "no_damage_missions":if (type === "no_damage") hit = true; break;
- case "rare_finds": if (type === "rare_find") hit = true; break;
- case "unique_finds": if (type === "unique_find") hit = true; break;
- case "unique_enemies":if (type === "unique_enemy") hit = true; break;
- }
+    switch (q.type) {
+      case "kills_any":
+        if (type === "kill") hit = true;
+        break;
+      case "kills_tag":
+        if (type === "kill") {
+          const eTags = payload.tags || [];
+          if ((q.tag && eTags.includes(q.tag)) || (q.tags && q.tags.some(t => eTags.includes(t)))) {
+            hit = true;
+          }
+        }
+        break;
+      case "kills_lvl":
+        if (type === "kill" && payload.lvl >= (q.minLvl || 0)) hit = true;
+        break;
+      case "kills_human":
+        if (type === "kill" && payload.human) hit = true;
+        break;
+      case "loot_value":
+        if (type === "loot" && (payload.value || 0) > 0) {
+          inc = payload.value;
+          hit = true;
+        }
+        break;
+      case "missions_total":
+        if (type === "mission") hit = true;
+        break;
+      case "discoveries":
+        if (type === "discovery") hit = true;
+        break;
+      case "relics_found":
+        if (type === "relic") hit = true;
+        break;
+      case "fled":
+        if (type === "fled") hit = true;
+        break;
+      case "denari_earned":
+        if (type === "denari" && (payload.value || 0) > 0) {
+          inc = payload.value;
+          hit = true;
+        }
+        break;
+      case "combats_total":
+        if (type === "combat") hit = true;
+        break;
+      case "equip_looted":
+        if (type === "equip_loot") hit = true;
+        break;
+      case "win_streak":
+        if (type === "win_streak") {
+          if (payload.reset) {
+            q.progress = 0;
+          } else {
+            q.progress = Math.min(q.target, payload.count || 0);
+            if (q.progress >= q.target && !q.completed) {
+              q.completed = true;
+              grantQuestReward(q, "world");
+              checkAllWorldComplete();
+            }
+          }
+        }
+        break;
+      case "survived_low_hp":
+        if (type === "survived_low") hit = true;
+        break;
+      case "no_damage_missions":
+        if (type === "no_damage") hit = true;
+        break;
+      case "rare_finds":
+        if (type === "rare_find") hit = true;
+        break;
+      case "unique_finds":
+        if (type === "unique_find") {
+          if (payload.id) {
+            if (!q.seenIds) q.seenIds = [];
+            if (!q.seenIds.includes(payload.id)) {
+              q.seenIds.push(payload.id);
+              inc = 1;
+              hit = true;
+            }
+          } else {
+            inc = 1;
+            hit = true;
+          }
+        }
+        break;
+      case "unique_enemies":
+        if (type === "unique_enemy") {
+          if (payload.id) {
+            if (!q.seenIds) q.seenIds = [];
+            if (!q.seenIds.includes(payload.id)) {
+              q.seenIds.push(payload.id);
+              inc = 1;
+              hit = true;
+            }
+          } else {
+            inc = 1;
+            hit = true;
+          }
+        }
+        break;
+    }
 
- if (hit) {
- q.progress = Math.min(q.target, q.progress + inc);
- if (q.progress >= q.target && !q.completed) {
- q.completed = true;
- grantQuestReward(q, "world");
- checkAllWorldComplete();
- }
- }
- }
+    if (hit) {
+      q.progress = Math.min(q.target, (q.progress || 0) + inc);
+      if (q.progress >= q.target && !q.completed) {
+        q.completed = true;
+        grantQuestReward(q, "world");
+        checkAllWorldComplete();
+      }
+    }
+  }
 }
 
 /* ── updateXP: click abitudine ── */
@@ -504,7 +645,7 @@ export function updateAreaQuests(events) {
       wp.uccisioniPerAreaEnemyName[aid][n] = (wp.uccisioniPerAreaEnemyName[aid][n] || 0) + 1;
     }
     if (ev.type === "loot") {
-      wp.lottiPerArea[aid] = (wp.lottiPerArea[aid] || 0) + (ev.lootCount || 1);
+      wp.lottiPerArea[aid] = (wp.lottiPerArea[aid] || 0) + (ev.lootCount !== undefined ? ev.lootCount : 1);
       wp.deniariPerArea[aid] = (wp.deniariPerArea[aid] || 0) + (ev.denari || 0);
     }
     if (ev.type === "kill_god") {
@@ -541,6 +682,11 @@ export function updateAreaQuests(events) {
 
         case "kills_name":
           if (ev.type === "kill" && ev.enemyName === q.enemy) inc = 1;
+          if (inc > 0) tickAreaQuest(wp, aid, q.id, inc);
+          break;
+
+        case "kills_tag":
+          if (ev.type === "kill" && ev.tags?.includes(q.tag)) inc = 1;
           if (inc > 0) tickAreaQuest(wp, aid, q.id, inc);
           break;
 
