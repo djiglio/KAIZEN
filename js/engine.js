@@ -185,7 +185,7 @@ export function refreshQuests() {
             if (!merged.seenIds.includes(eid)) merged.seenIds.push(eid);
           }
         }
-        if (Array.isArray(merged.seenIds) && merged.seenIds.length > (merged.progress || 0)) {
+        if ((merged.type === "unique_enemies" || merged.type === "unique_finds") && Array.isArray(merged.seenIds) && merged.seenIds.length > (merged.progress || 0)) {
           merged.progress = Math.min(merged.target, merged.seenIds.length);
         }
         if (merged.completed) merged.progress = merged.target;
@@ -451,7 +451,7 @@ export function updateWorldQuests(type, payload = {}) {
 
     if (hit) {
       q.progress = Math.min(q.target, (q.progress || 0) + inc);
-      if (Array.isArray(q.seenIds) && q.seenIds.length > q.progress) {
+      if ((q.type === "unique_enemies" || q.type === "unique_finds") && Array.isArray(q.seenIds) && q.seenIds.length > q.progress) {
         q.progress = Math.min(q.target, q.seenIds.length);
       }
       if (q.progress >= q.target && !q.completed) {

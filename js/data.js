@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.59";
+export const APP_VERSION = "6.60";
 export const APP_RELEASE = "19/10/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -190,7 +190,7 @@ export const QUEST_POOL_WORLD = [
  {id:"w45",text:"Distruttore di Elementali",desc:"Sconfiggi 2 elementali",                             target:2,    type:"kills_tag", tag:"elementale"},
  {id:"w46",text:"Grande Esploratore",      desc:"Parti in spedizione 30 volte",                        target:30,   type:"missions_total"},
  {id:"w47",text:"Ricchissimo",             desc:"Guadagna 1000 denari dalle spedizioni",               target:1000, type:"denari_earned"},
- {id:"w48",text:"Terrore del Bestiario",   desc:"Incontra o affronta 10 nemici diversi nella settimana", target:10,   type:"unique_enemies"},
+ {id:"w48",text:"Terrore del Bestiario",   desc:"Uccidi 20 nemici nella settimana",                    target:20,   type:"kills_any"},
  {id:"w49",text:"Sterminatore Totale",     desc:"Sconfiggi 20 nemici qualsiasi",                       target:20,   type:"kills_any"},
  {id:"w50",text:"Grande Cacciatore",       desc:"Sconfiggi 1 nemico di livello 120+",                  target:1,    type:"kills_lvl", minLvl:120},
 ];
