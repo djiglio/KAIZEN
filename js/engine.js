@@ -177,19 +177,8 @@ export function refreshQuests() {
         const def = QUEST_POOL_WORLD.find(p => p.id === q.id);
         if (!def) return q;
         const merged = { ...q, ...def };
-        if (merged.type === "unique_enemies") {
+        if (merged.type === "unique_enemies" || merged.type === "unique_finds") {
           if (!Array.isArray(merged.seenIds)) merged.seenIds = [];
-          if (merged.progress === 0 && merged.seenIds.length === 0 && Array.isArray(state.world?.wq?.unique_enemies) && state.world.wq.unique_enemies.length > 0) {
-            merged.seenIds = [...new Set(state.world.wq.unique_enemies)].slice(0, merged.target);
-            merged.progress = merged.seenIds.length;
-          }
-        }
-        if (merged.type === "unique_finds") {
-          if (!Array.isArray(merged.seenIds)) merged.seenIds = [];
-          if (merged.progress === 0 && merged.seenIds.length === 0 && Array.isArray(state.world?.wq?.unique_finds) && state.world.wq.unique_finds.length > 0) {
-            merged.seenIds = [...new Set(state.world.wq.unique_finds)].slice(0, merged.target);
-            merged.progress = merged.seenIds.length;
-          }
         }
         if (merged.completed) merged.progress = merged.target;
         else merged.progress = Math.min(merged.target, merged.progress || 0);
