@@ -8,15 +8,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="Pragma" content="no-cache"/>
   <meta http-equiv="Expires" content="0"/>
-  <link rel="icon" type="image/png" href="img/icon.png?v=6.61"/>
-  <link rel="apple-touch-icon" href="img/icon.png?v=6.61"/>
-  <title>KAIZEN v6.61</title>
+  <link rel="icon" type="image/png" href="img/icon.png?v=6.62"/>
+  <link rel="apple-touch-icon" href="img/icon.png?v=6.62"/>
+  <title>KAIZEN v6.62</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet"/>
   <style>
 /* === base.css === */
 /* ============================================================
    base.css — CSS variables, reset, body
-   KAIZEN v6.61
+   KAIZEN v6.62
    ============================================================ */
 
 :root {
@@ -884,6 +884,7 @@ body::before {
 .combat-line.result-win  { background: rgba(78,204,163,.1);  border: 1px solid rgba(78,204,163,.4);  color: var(--primary); text-align: center; font-size: 11px; padding: 12px; font-family: "Cinzel", serif; letter-spacing: 1px; }
 .combat-line.result-lose { background: rgba(196,103,93,.1);  border: 1px solid rgba(196,103,93,.4);  color: var(--danger);  text-align: center; font-size: 11px; padding: 12px; font-family: "Cinzel", serif; letter-spacing: 1px; }
 .combat-line.result-fled { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.35); color: #fcd34d;        text-align: center; font-size: 11px; padding: 12px; font-family: "Cinzel", serif; letter-spacing: 1px; }
+.combat-result-text { display: block; margin: 6px 0 4px; font-family: var(--serif-it); font-style: italic; font-size: 14px; letter-spacing: 0; line-height: 1.35; color: var(--text); }
 .combat-turn-num { display: inline-block; font-weight: 800; font-size: 8.5px; opacity: 0.7; margin-right: 5px; letter-spacing: 0.5px; }
 .combat-line-main { text-align: left; }
 .combat-line-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 3px; padding-left: 22px; }
@@ -1616,7 +1617,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.61" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.62" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1756,11 +1757,11 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.61</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.62</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
-        <div id="app-release" class="mk-vital-val" style="color:var(--gold-light)">19/10/2026</div>
+        <div id="app-release" class="mk-vital-val" style="color:var(--gold-light)">21/10/2026</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Autore</span>
@@ -1785,6 +1786,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.61"></script>
+<script type="module" src="js/main.js?v=6.62"></script>
 </body>
 </html>

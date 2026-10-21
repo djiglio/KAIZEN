@@ -17,6 +17,7 @@ import { getHeroStats, addHistory,
          getHeroRank, getRankTitle } from "./engine.js";
 import { enemyImgHTML, enemyImgSmall,
  heroAvatarSmall, heroAvatarHTML, resolveImgs } from "./img.js";
+import { createCombatNarrator } from "./combatText.js";
 
 /* ── Utility ── */
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -385,68 +386,13 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  const eqArmaObj = store.state.equipment?.equipped?.arma;
  const eqArmaId = typeof eqArmaObj === "string" ? eqArmaObj : eqArmaObj?.id;
  const heroWeapon = eqArmaId ? EQUIPMENT_POOL.find(e => e.id === eqArmaId)?.name : null;
- const enemyWeapon = enemyEquip?.arma?.name || null;
- const tags = enemy.tags || [];
-
- function buildHeroHitText(turnIdx, turn) {
-   if (turn.isCrit) {
-     const critPhrases = [
-       `Trovi un varco nella guardia di <strong>${enemy.name}</strong>${heroWeapon ? ` con ${heroWeapon}` : ""} e infliggi <strong>-${turn.dmg} PV</strong>!`,
-       `Colpisci un punto vitale di <strong>${enemy.name}</strong>: danno critico di <strong>-${turn.dmg} PV</strong>!`,
-       `Fendente devastante su <strong>${enemy.name}</strong>: infliggi <strong>-${turn.dmg} PV</strong>!`
-     ];
-     return critPhrases[turnIdx % critPhrases.length];
-   }
-   if (turn.isDouble) {
-     return `Scatti in velocità e colpisci di nuovo <strong>${enemy.name}</strong>: infliggi <strong>-${turn.dmg} PV</strong>`;
-   }
-   const hitPhrases = [
-     `Attacchi <strong>${enemy.name}</strong>${heroWeapon ? ` con ${heroWeapon}` : ""} e infliggi <strong>-${turn.dmg} PV</strong>`,
-     `Superi la difesa di <strong>${enemy.name}</strong> infliggendo <strong>-${turn.dmg} PV</strong>`,
-     `Affondi il colpo su <strong>${enemy.name}</strong>: infliggi <strong>-${turn.dmg} PV</strong>`
-   ];
-   return hitPhrases[turnIdx % hitPhrases.length];
- }
-
- function buildEnemyHitText(turnIdx, turn) {
-   if (turn.isCrit) {
-     const critPhrases = [
-       `<strong>${enemy.name}</strong> sfonda la tua guardia con un colpo feroce: subisci <strong>-${turn.dmg} PV</strong>!`,
-       `<strong>${enemy.name}</strong> ti sorprende su un punto scoperto: colpo critico da <strong>-${turn.dmg} PV</strong>!`
-     ];
-     return critPhrases[turnIdx % critPhrases.length];
-   }
-   if (turn.isDouble) {
-     return `<strong>${enemy.name}</strong> approfitta della sua rapidità e ti colpisce ancora: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (enemyWeapon) {
-     return `<strong>${enemy.name}</strong> ti attacca con ${enemyWeapon}: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (enemy.isGod) {
-     return `<strong>${enemy.name}</strong> scatena la sua furia divina contro di te: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (tags.includes("lupo")) {
-     return turnIdx % 2 === 0
-       ? `<strong>${enemy.name}</strong> ti azzanna con ferocia: subisci <strong>-${turn.dmg} PV</strong>`
-       : `<strong>${enemy.name}</strong> ti lacera con gli artigli: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (tags.includes("ragno")) {
-     return `<strong>${enemy.name}</strong> scatta in avanti e ti morde: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (tags.includes("spirito") || tags.includes("demone") || tags.includes("nonmorto")) {
-     return `<strong>${enemy.name}</strong> ti investe con un assalto oscuro: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (tags.includes("golem") || tags.includes("elementale") || tags.includes("troll")) {
-     return `<strong>${enemy.name}</strong> ti travolge con un colpo brutale: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (tags.includes("drago")) {
-     return `<strong>${enemy.name}</strong> ti sferza con furia draconica: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   if (tags.includes("bestia")) {
-     return `<strong>${enemy.name}</strong> si scaglia su di te e ti ferisce: subisci <strong>-${turn.dmg} PV</strong>`;
-   }
-   return `<strong>${enemy.name}</strong> fende la tua guardia e ti colpisce: subisci <strong>-${turn.dmg} PV</strong>`;
- }
+  const eqOf = slot => {
+  const o = store.state.equipment?.equipped?.[slot];
+  const id = typeof o === "string" ? o : o?.id;
+  return id ? EQUIPMENT_POOL.find(e => e.id === id)?.name || null : null;
+  };
+  const heroArmor = eqOf("scudo") || eqOf("corazza") || eqOf("elmo") || eqOf("gambali") || eqOf("bracciali");
+  const narrator = createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor });
 
  let i = 0;
  function showNextTurn() {
@@ -461,11 +407,11 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  lootLine += `<br>Razziato: <strong>${razzia}</strong>`;
  }
  logEl.innerHTML += `<div class="combat-line result-win">
- ✦ VITTORIA — ${enemy.name} abbattuto!<br>+${reward} 🪙${lootLine}
+ ✦ VITTORIA<br><span class="combat-result-text">${narrator.victory()}</span><br>+${reward} 🪙${lootLine}
  </div>`;
  } else {
  logEl.innerHTML += `<div class="combat-line result-lose">
- ✦ SCONFITTA — Abbattuto da ${enemy.name}.
+ ✦ SCONFITTA<br><span class="combat-result-text">${narrator.defeat()}</span>
  </div>`;
  }
  appendCloseBtn();
@@ -479,33 +425,29 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  let line = "";
  if (turn.who === "hero") {
  if (turn.dodged) {
- const dodgeTxt = i % 2 === 0
-   ? `Attacchi <strong>${enemy.name}</strong>, ma balza di lato e <strong>schiva il colpo</strong>!`
-   : `Il tuo affondo va a vuoto: <strong>${enemy.name}</strong> evita agilmente l'attacco!`;
+ const dodgeTxt = narrator.enemyDodge();
  line = `<div class="combat-line dodge">${tBadge} ${dodgeTxt}</div>`;
  } else {
  const critTag = turn.isCrit ? `<span class="combat-crit">CRITICO</span>` : "";
  const dblTag = turn.isDouble ? `<span class="combat-double">ATTACCO RAPIDO</span>` : "";
- const defTag = turn.deflected > 0 ? `<span class="combat-def">🛡️ -${turn.deflected} parati da armatura nemica</span>` : "";
+ const defTag = turn.deflected > 0 ? `<span class="combat-def">${narrator.enemyDeflect(turn)}</span>` : "";
  const cls = turn.isCrit ? "combat-line hero critical" : "combat-line hero";
  line = `<div class="${cls}">
- <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${buildHeroHitText(i, turn)}</div>
+ <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${narrator.heroHit(turn)}</div>
  <div class="combat-line-meta">${defTag}<span class="combat-hp-inline">PV ${enemy.name}: ${turn.enemyHP}/${es.costituzione}</span></div>
  </div>`;
  }
  } else {
  if (turn.dodged) {
- const dodgeTxt = i % 2 === 0
-   ? `<strong>${enemy.name}</strong> prova a colpirti, ma intuisci la mossa e <strong>schivi l'attacco</strong>!`
-   : `Scarti di lato all'ultimo istante ed eviti l'assalto di <strong>${enemy.name}</strong>!`;
+ const dodgeTxt = narrator.heroDodge();
  line = `<div class="combat-line dodge">${tBadge} ${dodgeTxt}</div>`;
  } else {
  const critTag = turn.isCrit ? `<span class="combat-crit">CRITICO NEMICO</span>` : "";
  const dblTag = turn.isDouble ? `<span class="combat-double">ATTACCO RAPIDO</span>` : "";
- const defTag = turn.deflected > 0 ? `<span class="combat-def">🛡️ -${turn.deflected} assorbiti dalla tua difesa</span>` : "";
+ const defTag = turn.deflected > 0 ? `<span class="combat-def">${narrator.heroDeflect(turn)}</span>` : "";
  const cls = turn.isCrit ? "combat-line enemy critical" : "combat-line enemy";
  line = `<div class="${cls}">
- <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${buildEnemyHitText(i, turn)}</div>
+ <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${narrator.enemyHit(turn)}</div>
  <div class="combat-line-meta">${defTag}<span class="combat-hp-inline">Tuoi PV: ${turn.heroHP}/${pvMax}</span></div>
  </div>`;
  }
@@ -586,7 +528,7 @@ export function runMission() {
       missioniPerArea: {}, deniariPerArea: {}, spedizioniPerArea: {},
       uccisioniPerAreaEnemyName: {}, lottiPerArea: {},
       deiSconfitti: [], bottiniDivini: [], trofeiEmpirei: [], gameCompleted: false,
-    };
+  };
   }
   const areaId  = wp.areaCorrente || "foresta";
   const areaCfg = WORLD_AREAS.find(a => a.id === areaId) || WORLD_AREAS[0];
