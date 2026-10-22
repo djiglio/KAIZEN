@@ -1,0 +1,11 @@
+# Wrangler / Cloudflare
+.wrangler
+.dev.vars*
+
+# Cartelle temporanee locali
+avatar/
+nemici 2/
+NEMICI real/
+
+# Log
+*.log

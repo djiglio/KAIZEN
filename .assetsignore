@@ -1,0 +1,15 @@
+# Ignora la cronologia e i file interni di Git (impedisce a Wrangler di superare il limite di 25MB)
+.git
+.git/**
+
+# File e cartelle di sviluppo/supporto non necessari al sito pubblico
+.agents
+.agents/**
+.gitignore
+.assetsignore
+*.md
+fix*.js
+update_icons.js
+avatar
+nemici 2
+NEMICI real
