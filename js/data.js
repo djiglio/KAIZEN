@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.64";
+export const APP_VERSION = "6.65";
 export const APP_RELEASE = "29/10/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -28,7 +28,7 @@ export const HABITS = [
 export const STAT_DEFS = [
   { id:"forza",         icon:"FOR", label:"FORZA",         habit:"allenamento",  desc:"Danno per colpo",             formula: lv => lv*4+5 },
   { id:"velocita",      icon:"VEL", label:"VELOCITÀ",      habit:"passi",        desc:"Iniziativa in combattimento",  formula: lv => lv*3+5 },
-  { id:"destrezza",     icon:"DES", label:"DESTREZZA",     habit:"stretching",   desc:"% schivata colpi",             formula: lv => Math.min(60, lv*1.2+2) },
+  { id:"destrezza",     icon:"DES", label:"DESTREZZA",     habit:"stretching",   desc:"% schivata colpi",             formula: lv => lv <= 1 ? 0 : Math.min(65, (65/139)*(lv-1)) },
   { id:"critico",       icon:"CRI", label:"CRITICO",       habit:"piegamenti",   desc:"% colpi critici (x2)",         formula: lv => lv <= 1 ? 0 : Math.min(50, (50/139)*(lv-1)) },
   { id:"furtivita",     icon:"FUR", label:"FURTIVITÀ",     habit:"enigmistica",  desc:"% riuscita fuga",              formula: lv => Math.min(80, Math.floor(lv*0.5)+10) },
   { id:"costituzione",  icon:"COS", label:"COSTITUZIONE",  habit:"dieta",        desc:"PV massimi",           formula: lv => 50+lv*12 },
