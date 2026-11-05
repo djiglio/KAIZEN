@@ -14,17 +14,21 @@ export function toggleSidebar() {
 }
 
 export function showPage(id, el) {
- document.querySelectorAll(".page, #p-ranks")
- .forEach(p => p.classList.remove("active"));
- document.querySelectorAll(".nav-btn")
- .forEach(n => n.classList.remove("active"));
- const target = document.getElementById(id);
- if (target) target.classList.add("active");
- if (el) el.classList.add("active");
- const sidebar = document.getElementById("sidebar");
- if (sidebar.classList.contains("open")) toggleSidebar();
- render();
- window.scrollTo({ top:0, behavior:"instant" });
+  document.querySelectorAll(".page, #p-ranks")
+    .forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn")
+    .forEach(n => n.classList.remove("active"));
+  const target = document.getElementById(id);
+  if (target) target.classList.add("active");
+  if (el) el.classList.add("active");
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar?.classList.contains("open")) toggleSidebar();
+  try { render(); } catch (e) { console.error("render error in showPage:", e); }
+  try {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  } catch {
+    window.scrollTo(0, 0);
+  }
 }
 
 export function showRankPage() {

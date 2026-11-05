@@ -210,11 +210,18 @@ function loadState() {
 
 export const store = { state: loadState() };
 
+let _isSaving = false;
 export function save() {
-  store.state._updatedAt = Date.now();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store.state));
-  for (const cb of _onSaveListeners) {
-    try { cb(store.state); } catch (e) { console.error(e); }
+  if (_isSaving) return;
+  _isSaving = true;
+  try {
+    store.state._updatedAt = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store.state));
+    for (const cb of _onSaveListeners) {
+      try { cb(store.state); } catch (e) { console.error(e); }
+    }
+  } finally {
+    _isSaving = false;
   }
 }
 

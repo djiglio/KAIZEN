@@ -4,7 +4,7 @@
  fuga basata su furtività, bottini, nemici con equip
  ============================================================ */
 
-import { store, save } from "./state.js";
+import { store, save, saveLocalOnly } from "./state.js";
 import { BESTIARY, TREASURES, RELICS,
          EQUIPMENT_POOL, AREA_LOOT_POOL, MATERIALS, getCoatingWearReduction,
          WORLD_AREAS, EMPIREO_GODS, EMPIREO_LOOT,
@@ -24,38 +24,68 @@ const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 /* ── Regen PV ── */
 export function regenPV() {
- const w = store.state.world;
- const { pvMax } = getHeroStats();
- const now = Date.now();
- if (w.pvAttuali >= pvMax) { w.ultimaSessionePV = now; save(); return; }
- if (w.ultimaSessionePV) {
- const { guarigione } = getHeroStats();
- const boosted = w.regenBoostExpiry && now < w.regenBoostExpiry;
- const minsPerPV = boosted ? Math.max(0.5, guarigione / 2) : guarigione;
- const mins = (now - w.ultimaSessionePV) / 60000;
- const gained = Math.floor(mins / minsPerPV);
- if (gained > 0) w.pvAttuali = Math.min(pvMax, w.pvAttuali + gained);
- }
- w.ultimaSessionePV = now;
- w.pvAttuali = Math.min(pvMax, Math.max(0, w.pvAttuali));
- save();
+  const w = store.state.world;
+  const { pvMax } = getHeroStats();
+  const now = Date.now();
+  if (w.pvAttuali >= pvMax) {
+    if (w.pvAttuali !== pvMax || !w.ultimaSessionePV) {
+      w.pvAttuali = pvMax;
+      w.ultimaSessionePV = now;
+      saveLocalOnly();
+    }
+    return;
+  }
+  let changed = false;
+  if (w.ultimaSessionePV) {
+    const { guarigione } = getHeroStats();
+    const boosted = w.regenBoostExpiry && now < w.regenBoostExpiry;
+    const minsPerPV = boosted ? Math.max(0.5, guarigione / 2) : guarigione;
+    const mins = (now - w.ultimaSessionePV) / 60000;
+    const gained = Math.floor(mins / minsPerPV);
+    if (gained > 0) {
+      w.pvAttuali = Math.min(pvMax, w.pvAttuali + gained);
+      w.ultimaSessionePV = now;
+      changed = true;
+    }
+  } else {
+    w.ultimaSessionePV = now;
+    changed = true;
+  }
+  w.pvAttuali = Math.min(pvMax, Math.max(0, w.pvAttuali));
+  if (changed) save();
+  else saveLocalOnly();
 }
 
 /* ── Regen PA ── */
 export function regenPA() {
- const w = store.state.world;
- const { paMax, pianificazione } = getHeroStats();
- const now = Date.now();
- if (w.paAttuali >= paMax) { w.ultimaSessionePA = now; save(); return; }
- if (w.ultimaSessionePA) {
- const minsPerPA = pianificazione;
- const mins = (now - w.ultimaSessionePA) / 60000;
- const gained = Math.floor(mins / minsPerPA);
- if (gained > 0) w.paAttuali = Math.min(paMax, w.paAttuali + gained);
- }
- w.ultimaSessionePA = now;
- w.paAttuali = Math.min(paMax, Math.max(0, w.paAttuali));
- save();
+  const w = store.state.world;
+  const { paMax, pianificazione } = getHeroStats();
+  const now = Date.now();
+  if (w.paAttuali >= paMax) {
+    if (w.paAttuali !== paMax || !w.ultimaSessionePA) {
+      w.paAttuali = paMax;
+      w.ultimaSessionePA = now;
+      saveLocalOnly();
+    }
+    return;
+  }
+  let changed = false;
+  if (w.ultimaSessionePA) {
+    const minsPerPA = pianificazione;
+    const mins = (now - w.ultimaSessionePA) / 60000;
+    const gained = Math.floor(mins / minsPerPA);
+    if (gained > 0) {
+      w.paAttuali = Math.min(paMax, w.paAttuali + gained);
+      w.ultimaSessionePA = now;
+      changed = true;
+    }
+  } else {
+    w.ultimaSessionePA = now;
+    changed = true;
+  }
+  w.paAttuali = Math.min(paMax, Math.max(0, w.paAttuali));
+  if (changed) save();
+  else saveLocalOnly();
 }
 
 export function getMinsPerPV() {

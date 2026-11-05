@@ -30,23 +30,28 @@ const COIN = `<span class="mk-coin"></span>`;
  RENDER PRINCIPALE
 ══════════════════════════════════════════════════════════ */
 export function render() {
-  regenPV();
-  regenPA();
+  try { regenPV(); } catch (e) { console.error("regenPV error:", e); }
+  try { regenPA(); } catch (e) { console.error("regenPA error:", e); }
 
   const state = store.state;
-  const w = state.world;
-  const heroS = getHeroStats();
-  const rank = getHeroRank();
-  const title = getRankTitle(rank);
+  const w = state?.world || {};
+  let heroS = {}, rank = 0, title = "MENDICANTE";
+  try {
+    heroS = getHeroStats();
+    rank = getHeroRank();
+    title = getRankTitle(rank);
+  } catch (e) {
+    console.error("Hero stats error:", e);
+  }
 
-  renderHabits(state, rank, title);
-  renderHero(state, heroS, rank, title);
-  renderQuests(state);
-  renderWorld(heroS, w);
-  renderBacheca(state, w);
-  renderShop();
-  renderLog(state);
-  renderSettings(state);
+  try { renderHabits(state, rank, title); } catch (e) { console.error("renderHabits error:", e); }
+  try { renderHero(state, heroS, rank, title); } catch (e) { console.error("renderHero error:", e); }
+  try { renderQuests(state); } catch (e) { console.error("renderQuests error:", e); }
+  try { renderWorld(heroS, w); } catch (e) { console.error("renderWorld error:", e); }
+  try { renderBacheca(state, w); } catch (e) { console.error("renderBacheca error:", e); }
+  try { renderShop(); } catch (e) { console.error("renderShop error:", e); }
+  try { renderLog(state); } catch (e) { console.error("renderLog error:", e); }
+  try { renderSettings(state); } catch (e) { console.error("renderSettings error:", e); }
 }
 
 /* ── Pagina ABITUDINI ── */

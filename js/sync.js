@@ -52,7 +52,8 @@ let db = null;
 let unsubscribeSnapshot = null;
 let debounceTimer = null;
 let _lastPushedTimestamp = 0;
-let _renderCallback = null;
+let _onSettingsRender = null;
+let _onFullStateRender = null;
 let _isReconciling = false;
 
 export const syncState = {
@@ -66,8 +67,16 @@ export const syncState = {
 };
 
 function notifyUI() {
-  if (typeof _renderCallback === "function") {
-    try { _renderCallback(); } catch (e) { console.error(e); }
+  if (typeof _onSettingsRender === "function") {
+    try { _onSettingsRender(); } catch (e) { console.error(e); }
+  }
+}
+
+function notifyFullState() {
+  if (typeof _onFullStateRender === "function") {
+    try { _onFullStateRender(); } catch (e) { console.error(e); }
+  } else {
+    notifyUI();
   }
 }
 
@@ -226,7 +235,7 @@ async function reconcileWithCloud(uid, options = {}) {
             saveLocalOnly();
             syncState.lastSyncAt = store.state._updatedAt;
             syncState.status = "synced";
-            notifyUI();
+            notifyFullState();
             showToast("✦ Progressi dell'account caricati!");
             return;
           } else {
@@ -243,7 +252,7 @@ async function reconcileWithCloud(uid, options = {}) {
           saveLocalOnly();
           syncState.lastSyncAt = store.state._updatedAt;
           syncState.status = "synced";
-          notifyUI();
+          notifyFullState();
           return;
         } else if (localTime > remoteTime && localHasProgress) {
           await pushToCloudImmediate();
@@ -295,7 +304,7 @@ function attachRealtimeListener(uid) {
           syncState.lastSyncAt = remoteTime;
           syncState.status = "synced";
           syncState.errorMsg = null;
-          notifyUI();
+          notifyFullState();
           showToast("✦ Sincronizzato in tempo reale");
         } catch (e) {
           console.error("Errore parsing stato remoto:", e);
@@ -511,8 +520,14 @@ export function isUsingCustomConfig() {
   return hasCustomFirebaseConfig();
 }
 
-export function initSync(renderFn) {
-  _renderCallback = renderFn;
+export function initSync(optionsOrFn) {
+  if (typeof optionsOrFn === "function") {
+    _onSettingsRender = optionsOrFn;
+    _onFullStateRender = optionsOrFn;
+  } else if (optionsOrFn && typeof optionsOrFn === "object") {
+    _onSettingsRender = optionsOrFn.onSettingsRender || null;
+    _onFullStateRender = optionsOrFn.onFullStateRender || optionsOrFn.onSettingsRender || null;
+  }
 
   onStateSaved(() => {
     scheduleCloudSave();
