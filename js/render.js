@@ -419,11 +419,9 @@ function renderBacheca(state, w) {
 
       const renderTile = (item) => {
         const { id, count, q, isWorld } = item;
-        const cap = id === "day_perfect" ? "Giornata Perfetta" : isWorld ? "Impresa del Mondo" : "Impresa d'Evoluzione";
         const acc = id === "day_perfect" ? "var(--gold-light)" : isWorld ? "#a78bfa" : "#df784b";
         return `
         <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;" onclick="window.__kaizen.showTrophyDetail('${id}')">
-          <div class="mk-tile-cap">${cap}</div>
           <div class="mk-tile-name">${q.text}</div>
           <div class="mk-tile-big">×${count}</div>
           <div class="mk-tile-desc" style="margin-bottom:0">tocca per consultare</div>
