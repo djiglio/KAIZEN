@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.75
+ KAIZEN v6.77
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -833,7 +833,6 @@ export function renderShop() {
   <div class="mk-tabs">
     ${tabDefs.map(([s, lbl]) => `<button class="mk-tab ${s === armaioloSlot ? "is-on" : ""}" data-armslot="${s}">${lbl}<b>${shopEquip.filter(e => e.slot === s).length}</b></button>`).join("")}
   </div>
-  <div class="mk-note">Il Fabbro costruisce equipaggiamenti comuni usando denari e materiali grezzi. I pezzi magici e leggendari si possono solo sottrarre ai nemici umanoidi in missione.</div>
   <div class="mk-grid mk-grid--1">${equipTiles}</div>`;
 
   /* ── III · Forgia & Riparazioni ── */
