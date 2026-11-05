@@ -19,6 +19,7 @@ import {
   showBestiaryDetail,
   showTreasureDetail,
   showTrophyDetail,
+  showRankDetail,
   toggleAllTreasures,
   closeDetailModal,
   showAllAreaQuests
@@ -112,6 +113,7 @@ window.__kaizen = {
   showAllAreaQuests,
   showTreasureDetail,
   showTrophyDetail,
+  showRankDetail,
   toggleAllTreasures,
   closeDetailModal,
   // Render callback

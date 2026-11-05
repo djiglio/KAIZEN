@@ -773,6 +773,53 @@ export function showTrophyDetail(questId) {
   resolveImgs();
 }
 
+export function showRankDetail(title) {
+  const rank = getHeroRank();
+  let currentTitleIdx = 0;
+  rankTitles.forEach((rt, i) => { if (rank >= rt.r) currentTitleIdx = i; });
+
+  const rankIdx = rankTitles.findIndex(x => x.t === title);
+  if (rankIdx === -1) return;
+  // Solo se già conquistato (raggiunto in passato o attuale)
+  if (rankIdx > currentTitleIdx) return;
+
+  const rt = rankTitles[rankIdx];
+  const isCurrent = rankIdx === currentTitleIdx;
+  const metalCol = titleMetalColors[rt.t] || "var(--gold)";
+  const acc = isCurrent ? "var(--gold-light)" : "#4ecca3";
+  const statusTxt = isCurrent ? "✦ Titolo Attuale" : "Rango Conquistato";
+  const chipCls = isCurrent ? "mk-chip--gold" : "mk-chip--ok";
+
+  const box = document.getElementById("detail-modal-box");
+  if (!box) return;
+
+  document.getElementById("detail-modal").classList.add("show");
+  box.innerHTML = `
+  <div class="mk mk-modal">
+    <div class="mk-modal-cap">Albo dei Ranghi · Rango ${rt.r}</div>
+    <div class="mk-modal-title" style="color:${isCurrent ? "var(--gold-light)" : metalCol};margin:2px 0 4px;">${rt.t}</div>
+    <div class="mk-chip ${chipCls}" style="margin:2px auto 10px;">${statusTxt}</div>
+
+    <div style="margin:6px auto 12px;display:flex;justify-content:center;align-items:center;width:100%;max-width:220px;min-height:180px;">
+      ${heroAvatarHTML(rt.t, "100%", "auto")}
+    </div>
+
+    <div class="mk-vitals" style="margin:12px 0;">
+      <div class="mk-vital" style="--acc:${acc}">
+        <div class="mk-vital-cap">Soglia Rango</div>
+        <div class="mk-vital-val" style="color:${metalCol}">Rango ${rt.r}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#4ecca3">
+        <div class="mk-vital-cap">Stato</div>
+        <div class="mk-vital-val" style="color:#4ecca3">${isCurrent ? "In Carica" : "Conquistato"}</div>
+      </div>
+    </div>
+
+    <button class="modal-close-btn" style="margin-top:6px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+  </div>`;
+  resolveImgs();
+}
+
 export function closeDetailModal() {
   document.getElementById("detail-modal")?.classList.remove("show");
 }

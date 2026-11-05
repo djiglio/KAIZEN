@@ -42,6 +42,7 @@ export function showRankPage() {
  const cardsHTML = rankTitles.map((rt, i) => {
    const isPast = i < currentTitleIdx;
    const isCurrent = i === currentTitleIdx;
+   const isConquered = i <= currentTitleIdx;
    const metalCol = titleMetalColors[rt.t] || "var(--gold)";
    const acc = isCurrent ? "var(--gold-light)" : isPast ? "#4ecca3" : "rgba(255,255,255,0.12)";
    const chipCls = isCurrent ? "mk-chip--gold" : isPast ? "mk-chip--ok" : "";
@@ -49,12 +50,14 @@ export function showRankPage() {
 
    return `
    <div class="mk-tile rank-entry ${isCurrent ? "is-active rank-current" : isPast ? "rank-past" : "is-off rank-future"}"
-        style="--acc:${acc};padding-bottom:12px;">
+        style="--acc:${acc};padding-bottom:12px;cursor:${isConquered ? "pointer" : "default"};"
+        ${isConquered ? `onclick="window.__kaizen.showRankDetail('${rt.t}')"` : ""}>
      <div class="mk-tile-cap">Soglia · Rango ${rt.r}</div>
      <div class="mk-tile-name" style="font-size:13px;color:${isCurrent ? "var(--gold-light)" : isPast ? metalCol : "#6f6656"};min-height:1.8em;">
        ${rt.t}
      </div>
      <div class="mk-chip ${chipCls}" style="margin-bottom:0;">${statusTxt}</div>
+     ${isConquered ? `<div class="mk-tile-desc" style="margin-top:4px;margin-bottom:0;">tocca per consultare</div>` : ""}
    </div>`;
  }).join("");
 
