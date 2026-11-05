@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.74
+ KAIZEN v6.75
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -515,7 +515,6 @@ function renderEquipCardMainHTML({ piece, dur = 100, coatMat = null, slotKey = n
     <div class="eq-body">
       <div class="eq-row-1">
         <span class="eq-name">${piece.name}</span>
-        <span class="eq-subtag">${typeLabel} · <span style="color:${theme.color}">${rar.lbl}</span>${extraRightTag}</span>
       </div>
       <div class="eq-row-2">
         <span class="eq-grade">${roman(piece.tier)}</span>
@@ -942,7 +941,7 @@ export function renderEquipment() {
     if (slot === "mano_sx" && isTwoHandedEquipped) {
       return `
       <div class="mk-tile is-off" style="--acc:#e3a32b;padding-bottom:9px;border-style:dashed;">
-        <div class="mk-tile-cap">Slot ${num} · ${label} · Doppia Impugnatura</div>
+        <div class="mk-tile-cap">${label} · Doppia Impugnatura</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name" style="color:#d4b46a;">Impegnata da ${dxPiece.name}</span>
           <span class="mk-tile-desc" style="margin:0;">2 Mani</span>
@@ -959,7 +958,7 @@ export function renderEquipment() {
     if (!piece) {
       return `
       <div class="mk-tile is-off" style="--acc:rgba(85,74,62,.4);padding-bottom:7px;">
-        <div class="mk-tile-cap">Slot ${num} · ${label}</div>
+        <div class="mk-tile-cap">${label}</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name" style="color:#6f6656;">Nessun pezzo</span>
           <span class="mk-tile-desc" style="margin:0;">${hint}</span>
@@ -973,7 +972,7 @@ export function renderEquipment() {
     return `
     <div class="mk-tile eq-card ${coatMat ? "is-coated" : ""}" style="--acc:${meta.acc}">
       <div class="eq-card-slot-hdr">
-        <span>Slot ${num} · ${label}</span>
+        <span>${label}</span>
       </div>
       ${renderEquipCardMainHTML({ piece, dur, coatMat, slotKey: slot })}
       <button class="mk-price mk-price--danger" onclick="window.__kaizen.unequipItem('${slot}')">
