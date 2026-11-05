@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.71
+ KAIZEN v6.72
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -310,7 +310,7 @@ export function repairItem(slot) {
 }
 
 /* ══════════════════════════════════════════════════════════
- HELPER GRAFICI EQUIPAGGIAMENTO E MERCATO
+ HELPER GRAFICI EQUIPAGGIAMENTO, ICONE E COLORI
 ══════════════════════════════════════════════════════════ */
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 const roman = n => ROMAN[n] || String(n);
@@ -331,8 +331,8 @@ const RARITY_META = {
 };
 
 const HAND_LABELS = {
-  "1h": "1 Mano",
-  "2h": "2 Mani",
+  "1h": "Arma 1H",
+  "2h": "Arma 2H",
   "shield": "Scudo",
 };
 
@@ -350,7 +350,7 @@ const bonusLine = (obj, dur = 100) =>
     })
     .join(" · ");
 
-function bonusBadgesHTML(bonusObj, dur = 100) {
+function bonusBadgesHTML(bonusObj, dur = 100, inline = false) {
   const entries = Object.entries(bonusObj || {});
   if (!entries.length) return "";
   const pills = entries.map(([k, v]) => {
@@ -361,9 +361,177 @@ function bonusBadgesHTML(bonusObj, dur = 100) {
     const bg = isNeg ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.05)";
     const border = isNeg ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.12)";
     const sign = sv >= 0 ? "+" : "−";
-    return `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:0.68rem;font-weight:700;color:${color};background:${bg};border:1px solid ${border};">${sign}${Math.abs(sv)} <small style="font-size:0.58rem;opacity:0.88;">${meta.lbl}</small></span>`;
+    return `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;color:${color};background:${bg};border:1px solid ${border};">${sign}${Math.abs(sv)} <small style="font-size:8px;opacity:0.88;">${meta.lbl}</small></span>`;
   }).join("");
+  if (inline) return pills;
   return `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px;">${pills}</div>`;
+}
+
+/* ── Colore dell'icona per rarità e fascia di Tier ──
+   Comuni:     Bronzo (Tier 1-3), Argento (Tier 4-7), Oro (Tier 8-10)
+   Leggendari/Magici: Verde luminoso (Tier 1-3), Blu luminoso (Tier 4-7), Rosso luminoso (Tier 8-10)
+── */
+function getEquipIconTheme(piece) {
+  const tier = piece?.tier || 1;
+  const band = tier <= 3 ? "low" : (tier <= 7 ? "mid" : "high");
+  const isSpecial = piece?.rarita === "leggendario" || piece?.rarita === "magico";
+
+  if (!isSpecial) {
+    if (band === "low") {
+      return {
+        color: "#cd7f32",
+        bg: "rgba(205, 127, 50, 0.13)",
+        border: "rgba(205, 127, 50, 0.45)",
+        glow: "none",
+      };
+    }
+    if (band === "mid") {
+      return {
+        color: "#cbd5e1",
+        bg: "rgba(203, 213, 225, 0.13)",
+        border: "rgba(203, 213, 225, 0.45)",
+        glow: "none",
+      };
+    }
+    return {
+      color: "#fbbf24",
+      bg: "rgba(251, 191, 36, 0.14)",
+      border: "rgba(251, 191, 36, 0.50)",
+      glow: "drop-shadow(0 0 3px rgba(251, 191, 36, 0.35))",
+    };
+  }
+
+  // Magici / Leggendari: Verde luminoso, Blu luminoso, Rosso luminoso
+  if (band === "low") {
+    return {
+      color: "#4ade80",
+      bg: "rgba(34, 197, 94, 0.15)",
+      border: "rgba(74, 222, 128, 0.60)",
+      glow: "drop-shadow(0 0 6px rgba(74, 222, 128, 0.80))",
+    };
+  }
+  if (band === "mid") {
+    return {
+      color: "#38bdf8",
+      bg: "rgba(56, 189, 248, 0.15)",
+      border: "rgba(56, 189, 248, 0.60)",
+      glow: "drop-shadow(0 0 6px rgba(56, 189, 248, 0.80))",
+    };
+  }
+  return {
+    color: "#f87171",
+    bg: "rgba(239, 68, 68, 0.16)",
+    border: "rgba(248, 113, 113, 0.65)",
+    glow: "drop-shadow(0 0 7px rgba(248, 113, 113, 0.88))",
+  };
+}
+
+/* ── Icona SVG per categoria / tipo impugnatura ── */
+function getEquipCategorySVG(piece) {
+  if (piece.handType === "1h") {
+    // Spada a una mano
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.5 17.5L3 6V3h3l11.5 11.5"/>
+      <path d="M13 19l6-6"/>
+      <path d="M16 16l4 4"/>
+      <path d="M19 21l2-2"/>
+    </svg>`;
+  }
+  if (piece.handType === "2h") {
+    // Lancia / Arma ad asta a due mani
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 21L17 7"/>
+      <path d="M15 4l6-1-1 6-4 2-3-3 2-4z" fill="currentColor" fill-opacity="0.22"/>
+      <path d="M11 11l2 2"/>
+    </svg>`;
+  }
+  if (piece.handType === "shield" || piece.slot === "mano_sx") {
+    // Scudo
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fill-opacity="0.16"/>
+      <path d="M12 6v12"/>
+      <path d="M8 11h8"/>
+    </svg>`;
+  }
+  if (piece.slot === "testa") {
+    // Elmo
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 13a8 8 0 0 1 16 0v6l-4-2-4 2-4-2-4 2v-6z" fill="currentColor" fill-opacity="0.16"/>
+      <path d="M8 13h8"/>
+      <path d="M12 10v7"/>
+      <path d="M12 2v3"/>
+    </svg>`;
+  }
+  if (piece.slot === "torace") {
+    // Corazza / Pettorale
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 4l3 2h6l3-2 3 4-3 3v9H6v-9L3 8l3-4z" fill="currentColor" fill-opacity="0.16"/>
+      <path d="M12 6v14"/>
+      <path d="M8 11h8"/>
+    </svg>`;
+  }
+  if (piece.slot === "braccia") {
+    // Bracciali / Guanto d'arme
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 11V6a2 2 0 0 1 4 0v3h2V5a2 2 0 0 1 4 0v6l-2 9H8l-3-6 2-3z" fill="currentColor" fill-opacity="0.16"/>
+      <path d="M7 15h9"/>
+      <path d="M8 18h7"/>
+    </svg>`;
+  }
+  // Gambe (Gambali / Stivali corazzati)
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 3h7l-1 11 5 3v3H6v-4l2-13z" fill="currentColor" fill-opacity="0.16"/>
+    <path d="M8 8h6"/>
+    <path d="M7 13h7"/>
+  </svg>`;
+}
+
+/* ── Costruisce il corpo a 2 colonne della scheda equipaggiamento ──
+   - A sinistra: icona colorata per rarità/tier
+   - A destra:
+     1) Nome oggetto (+ etichetta slot/tipo)
+     2) Grado evidente + bonus/malus nominali (100% integrità, senza rivestimento)
+     3) Barra di usura con percentuale sulla destra
+     4) Eventuale rivestimento e relativi bonus su attributi e resistenza all'usura
+── */
+function renderEquipCardMainHTML({ piece, dur = 100, coatMat = null, slotKey = null, extraRightTag = "" }) {
+  const theme = getEquipIconTheme(piece);
+  const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
+  const typeLabel = piece.handType ? HAND_LABELS[piece.handType] : (SLOT_NAMES[piece.slot] || piece.slot);
+  const rar = RARITY_META[piece.rarita] || RARITY_META.comune;
+
+  let row4HTML = `<span class="eq-coat-none">Nessun rivestimento</span>`;
+  if (coatMat) {
+    const cBonus = getCoatingBonus(coatMat.id, slotKey || piece.slot, piece);
+    const resPct = Math.round(getCoatingWearReduction(coatMat.id) * 100);
+    row4HTML = `<div class="eq-coat-line">✦ <b>${coatMat.name}</b> · ${bonusLine(cBonus, 100)} · usura −${resPct}%</div>`;
+  }
+
+  return `
+  <div class="eq-card-main">
+    <div class="eq-icon-box" style="--icon-color:${theme.color};--icon-bg:${theme.bg};--icon-border:${theme.border};--icon-glow:${theme.glow}" title="${typeLabel} · ${rar.lbl} (Grado ${roman(piece.tier)})">
+      ${getEquipCategorySVG(piece)}
+    </div>
+    <div class="eq-body">
+      <div class="eq-row-1">
+        <span class="eq-name">${piece.name}</span>
+        <span class="eq-subtag">${typeLabel} · <span style="color:${theme.color}">${rar.lbl}</span>${extraRightTag}</span>
+      </div>
+      <div class="eq-row-2">
+        <span class="eq-grade">GRADO ${roman(piece.tier)}</span>
+        ${bonusBadgesHTML(piece.bonus, 100, true)}
+      </div>
+      <div class="eq-row-3">
+        <div class="eq-dur-track">
+          <i class="eq-dur-fill" style="width:${dur}%;background:${durColor}"></i>
+        </div>
+        <span class="eq-dur-pct" style="color:${durColor}">${dur}%</span>
+      </div>
+      <div class="eq-row-4">
+        ${row4HTML}
+      </div>
+    </div>
+  </div>`;
 }
 
 function getPrimaryMeta(piece) {
@@ -590,11 +758,11 @@ export function renderShop() {
   /* ── II · Fabbro: Costruzione Armi e Armature ── */
   const shopEquip = EQUIPMENT_POOL.filter(e => e.fonte.includes("fabbro") || e.fonte.includes("negozio"));
   const tabDefs = [
-    ["mano_dx", "Armi"],
-    ["mano_sx", "Scudi & Secondarie"],
     ["testa",   "Testa"],
     ["torace",  "Torace"],
     ["braccia", "Braccia"],
+    ["mano_dx", "Armi"],
+    ["mano_sx", "Scudi"],
     ["gambe",   "Gambe"],
   ].filter(([s]) => shopEquip.some(e => e.slot === s));
   if (!tabDefs.some(([s]) => s === armaioloSlot) && tabDefs.length) armaioloSlot = tabDefs[0][0];
@@ -603,7 +771,11 @@ export function renderShop() {
   const bagCount = id => eq.zaino.filter(z => z.type === "equip" && z.id === id).length;
   const matCount = id => eq.zaino.filter(z => z.type === "material" && z.id === id).length;
 
-  const equipTiles = shopEquip.filter(e => e.slot === armaioloSlot).map(e => {
+  const slotEquipList = shopEquip
+    .filter(e => e.slot === armaioloSlot)
+    .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name));
+
+  const equipTiles = slotEquipList.map(e => {
     const price = discountedPrice(e.prezzo, disc);
     const hasDen = w.denari >= price;
     const recipe = Array.isArray(e.recipe) ? e.recipe : [];
@@ -619,20 +791,15 @@ export function renderShop() {
     const can = hasDen && hasAllMats;
     const meta = getPrimaryMeta(e);
     const inBag = bagCount(e.id);
-    const statusChip = equippedIds.has(e.id)
-      ? `<div class="mk-chip mk-chip--ok">indossato</div>`
-      : inBag ? `<div class="mk-chip">nello zaino${inBag > 1 ? ` ×${inBag}` : ""}</div>` : "";
-    const handTag = e.handType ? ` · ${HAND_LABELS[e.handType] || e.handType}` : "";
+    const statusTag = equippedIds.has(e.id)
+      ? ` · <span style="color:#4ecca3">Indossato</span>`
+      : (inBag ? ` · <span style="color:#c4b59d">Zaino ×${inBag}</span>` : "");
     const missingText = !hasAllMats ? "materiali insufficienti" : (!hasDen ? `mancano ${fmtDen(price - w.denari)}` : "");
 
     return `
-    <div class="mk-tile ${can ? "" : "is-off"}" style="--acc:${meta.acc}">
-      <div class="mk-tile-cap">Grado ${roman(e.tier)} · Comune${handTag}</div>
-      <div class="mk-tile-name">${e.name}</div>
-      ${bonusBadgesHTML(e.bonus, 100)}
-      <div class="mk-tile-desc">${e.desc}</div>
-      ${matChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${matChips}</div>` : ""}
-      ${statusChip}
+    <div class="mk-tile eq-card ${can ? "" : "is-off"}" style="--acc:${meta.acc}">
+      ${renderEquipCardMainHTML({ piece: e, dur: 100, coatMat: null, slotKey: e.slot, extraRightTag: statusTag })}
+      ${matChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px 57px;">${matChips}</div>` : ""}
       ${mkPriceBtn({ price, base: e.prezzo, can, label: "Costruisci", onclick: `window.__kaizen.buyEquipment('${e.id}')`, missing: missingText })}
     </div>`;
   }).join("");
@@ -642,7 +809,7 @@ export function renderShop() {
     ${tabDefs.map(([s, lbl]) => `<button class="mk-tab ${s === armaioloSlot ? "is-on" : ""}" data-armslot="${s}">${lbl}<b>${shopEquip.filter(e => e.slot === s).length}</b></button>`).join("")}
   </div>
   <div class="mk-note">Il Fabbro costruisce equipaggiamenti comuni usando denari e materiali grezzi. I pezzi magici e leggendari si possono solo sottrarre ai nemici umanoidi in missione.</div>
-  <div class="mk-grid">${equipTiles}</div>`;
+  <div class="mk-grid mk-grid--1">${equipTiles}</div>`;
 
   /* ── III · Forgia & Riparazioni ── */
   const eqSlots = ["testa","torace","braccia","mano_dx","mano_sx","gambe"];
@@ -664,7 +831,7 @@ export function renderShop() {
       : `<div class="mk-tile-desc">ancora grezzo</div>`;
     return `
     <div class="mk-tile ${mat ? "is-coated" : ""}" style="--acc:#6cc4ef">
-      <div class="mk-tile-cap">${SLOT_NAMES[slot] || slot} · ${roman(piece.tier)}</div>
+      <div class="mk-tile-cap">${SLOT_NAMES[slot] || slot} · Grado ${roman(piece.tier)}</div>
       <div class="mk-tile-name">${piece.name}</div>
       ${coatHTML}
       <button class="mk-price mk-price--blue" onclick="window.__kaizen.openCoatingModal('${slot}')">
@@ -775,35 +942,14 @@ export function renderEquipment() {
     }
 
     const meta = getPrimaryMeta(piece);
-    const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
-    const rar = RARITY_META[piece.rarita] || RARITY_META.comune;
-    const handTag = piece.handType ? ` · ${HAND_LABELS[piece.handType] || piece.handType}` : "";
-
-    let coatHTML = "";
-    if (eqObj && eqObj.rivestimento) {
-      const mat = MATERIALS.find(m => m.id === eqObj.rivestimento);
-      if (mat) {
-        const bObj = getCoatingBonus(mat.id, slot, piece);
-        const resPct = Math.round(getCoatingWearReduction(mat.id) * 100);
-        coatHTML = `
-        <div class="mk-coat">
-          <span class="mk-coat-name">✦ ${mat.name}</span>
-          <span class="mk-coat-bonus">${bonusLine(bObj)}</span>
-          <span class="mk-coat-wear">· usura −${resPct}%</span>
-        </div>`;
-      }
-    }
+    const coatMat = (eqObj && eqObj.rivestimento) ? MATERIALS.find(m => m.id === eqObj.rivestimento) : null;
 
     return `
-    <div class="mk-tile ${eqObj?.rivestimento ? "is-coated" : ""}" style="--acc:${meta.acc}">
-      <div class="mk-tile-cap">${label} · Grado ${roman(piece.tier)} · <span style="color:${rar.color}">${rar.lbl}</span>${handTag}</div>
-      <div class="mk-tile-row-head">
-        <span class="mk-tile-name">${piece.name}</span>
+    <div class="mk-tile eq-card ${coatMat ? "is-coated" : ""}" style="--acc:${meta.acc}">
+      <div class="eq-card-slot-hdr">
+        <span>Slot ${num} · ${label}</span>
       </div>
-      ${bonusBadgesHTML(piece.bonus, dur)}
-      <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
-      ${coatHTML}
-      <div class="mk-tile-desc">${piece.desc}</div>
+      ${renderEquipCardMainHTML({ piece, dur, coatMat, slotKey: slot })}
       <button class="mk-price mk-price--danger" onclick="window.__kaizen.unequipItem('${slot}')">
         <span class="mk-price-row"><span class="mk-price-lbl">Rimuovi</span></span>
       </button>
@@ -869,11 +1015,14 @@ export function renderEquipment() {
       }
     });
 
-    const SLOT_ORDER = ["mano_dx", "mano_sx", "testa", "torace", "braccia", "gambe"];
+    // Ordina SEMPRE prima per slot e poi per grado (e infine per nome)
+    const SLOT_ORDER = ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"];
     equipEntries.sort((a, b) => {
-      if (a.piece.tier !== b.piece.tier) return a.piece.tier - b.piece.tier;
-      const slotDiff = SLOT_ORDER.indexOf(a.piece.slot) - SLOT_ORDER.indexOf(b.piece.slot);
+      const slotA = SLOT_ORDER.indexOf(a.piece.slot);
+      const slotB = SLOT_ORDER.indexOf(b.piece.slot);
+      const slotDiff = (slotA === -1 ? 99 : slotA) - (slotB === -1 ? 99 : slotB);
       if (slotDiff !== 0) return slotDiff;
+      if (a.piece.tier !== b.piece.tier) return a.piece.tier - b.piece.tier;
       return a.piece.name.localeCompare(b.piece.name);
     });
 
@@ -881,45 +1030,36 @@ export function renderEquipment() {
       const dur = zItem.dur !== undefined ? zItem.dur : 100;
       const meta = getPrimaryMeta(piece);
       const refund = Math.floor(piece.prezzo * 0.30);
-      const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
       const coatMat = zItem.rivestimento ? MATERIALS.find(m => m.id === zItem.rivestimento) : null;
-      const rar = RARITY_META[piece.rarita] || RARITY_META.comune;
-      const handTag = piece.handType ? ` · ${HAND_LABELS[piece.handType] || piece.handType}` : "";
 
       let equipBtnsHTML = "";
       if (piece.handType === "1h") {
         equipBtnsHTML = `
-          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_dx')">Mano DX</button>
-          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_sx')">Mano SX</button>
-          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+          <button class="eq-btn eq-btn--equip" onclick="window.__kaizen.equipItem(${idx}, 'mano_dx')">Mano DX</button>
+          <button class="eq-btn eq-btn--equip" onclick="window.__kaizen.equipItem(${idx}, 'mano_sx')">Mano SX</button>
+          <button class="eq-btn eq-btn--sell" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
         `;
       } else if (piece.handType === "2h") {
         equipBtnsHTML = `
-          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_dx')">Impugna (2H)</button>
-          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+          <button class="eq-btn eq-btn--equip eq-btn--span2" onclick="window.__kaizen.equipItem(${idx}, 'mano_dx')">Impugna (2 Mani)</button>
+          <button class="eq-btn eq-btn--sell" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
         `;
       } else if (piece.handType === "shield") {
         equipBtnsHTML = `
-          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_sx')">Mano SX</button>
-          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+          <button class="eq-btn eq-btn--equip eq-btn--span2" onclick="window.__kaizen.equipItem(${idx}, 'mano_sx')">Mano SX (Scudo)</button>
+          <button class="eq-btn eq-btn--sell" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
         `;
       } else {
         equipBtnsHTML = `
-          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx})">Indossa</button>
-          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+          <button class="eq-btn eq-btn--equip eq-btn--span2" onclick="window.__kaizen.equipItem(${idx})">Indossa (${SLOT_NAMES[piece.slot] || piece.slot})</button>
+          <button class="eq-btn eq-btn--sell" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
         `;
       }
 
       return `
-      <div class="mk-tile" style="--acc:${meta.acc}">
-        <div class="mk-tile-cap">${SLOT_NAMES[piece.slot] || piece.slot} · Grado ${roman(piece.tier)} · <span style="color:${rar.color}">${rar.lbl}</span>${handTag}${coatMat ? ` · ✦ ${coatMat.name}` : ""}</div>
-        <div class="mk-tile-row-head">
-          <span class="mk-tile-name">${piece.name}</span>
-        </div>
-        ${bonusBadgesHTML(piece.bonus, dur)}
-        <div class="mk-tile-desc">${piece.desc}</div>
-        <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
-        <div class="mk-split-actions">
+      <div class="mk-tile eq-card" style="--acc:${meta.acc}">
+        ${renderEquipCardMainHTML({ piece, dur, coatMat, slotKey: piece.slot })}
+        <div class="eq-zaino-actions">
           ${equipBtnsHTML}
         </div>
       </div>`;
