@@ -1,0 +1,137 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// This security rules file assumes the following data structures:
+//
+// Collection: users
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - stateJson: string (required, 1..900000 chars) - Serialized RPG state JSON
+//   - updatedAt: int | timestamp (required, positive epoch ms or timestamp) - Last save time
+//   - appVersion: string (optional, 0..50 chars) - Application version string
+//   - deviceInfo: string (optional, 0..500 chars) - User agent / device descriptor
+//   - summary: map (optional, max 30 keys) - Lightweight save metadata (level, gold, habitsCount, etc.)
+//   - uid: string (optional, immutable, must match userId / request.auth.uid)
+//   - createdAt: int | timestamp (optional, immutable) - Initial creation timestamp
+//
+// Subcollection: users/{userId}/saves
+// Document ID: {saveId}
+// Fields:
+//   - Same schema and constraints as users/{userId} save document
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated (Anonymous, Google, or Email/Password)
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the authenticated user owns the resource path
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Verify optional uid field matches the authenticated user on create
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+        (request.resource.data.uid is string && request.resource.data.uid == request.auth.uid);
+    }
+
+    // Ensure optional uid field is not modified on update
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+        (!('uid' in resource.data) && request.resource.data.uid == request.auth.uid) ||
+        request.resource.data.uid == resource.data.uid;
+    }
+
+    // Validate required fields exist on the incoming document
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that the document contains only explicitly allowed fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate string length bounds
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate optional string field length bounds
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is string &&
+         request.resource.data[field].size() >= minLen &&
+         request.resource.data[field].size() <= maxLen);
+    }
+
+    // Validate that immutable fields are not modified during an update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators (Used in BOTH create and update)
+    // ===============================================================
+
+    function isValidSaveDoc(data) {
+      return hasRequiredFields(['stateJson', 'updatedAt']) &&
+        hasOnlyAllowedFields(['stateJson', 'updatedAt', 'appVersion', 'deviceInfo', 'summary', 'uid', 'createdAt']) &&
+        validStringLength('stateJson', 1, 900000) &&
+        ((data.updatedAt is int && data.updatedAt > 0) || data.updatedAt is timestamp) &&
+        isValidOptionalString('appVersion', 0, 50) &&
+        isValidOptionalString('deviceInfo', 0, 500) &&
+        (!('summary' in data) || (data.summary is map && data.summary.size() <= 30)) &&
+        (!('createdAt' in data) || (data.createdAt is int && data.createdAt > 0) || data.createdAt is timestamp);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // User primary RPG save document
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        uidUnchanged() &&
+        isValidSaveDoc(request.resource.data);
+      allow update: if isOwner(userId) &&
+        uidNotModified() &&
+        areImmutableFieldsUnchanged(['createdAt']) &&
+        isValidSaveDoc(request.resource.data);
+      allow delete: if isOwner(userId);
+
+      // Optional user RPG save slots subcollection
+      match /saves/{saveId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          uidUnchanged() &&
+          isValidSaveDoc(request.resource.data);
+        allow update: if isOwner(userId) &&
+          uidNotModified() &&
+          areImmutableFieldsUnchanged(['createdAt']) &&
+          isValidSaveDoc(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Default deny all other collections and documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

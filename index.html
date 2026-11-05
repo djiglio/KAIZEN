@@ -1608,6 +1608,209 @@ body::before {
 .enemy-portrait { font-size: 48px; text-align: center; padding: 12px 0 6px; display: flex; justify-content: center; }
 .enemy-trait-badge { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 700; padding: 3px 9px; border-radius: 2px; background: rgba(180, 75, 38, 0.12); border: 1px solid rgba(195, 85, 45, 0.35); color: #f2a879; letter-spacing: 2px; margin-bottom: 12px; text-transform: uppercase; }
 
+
+/* ══════════════════════════════════════
+   SINCRONIZZAZIONE (IMPOSTAZIONI)
+══════════════════════════════════════ */
+.mk-sync-card {
+  --acc: #4ecca3;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 14px 14px 12px;
+  margin-bottom: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(80, 70, 60, 0.45);
+  border-top: 2px solid var(--acc);
+  background: linear-gradient(180deg, #181510 0%, #0f0d0a 100%);
+}
+.mk-sync-status-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(85, 74, 62, 0.38);
+  margin-bottom: 8px;
+}
+.mk-sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ecca3;
+  box-shadow: 0 0 8px #4ecca3;
+  flex-shrink: 0;
+}
+.mk-sync-status-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #4ecca3;
+}
+.mk-sync-acct-title {
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ece3cf;
+  margin: 2px 0 4px;
+}
+.mk-sync-acct-sub {
+  font-family: var(--serif-it);
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.3;
+  color: #9a8a68;
+  max-width: 380px;
+  margin: 0 auto 6px;
+}
+.mk-sync-time {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #8b7b5c;
+  margin-bottom: 10px;
+}
+.mk-sync-error {
+  display: none;
+  width: 100%;
+  padding: 8px 10px;
+  margin: 4px 0 10px;
+  border-radius: 2px;
+  background: rgba(224, 83, 61, 0.12);
+  border: 1px solid rgba(224, 83, 61, 0.45);
+  color: #f39c8f;
+  font-family: var(--serif-it);
+  font-size: 13px;
+  line-height: 1.3;
+}
+.mk-sync-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  margin-top: 2px;
+}
+.mk-sync-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(145, 72, 40, 0.42);
+  background: rgba(38, 30, 24, 0.55);
+  color: #ece3cf;
+  font-family: "Cinzel", serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.mk-sync-btn:active:not([disabled]) {
+  background: rgba(180, 75, 38, 0.24);
+  border-color: rgba(195, 85, 45, 0.65);
+}
+.mk-sync-btn--ok {
+  color: #4ecca3;
+  border-color: rgba(78, 204, 163, 0.42);
+  background: rgba(78, 204, 163, 0.09);
+}
+.mk-sync-btn--blue {
+  color: #7cc8f0;
+  border-color: rgba(108, 196, 239, 0.42);
+  background: rgba(108, 196, 239, 0.08);
+}
+.mk-sync-btn--danger {
+  color: #e67d71;
+  border-color: rgba(196, 103, 93, 0.42);
+  background: rgba(196, 103, 93, 0.08);
+}
+.sync-email-panel {
+  display: none;
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(85, 74, 62, 0.45);
+  text-align: left;
+}
+.sync-field {
+  display: flex;
+  flex-direction: column;
+  margin-block-end: 12px;
+}
+.sync-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.sync-field label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8.5px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #c4b59d;
+  margin-bottom: 4px;
+}
+.sync-label-row label {
+  margin-bottom: 0;
+}
+.sync-field input,
+.sync-cfg-textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  font-family: "JetBrains Mono", monospace;
+  color: #ece3cf;
+  background: #0b0907;
+  border: 1px solid rgba(110, 95, 78, 0.55);
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+.sync-field input:focus-visible,
+.sync-cfg-textarea:focus-visible {
+  outline: 2px solid #df784b;
+  outline-offset: 1px;
+  border-color: #df784b;
+}
+.sync-field-hint {
+  font-family: var(--serif-it);
+  font-style: italic;
+  font-size: 12px;
+  color: #8b7b5c;
+  margin-top: 3px;
+}
+.sync-pwd-toggle {
+  border: 1px solid rgba(110, 95, 78, 0.45);
+  background: rgba(38, 30, 24, 0.55);
+  color: #dfb395;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.sync-cfg-textarea {
+  min-height: 92px;
+  font-size: 12px;
+  resize: vertical;
+  margin-top: 6px;
+}
+
 </style>
 </head>
 <body>
@@ -1617,7 +1820,7 @@ body::before {
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-logo"><img src="img/logo.png?v=6.65" alt="KAIZEN"></div>
+  <div class="header-logo"><img src="img/logo.png?v=6.66" alt="KAIZEN"></div>
   <button class="menu-btn" onclick="window.__kaizen.toggleSidebar()">MENU ≡</button>
 </div>
 
@@ -1718,28 +1921,110 @@ body::before {
   <div class="section-header">Impostazioni</div>
 
   <div class="mk">
-    <div class="mk-group"><span>I · Custodia del Sigillo</span></div>
-    <div class="mk-note">Il Sigillo racchiude l'intero tuo cammino in una pergamena codificata.</div>
+    <!-- 1. SINCRONIZZAZIONE -->
+    <div class="mk-group"><span>Sincronizzazione</span></div>
+    <div class="mk-note">I tuoi progressi vengono salvati automaticamente e in tempo reale su Firebase.</div>
+
+    <div id="sync-status-card" class="mk-sync-card">
+      <div class="mk-sync-status-row">
+        <span id="sync-status-dot" class="mk-sync-dot"></span>
+        <span id="sync-status-label" class="mk-sync-status-label">Connessione...</span>
+      </div>
+
+      <div id="sync-account-title" class="mk-sync-acct-title">Verifica sessione...</div>
+      <div id="sync-account-sub" class="mk-sync-acct-sub">Sincronizzazione automatica dei progressi in corso.</div>
+      <div id="sync-last-time" class="mk-sync-time">Ultimo salvataggio: —</div>
+
+      <div id="sync-error-box" class="mk-sync-error" role="status" aria-live="polite"></div>
+
+      <div class="mk-sync-actions">
+        <button type="button" id="sync-btn-force" class="mk-sync-btn mk-sync-btn--ok" onclick="window.__kaizen.forceSyncNow()">
+          <span>↻ Sincronizza Ora</span>
+        </button>
+
+        <button type="button" id="sync-btn-anon" class="mk-sync-btn mk-sync-btn--ok" style="display:none" onclick="window.__kaizen.connectAnonymousSession()">
+          <span>⚡ Attiva Sessione Rapida</span>
+        </button>
+
+        <button type="button" id="sync-btn-google" class="mk-sync-btn mk-sync-btn--blue" onclick="window.__kaizen.loginWithGoogle()">
+          <span>G · Collega Account Google</span>
+        </button>
+
+        <button type="button" id="sync-btn-email-toggle" class="mk-sync-btn" aria-expanded="false" aria-controls="sync-email-panel" onclick="window.__kaizen.toggleEmailPanel()">
+          <span>✉ · Collega o Accedi con Email</span>
+        </button>
+
+        <button type="button" id="sync-btn-logout" class="mk-sync-btn mk-sync-btn--danger" style="display:none" onclick="window.__kaizen.logoutCloud()">
+          <span>⏻ Disconnetti Account</span>
+        </button>
+      </div>
+
+      <div id="sync-email-panel" class="sync-email-panel">
+        <div class="mk-tabs mk-tabs--2" style="margin:0 0 12px">
+          <button type="button" id="sync-tab-login" class="mk-tab is-on" onclick="window.__kaizen.setEmailMode('login')">Accedi</button>
+          <button type="button" id="sync-tab-register" class="mk-tab" onclick="window.__kaizen.setEmailMode('register')">Registrati</button>
+        </div>
+
+        <form id="sync-email-form" method="post" action="#p-settings">
+          <div class="sync-field">
+            <label for="sync-email-input">Indirizzo Email</label>
+            <input type="email" id="sync-email-input" name="email" autocomplete="username" spellcheck="false" autocorrect="off" autocapitalize="off" enterkeyhint="next" required>
+          </div>
+
+          <div class="sync-field">
+            <div class="sync-label-row">
+              <label for="sync-password-input">Password</label>
+              <button type="button" id="sync-pwd-toggle" class="sync-pwd-toggle" aria-pressed="false" aria-label="Mostra password" onclick="window.__kaizen.togglePasswordVisibility()">Mostra</button>
+            </div>
+            <input type="password" id="sync-password-input" name="password" autocomplete="current-password" minlength="6" enterkeyhint="done" aria-describedby="sync-pwd-hint" required>
+            <span id="sync-pwd-hint" class="sync-field-hint">Minimo 6 caratteri.</span>
+          </div>
+
+          <button type="submit" id="sync-email-submit-btn" class="mk-sync-btn mk-sync-btn--ok">Accedi con Email</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. CUSTODIA DEL SIGILLO (Backup secondario manuale) -->
+    <div class="mk-group"><span>Custodia del Sigillo</span></div>
+    <div class="mk-note">Funzione secondaria di salvataggio manuale tramite codice Sigillo o file JSON codificato.</div>
     <div class="mk-grid" style="margin-bottom:18px">
       <article class="mk-tile" style="--acc:#df784b">
         <span class="mk-tile-cap">Pergamena</span>
         <h4 class="mk-tile-name">Esporta Sigillo</h4>
         <p class="mk-tile-desc">Copia il codice di salvataggio negli appunti</p>
         <button class="mk-price" onclick="window.__kaizen.exportData()">
-          <span class="mk-price-row"><span class="mk-price-lbl">&#8679; Esporta</span></span>
+          <span class="mk-price-row"><span class="mk-price-lbl">&#8679; Copia Codice</span></span>
         </button>
       </article>
       <article class="mk-tile" style="--acc:#4ecca3">
         <span class="mk-tile-cap">Ripristino</span>
         <h4 class="mk-tile-name">Importa Sigillo</h4>
-        <p class="mk-tile-desc">Ripristina i progressi da un codice salvato</p>
+        <p class="mk-tile-desc">Ripristina i progressi incollando un codice</p>
         <button class="mk-price mk-price--ok" onclick="window.__kaizen.importData()">
-          <span class="mk-price-row"><span class="mk-price-lbl">&#8681; Importa</span></span>
+          <span class="mk-price-row"><span class="mk-price-lbl">&#8681; Incolla Codice</span></span>
+        </button>
+      </article>
+      <article class="mk-tile" style="--acc:#6cc4ef">
+        <span class="mk-tile-cap">Archivio Locale</span>
+        <h4 class="mk-tile-name">Scarica JSON</h4>
+        <p class="mk-tile-desc">Salva un file .json codificato sul dispositivo</p>
+        <button class="mk-price mk-price--blue" onclick="window.__kaizen.downloadSigilloFile()">
+          <span class="mk-price-row"><span class="mk-price-lbl">&#8681; Scarica File</span></span>
+        </button>
+      </article>
+      <article class="mk-tile" style="--acc:#a78bfa">
+        <span class="mk-tile-cap">Caricamento</span>
+        <h4 class="mk-tile-name">Carica JSON</h4>
+        <p class="mk-tile-desc">Ripristina da un file .json del Sigillo</p>
+        <button class="mk-price" onclick="window.__kaizen.uploadSigilloFile()">
+          <span class="mk-price-row"><span class="mk-price-lbl">&#8679; Scegli File</span></span>
         </button>
       </article>
     </div>
 
-    <details class="mk-shop" open>
+    <!-- 3. ANNALI / CRONOLOGIA -->
+    <details class="mk-shop">
       <summary>
         <span class="mk-shop-num">Annali · Ultime 48h</span>
         <span class="mk-shop-name">Cronologia</span>
@@ -1753,15 +2038,43 @@ body::before {
       </div>
     </details>
 
-    <div class="mk-group"><span>II · Colophon</span></div>
+    <!-- Configurazione Avanzata Firebase (opzionale, chiusa di default) -->
+    <details class="mk-shop" style="margin-top:8px">
+      <summary>
+        <span class="mk-shop-num">Parametri Firebase</span>
+        <span class="mk-shop-name">Progetto Collegato</span>
+        <span id="sync-firebase-project-id" class="mk-shop-tag">kaizen-rpg-68262</span>
+        <span class="mk-shop-toggle" aria-hidden="true"></span>
+      </summary>
+      <div class="mk-shop-body" style="padding:10px 12px">
+        <div class="mk-note" style="margin-bottom:6px">Configurazione predefinita attiva su <b>kaizen-rpg-68262</b>. Puoi incollare un oggetto JSON personalizzato solo se desideri cambiare progetto Firebase.</div>
+        <label for="sync-custom-cfg-input" style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#c4b59d;display:block">JSON Configurazione Personalizzata</label>
+        <textarea id="sync-custom-cfg-input" class="sync-cfg-textarea" spellcheck="false" placeholder='{"apiKey":"...","projectId":"..."}'></textarea>
+        <div class="mk-tabs mk-tabs--2" style="margin-top:8px">
+          <button type="button" class="mk-tab is-on" onclick="window.__kaizen.saveCustomFirebaseConfig()">Salva Config</button>
+          <button type="button" class="mk-tab" onclick="window.__kaizen.restoreDefaultFirebaseConfig()">Ripristina Default</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 4. INFO -->
+    <div class="mk-group"><span>Info</span></div>
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.65</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.66</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
-        <div id="app-release" class="mk-vital-val" style="color:var(--gold-light)">29/10/2026</div>
+        <div id="app-release" class="mk-vital-val" style="color:var(--gold-light)">05/11/2026</div>
+      </div>
+      <div class="mk-vital">
+        <span class="mk-vital-cap">Sincronizzazione</span>
+        <div id="settings-cloud-short" class="mk-vital-val" style="color:#4ecca3">Attivo</div>
+      </div>
+      <div class="mk-vital">
+        <span class="mk-vital-cap">Memoria Locale</span>
+        <div id="settings-storage-size" class="mk-vital-val">—</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Autore</span>
@@ -1786,6 +2099,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.65"></script>
+<script type="module" src="js/main.js?v=6.66"></script>
 </body>
 </html>

@@ -3,7 +3,9 @@
  KAIZEN v6.37
  ============================================================ */
 
-import { store } from "./state.js";
+import { store, STORAGE_KEY } from "./state.js";
+import { syncState } from "./sync.js";
+import { getFirebaseConfig, hasCustomFirebaseConfig } from "./firebase-config.js";
 import { HABITS, STAT_DEFS, rankTitles,
          BESTIARY, TREASURES, RELICS,
          EQUIPMENT_POOL, AREA_LOOT_POOL,
@@ -44,6 +46,7 @@ export function render() {
   renderBacheca(state, w);
   renderShop();
   renderLog(state);
+  renderSettings(state);
 }
 
 /* ── Pagina ABITUDINI ── */
@@ -786,4 +789,159 @@ export function showAllAreaQuests() {
 
   document.getElementById("all-quests-overlay")?.remove();
   document.body.insertAdjacentHTML("beforeend", html);
+}
+
+
+/* ── Sincronizzazione e Info in Impostazioni ── */
+export function renderSettings(state = store.state) {
+  const statusCard = document.getElementById("sync-status-card");
+  if (!statusCard) return;
+
+  const st = syncState.status;
+  const u = syncState.user;
+
+  let badgeLabel = "Connessione...";
+  let dotColor = "#f0b429";
+  let accColor = "#df784b";
+  let cloudShort = "Connessione";
+
+  if (st === "synced") {
+    badgeLabel = "Sincronizzato in tempo reale";
+    dotColor = "#4ecca3";
+    accColor = "#4ecca3";
+    cloudShort = "Attivo";
+  } else if (st === "syncing") {
+    badgeLabel = "Sincronizzazione in corso...";
+    dotColor = "#f0b429";
+    accColor = "#f0b429";
+    cloudShort = "In corso";
+  } else if (st === "offline") {
+    badgeLabel = u ? "Offline · Salvataggio locale attivo" : "Sessione locale · Non connesso";
+    dotColor = "#c4675d";
+    accColor = "#8b7b5c";
+    cloudShort = "Locale";
+  } else if (st === "error") {
+    badgeLabel = "Attenzione · Salvataggio locale attivo";
+    dotColor = "#e0533d";
+    accColor = "#e0533d";
+    cloudShort = "Locale";
+  }
+
+  statusCard.style.setProperty("--acc", accColor);
+
+  const dotEl = document.getElementById("sync-status-dot");
+  if (dotEl) {
+    dotEl.style.background = dotColor;
+    dotEl.style.boxShadow = `0 0 8px ${dotColor}`;
+  }
+
+  const badgeEl = document.getElementById("sync-status-label");
+  if (badgeEl) {
+    badgeEl.textContent = badgeLabel;
+    badgeEl.style.color = dotColor;
+  }
+
+  const acctTitleEl = document.getElementById("sync-account-title");
+  const acctSubEl = document.getElementById("sync-account-sub");
+  if (acctTitleEl && acctSubEl) {
+    if (!u) {
+      acctTitleEl.textContent = "Nessun profilo attivo";
+      acctSubEl.textContent = "Attiva la sessione rapida o accedi con il tuo account per sincronizzare i progressi.";
+    } else if (u.isAnonymous) {
+      const shortUid = u.uid.slice(0, 6).toUpperCase();
+      acctTitleEl.textContent = `Sessione Rapida · #${shortUid}`;
+      acctSubEl.textContent = "Sincronizzazione automatica attiva su questo dispositivo. Collega Google o un'Email per usarla su più dispositivi.";
+    } else if (u.providerId === "google.com") {
+      acctTitleEl.textContent = u.displayName || u.email || "Account Google";
+      acctSubEl.textContent = `Profilo Google collegato${u.email ? ` (${u.email})` : ""} · ID #${u.uid.slice(0, 6).toUpperCase()}`;
+    } else {
+      acctTitleEl.textContent = u.email || "Account Email";
+      acctSubEl.textContent = `Profilo Email collegato · ID #${u.uid.slice(0, 6).toUpperCase()}`;
+    }
+  }
+
+  const lastSyncEl = document.getElementById("sync-last-time");
+  if (lastSyncEl) {
+    const ts = syncState.lastSyncAt || state?._updatedAt;
+    lastSyncEl.textContent = ts ? `Ultimo salvataggio: ${formatDate(ts)}` : "Ultimo salvataggio: in attesa";
+  }
+
+  const errBox = document.getElementById("sync-error-box");
+  if (errBox) {
+    if (syncState.errorMsg) {
+      errBox.style.display = "block";
+      errBox.textContent = syncState.errorMsg;
+    } else {
+      errBox.style.display = "none";
+      errBox.textContent = "";
+    }
+  }
+
+  const btnAnon = document.getElementById("sync-btn-anon");
+  const btnForce = document.getElementById("sync-btn-force");
+  const btnGoogle = document.getElementById("sync-btn-google");
+  const btnEmailToggle = document.getElementById("sync-btn-email-toggle");
+  const btnLogout = document.getElementById("sync-btn-logout");
+
+  const isPermanentUser = !!(u && !u.isAnonymous);
+
+  if (btnAnon) btnAnon.style.display = !u ? "inline-flex" : "none";
+  if (btnForce) btnForce.style.display = u ? "inline-flex" : "none";
+  if (btnGoogle) {
+    btnGoogle.style.display = isPermanentUser ? "none" : "inline-flex";
+    const gSpan = btnGoogle.querySelector("span");
+    if (gSpan) gSpan.textContent = u?.isAnonymous ? "G · Collega Account Google" : "G · Accedi con Google";
+  }
+  if (btnEmailToggle) {
+    btnEmailToggle.style.display = isPermanentUser ? "none" : "inline-flex";
+    btnEmailToggle.setAttribute("aria-expanded", String(!!syncState.emailPanelOpen));
+    const eSpan = btnEmailToggle.querySelector("span");
+    if (eSpan) eSpan.textContent = u?.isAnonymous ? "✉ · Collega o Accedi con Email" : "✉ · Accedi / Registrati con Email";
+  }
+  if (btnLogout) {
+    btnLogout.style.display = isPermanentUser ? "inline-flex" : "none";
+  }
+
+  const emailPanel = document.getElementById("sync-email-panel");
+  if (emailPanel) {
+    emailPanel.style.display = (!isPermanentUser && syncState.emailPanelOpen) ? "block" : "none";
+  }
+
+  const tabLogin = document.getElementById("sync-tab-login");
+  const tabReg = document.getElementById("sync-tab-register");
+  const pwdInput = document.getElementById("sync-password-input");
+  const submitBtn = document.getElementById("sync-email-submit-btn");
+
+  const isReg = syncState.emailMode === "register";
+  if (tabLogin) tabLogin.classList.toggle("is-on", !isReg);
+  if (tabReg) tabReg.classList.toggle("is-on", isReg);
+  if (pwdInput) pwdInput.setAttribute("autocomplete", isReg ? "new-password" : "current-password");
+  if (submitBtn) {
+    submitBtn.textContent = isReg
+      ? (u?.isAnonymous ? "Registra e Collega Email" : "Crea Account con Email")
+      : "Accedi con Email";
+  }
+
+  const projEl = document.getElementById("sync-firebase-project-id");
+  if (projEl) {
+    const cfg = getFirebaseConfig();
+    projEl.textContent = `${cfg.projectId || "—"}${hasCustomFirebaseConfig() ? " (Personalizzato)" : ""}`;
+  }
+
+  const memEl = document.getElementById("settings-storage-size");
+  if (memEl) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || "";
+      const kb = (new Blob([raw]).size / 1024).toFixed(1);
+      memEl.textContent = `${kb} KB`;
+    } catch {
+      memEl.textContent = "—";
+    }
+  }
+
+  const cloudShortEl = document.getElementById("settings-cloud-short");
+  if (cloudShortEl) {
+    cloudShortEl.textContent = cloudShort;
+    cloudShortEl.style.color = dotColor;
+  }
 }
