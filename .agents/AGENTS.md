@@ -8,3 +8,7 @@ Queste informazioni sono memorizzate all'inizio del file `js/data.js` tramite le
 - `APP_RELEASE`
 
 Assicurati che queste costanti siano aggiornate con la nuova versione e la data odierna in formato `GG/MM/AAAA`.
+
+## Commit e Push Automatico
+Al termine di ogni modifica o task completato, esegui sempre automaticamente `git commit` (con messaggio descrittivo) e `git push` verso il repository remoto.
+

@@ -391,15 +391,34 @@ function renderBacheca(state, w) {
   const trophyEl = document.getElementById("trophy-list");
   if (trophyEl) {
     const allQuests = [...QUEST_POOL_EVO, ...QUEST_POOL_WORLD];
-    const entries = Object.entries(state.trophies);
-    if (!entries.length) {
+    const entries = Object.entries(state.trophies || {});
+    const validEntries = entries
+      .filter(([id, count]) => Number(count) > 0)
+      .map(([id, count]) => {
+        const q = allQuests.find(x => x.id === id) ||
+          (id === "day_perfect" ? { text: "Sole Invincibile", desc: "Completa tutte le abitudini in un singolo giorno", target: 1, type: "day", id } : { text: id, id });
+        const isWorld = id.startsWith("w") || QUEST_POOL_WORLD.some(x => x.id === id);
+        return {
+          id,
+          count: Number(count),
+          q,
+          isWorld
+        };
+      });
+
+    if (!validEntries.length) {
       trophyEl.innerHTML = `<div class="mk" style="grid-column:1/-1;"><div class="mk-empty">Nessun trofeo ancora inciso nella bacheca.</div></div>`;
     } else {
-      trophyEl.innerHTML = entries.map(([id, count]) => {
-        const q = allQuests.find(x => x.id === id) ||
-          (id === "day_perfect" ? { text: "Sole Invincibile", id } : null);
-        if (!q) return "";
-        const isWorld = QUEST_POOL_WORLD.some(x => x.id === id);
+      const evoList = validEntries.filter(x => !x.isWorld);
+      const worldList = validEntries.filter(x => x.isWorld);
+
+      // Ordina per quantità vinta decrescente (a parità, alfabetico per nome)
+      const sortByCount = (a, b) => (b.count - a.count) || a.q.text.localeCompare(b.q.text);
+      evoList.sort(sortByCount);
+      worldList.sort(sortByCount);
+
+      const renderTile = (item) => {
+        const { id, count, q, isWorld } = item;
         const cap = id === "day_perfect" ? "Giornata Perfetta" : isWorld ? "Impresa del Mondo" : "Impresa d'Evoluzione";
         const acc = id === "day_perfect" ? "var(--gold-light)" : isWorld ? "#a78bfa" : "#df784b";
         return `
@@ -409,7 +428,22 @@ function renderBacheca(state, w) {
           <div class="mk-tile-big">×${count}</div>
           <div class="mk-tile-desc" style="margin-bottom:0">tocca per consultare</div>
         </div>`;
-      }).join("");
+      };
+
+      const evoCardsHTML = evoList.length
+        ? evoList.map(renderTile).join("")
+        : `<div class="mk-empty" style="grid-column:1/-1;">Nessun trofeo d'Evoluzione ancora conquistato.</div>`;
+
+      const worldCardsHTML = worldList.length
+        ? worldList.map(renderTile).join("")
+        : `<div class="mk-empty" style="grid-column:1/-1;">Nessun trofeo del Mondo Esterno ancora conquistato.</div>`;
+
+      trophyEl.innerHTML = `
+        <div class="mk-group" style="grid-column:1/-1;margin-top:0;">Evoluzione (${evoList.length})</div>
+        ${evoCardsHTML}
+        <div class="mk-group" style="grid-column:1/-1;margin-top:20px;">Mondo Esterno (${worldList.length})</div>
+        ${worldCardsHTML}
+      `;
     }
   }
 
@@ -713,7 +747,7 @@ export function showTrophyDetail(questId) {
     (questId === "day_perfect" ? { text: "Sole Invincibile", desc: "Completa tutte le abitudini in un singolo giorno", target: 1, type: "day" } : null);
   if (!q) return;
   const count = store.state.trophies[questId] || 0;
-  const isWorld = QUEST_POOL_WORLD.some(x => x.id === questId);
+  const isWorld = questId.startsWith("w") || QUEST_POOL_WORLD.some(x => x.id === questId);
   const cap = questId === "day_perfect" ? "Trofeo Giornaliero" : isWorld ? "Trofeo del Mondo" : "Trofeo d'Evoluzione";
 
   const box = document.getElementById("detail-modal-box");
