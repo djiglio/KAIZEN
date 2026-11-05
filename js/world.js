@@ -1,7 +1,7 @@
 /* ============================================================
- world.js — Mondo Esterno v6.1
+ world.js — Mondo Esterno v6.71
  PV/PA, regen, combattimento con schivate e critici,
- fuga basata su furtività, bottini, nemici con equip
+ fuga basata su furtività, bottini, nemici umanoidi con equip a 6 slot
  ============================================================ */
 
 import { store, save, saveLocalOnly } from "./state.js";
@@ -100,51 +100,68 @@ export function getMinsPerPA() {
  return pianificazione;
 }
 
-/* ── Genera equip casuale per nemici umanoidi ── */
+/* ── Genera equip casuale per nemici umanoidi (6 slot + regole 1H/2H) ── */
 function generateEnemyEquip(enemy) {
- if (!enemy.human) return null;
- const lvl = enemy.lvl || 1;
- const prob = Math.min(0.90, 0.25 + (lvl / 150) * 0.65);
- if (Math.random() > prob) return null;
+  if (!enemy.human) return null;
+  const lvl = enemy.lvl || 1;
+  const prob = Math.min(0.92, 0.45 + (lvl / 150) * 0.45);
+  if (Math.random() > prob) return null;
 
- const maxPieces = Math.min(4, 1 + Math.floor(lvl / 40));
- const numPieces = rnd(1, maxPieces);
- const slots = ["arma","elmo","scudo","corazza","gambali","bracciali"]
- .sort(() => Math.random() - 0.5)
- .slice(0, numPieces);
+  const maxPieces = Math.min(4, 1 + Math.floor(lvl / 35));
+  const numPieces = rnd(1, maxPieces);
+  const slots = ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, numPieces);
 
- const eqTier = Math.max(1, Math.min(10, Math.ceil(lvl / 15)));
- const equip = {};
- for (const slot of slots) {
- const pool = EQUIPMENT_POOL.filter(e =>
- e.slot === slot &&
- (e.tier === eqTier || e.tier === Math.max(1, eqTier - 1))
- );
- if (pool.length) equip[slot] = pool[rnd(0, pool.length - 1)];
- }
- return Object.keys(equip).length ? equip : null;
+  const eqTier = Math.max(1, Math.min(10, Math.ceil(lvl / 15)));
+  const equip = {};
+  for (const slot of slots) {
+    const basePool = EQUIPMENT_POOL.filter(e => {
+      const tierOk = e.tier === eqTier || e.tier === Math.max(1, eqTier - 1);
+      if (!tierOk) return false;
+      if (slot === "mano_sx") {
+        // Nella mano sinistra gli umanoidi possono portare uno scudo o una seconda arma a 1 mano
+        return e.slot === "mano_sx" || (e.slot === "mano_dx" && e.handType === "1h");
+      }
+      return e.slot === slot;
+    });
+    if (!basePool.length) continue;
+
+    // I nemici umanoidi portano spesso pezzi rari/magici/leggendari ("loot"), oltre a pezzi comuni
+    const lootPool = basePool.filter(e => e.fonte.includes("loot"));
+    const chosenPool = (lootPool.length > 0 && Math.random() < 0.65) ? lootPool : basePool;
+    equip[slot] = chosenPool[rnd(0, chosenPool.length - 1)];
+  }
+
+  // Se il nemico impugna un'arma a 2 mani in mano_dx, non può usare mano_sx
+  if (equip.mano_dx && equip.mano_dx.handType === "2h") {
+    delete equip.mano_sx;
+  }
+
+  return Object.keys(equip).length ? equip : null;
 }
 
-/* ── Statistiche nemico con equip ── */
+/* ── Statistiche nemico con equip (inclusi bonus e malus) ── */
 function getEnemyStats(enemy, equip) {
- let bonusAtk = 0, bonusDef = 0, bonusVel = 0, bonusCrit = 0;
- if (equip) {
- for (const piece of Object.values(equip)) {
- if (piece.bonus.attacco) bonusAtk += piece.bonus.attacco;
- if (piece.bonus.difesa) bonusDef += piece.bonus.difesa;
- if (piece.bonus.velocita) bonusVel += piece.bonus.velocita;
- if (piece.bonus.critico) bonusCrit += piece.bonus.critico;
- }
- }
- return {
- forza: enemy.forza + bonusAtk,
- velocita: enemy.velocita + bonusVel,
- destrezza: enemy.destrezza,
- critico: Math.min(80, enemy.critico + bonusCrit),
- costituzione: enemy.costituzione,
- bonusDef,
- bonusAtk,
- };
+  let bonusAtk = 0, bonusDef = 0, bonusVel = 0, bonusDes = 0, bonusCrit = 0;
+  if (equip) {
+    for (const piece of Object.values(equip)) {
+      if (piece.bonus.attacco)   bonusAtk  += piece.bonus.attacco;
+      if (piece.bonus.difesa)    bonusDef  += piece.bonus.difesa;
+      if (piece.bonus.velocita)  bonusVel  += piece.bonus.velocita;
+      if (piece.bonus.destrezza) bonusDes  += piece.bonus.destrezza;
+      if (piece.bonus.critico)   bonusCrit += piece.bonus.critico;
+    }
+  }
+  return {
+    forza: Math.max(1, enemy.forza + bonusAtk),
+    velocita: Math.max(1, enemy.velocita + bonusVel),
+    destrezza: Math.max(0, Math.min(75, enemy.destrezza + bonusDes)),
+    critico: Math.max(0, Math.min(80, enemy.critico + bonusCrit)),
+    costituzione: enemy.costituzione,
+    bonusDef: Math.max(0, bonusDef),
+    bonusAtk,
+  };
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -413,16 +430,14 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  (hp > 60 ? "" : hp > 30 ? " mid" : " low");
  }
 
- const eqArmaObj = store.state.equipment?.equipped?.arma;
- const eqArmaId = typeof eqArmaObj === "string" ? eqArmaObj : eqArmaObj?.id;
- const heroWeapon = eqArmaId ? EQUIPMENT_POOL.find(e => e.id === eqArmaId)?.name : null;
-  const eqOf = slot => {
-  const o = store.state.equipment?.equipped?.[slot];
-  const id = typeof o === "string" ? o : o?.id;
-  return id ? EQUIPMENT_POOL.find(e => e.id === id)?.name || null : null;
-  };
-  const heroArmor = eqOf("scudo") || eqOf("corazza") || eqOf("elmo") || eqOf("gambali") || eqOf("bracciali");
-  const narrator = createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor });
+ const eqOf = slot => {
+   const o = store.state.equipment?.equipped?.[slot];
+   const id = typeof o === "string" ? o : o?.id;
+   return id ? EQUIPMENT_POOL.find(e => e.id === id)?.name || null : null;
+ };
+ const heroWeapon = eqOf("mano_dx") || eqOf("mano_sx");
+ const heroArmor = eqOf("mano_sx") || eqOf("torace") || eqOf("testa") || eqOf("gambe") || eqOf("braccia");
+ const narrator = createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor });
 
  let i = 0;
  function showNextTurn() {
@@ -515,10 +530,9 @@ window.__closeCombat = closeCombatModal;
 function pickEnemyForArea(areaId) {
   const wp = store.state.world.worldProgress;
   let pool = getEnemiesForArea(areaId);
-  // Nell'Empireo filtra i dei già sconfitti
   if (areaId === "empireo") {
     pool = pool.filter(g => !wp.deiSconfitti.includes(g.id));
-    if (!pool.length) return null; // tutti i dei sono morti
+    if (!pool.length) return null;
   }
   return pool[rnd(0, pool.length - 1)];
 }
@@ -526,20 +540,6 @@ function pickEnemyForArea(areaId) {
 function pickEnemy() { return BESTIARY[rnd(0, BESTIARY.length - 1)]; }
 function pickTreasure() { return TREASURES[rnd(0, TREASURES.length - 1)]; }
 function pickRelic() { return RELICS[rnd(0, RELICS.length - 1)]; }
-
-function pickEquipmentLoot(enemyLvl, fortunaStat) {
- const dropChance = Math.min(0.65, 0.04 + (enemyLvl / 150) * 0.55 + fortunaStat * 0.005);
- if (Math.random() > dropChance) return null;
- const slots = ["arma","elmo","scudo","corazza","gambali","bracciali"];
- const slot = slots[rnd(0, slots.length - 1)];
- const eqTier = Math.max(1, Math.min(10, Math.ceil(enemyLvl / 15)));
- const pool = EQUIPMENT_POOL.filter(e =>
- e.slot === slot && e.fonte.includes("loot") &&
- (e.tier === eqTier || e.tier === Math.max(1, eqTier - 1))
- );
- if (!pool.length) return null;
- return pool[rnd(0, pool.length - 1)];
-}
 
 /* ══════════════════════════════════════════════════════════
  ESEGUI MISSIONE (entry point)
@@ -550,15 +550,13 @@ export function runMission() {
   const wp = w.worldProgress || {};
   const heroS = getHeroStats();
 
-  // Area corrente e config
-  // Inizializza worldProgress se mancante
   if (!w.worldProgress) {
     w.worldProgress = {
       areaCorrente: "foresta", areeSbloccate: ["foresta"],
       missioniPerArea: {}, deniariPerArea: {}, spedizioniPerArea: {},
       uccisioniPerAreaEnemyName: {}, lottiPerArea: {},
       deiSconfitti: [], bottiniDivini: [], trofeiEmpirei: [], gameCompleted: false,
-  };
+    };
   }
   const areaId  = wp.areaCorrente || "foresta";
   const areaCfg = WORLD_AREAS.find(a => a.id === areaId) || WORLD_AREAS[0];
@@ -569,7 +567,6 @@ export function runMission() {
   if (w.pvAttuali < heroS.pvMax * 0.5) { showToast("⚠️ Recupera le forze! (50% HP)"); return; }
   if (w.paAttuali < costoPA) { showToast(`⚡ Punti Azione insufficienti (${costoPA})!`); return; }
 
-  // Empireo: blocca se tutti i dei sono morti
   if (areaId === "empireo") {
     const deiRimasti = EMPIREO_GODS.filter(g => !(wp.deiSconfitti || []).includes(g.id));
     if (!deiRimasti.length) { showToast("✨ Tutti gli dei sono stati sconfitti!"); return; }
@@ -578,10 +575,7 @@ export function runMission() {
   w.denari    -= costoOro;
   w.paAttuali -= costoPA;
 
-  // Missioni area — evento spedizione
   updateAreaQuests([{ type: "spedizione", areaId }]);
-
-  // Tracker quest settimanale
   updateWorldQuests("mission", {});
 
   const roll = Math.random();
@@ -596,7 +590,6 @@ export function runMission() {
     const enemyEquip = generateEnemyEquip(enemy);
     w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0) + 1;
 
-    // Tracker unique enemies
     if (!state.world.wq) state.world.wq = {};
     if (!Array.isArray(state.world.wq.unique_enemies)) state.world.wq.unique_enemies = [];
     if (!state.world.wq.unique_enemies.includes(enemy.id)) {
@@ -605,7 +598,6 @@ export function runMission() {
     updateWorldQuests("unique_enemy", { id: enemy.id });
     save();
 
-    // Mostra pre-combat con opzione fuga
     showPreCombat(
       enemy, enemyEquip,
       /* onFight */ () => executeCombat(enemy, enemyEquip),
@@ -649,7 +641,6 @@ function executeFlee(enemy, fleeChance) {
     w.missioniLog.unshift({ tipo:"fled", nome:enemy.name, denari:0, t:Date.now() });
     addHistory(` Fuggito da ${enemy.name}`, "combat");
   } else {
-    // Fuga fallita → combattimento forzato
     inner.innerHTML = `
     <div class="combat-header"> FUGA FALLITA</div>
     <div class="combat-sub">${enemy.name} ti blocca la via!</div>
@@ -672,11 +663,9 @@ function executeFlee(enemy, fleeChance) {
 function pickAreaLoot(areaId, fortunaStat) {
   const pool = AREA_LOOT_POOL[areaId];
   if (!pool || !pool.length) return null;
-  // 30% base chance + fortuna bonus, independent of equipment loot
   const chance = Math.min(0.35, 0.15 + fortunaStat * 0.005);
   if (Math.random() > chance) return null;
-  // Weight by rarity (lower rarity = more common)
-  const weights = pool.map(item => 6 - item.rarity); // rarity 1→5, weight 5→1
+  const weights = pool.map(item => 6 - item.rarity);
   const total = weights.reduce((a,b) => a+b, 0);
   let r = Math.random() * total;
   for (let i = 0; i < pool.length; i++) {
@@ -700,9 +689,9 @@ function executeCombat(enemy, enemyEquip) {
   w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
   w.pvAttuali = result.heroHPFinal;
 
-  // Usura equipaggiamento
+  // Usura equipaggiamento sui 6 slot
   const degradeRates = [0, 10, 9, 8, 7, 6, 5, 4, 4, 3, 2]; // Indice = Tier
-  for (const slot of ["arma", "elmo", "scudo", "corazza", "gambali", "bracciali"]) {
+  for (const slot of ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"]) {
     const eqObj = state.equipment.equipped[slot];
     if (!eqObj) continue;
     const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
@@ -728,45 +717,26 @@ function executeCombat(enemy, enemyEquip) {
     w.deniariTotaliGuadagnati += reward;
     w.nemiciAbbattuti[enemy.id] = (w.nemiciAbbattuti[enemy.id] || 0) + 1;
 
-    // Aggiorna tracker quest
     updateWorldQuests("kill", { tags: enemy.tags || [], lvl: enemy.lvl, human: enemy.human });
     updateWorldQuests("denari", { value: reward });
 
     let _areaLootItemsCount = 0;
 
-    // Loot equipaggiamento
-    loot = pickEquipmentLoot(enemy.lvl, heroS.fortuna);
-    if (loot) {
-      state.equipment.zaino.push({ id: loot.id, type: "equip" });
-      _areaLootItemsCount++;
-      if (loot.prezzo) updateWorldQuests("loot", { value: loot.prezzo });
-      if (loot.tier >= 4) updateWorldQuests("rare_find", {});
-      if (!state.world.wq.unique_finds.includes(loot.id)) {
-        state.world.wq.unique_finds.push(loot.id);
-      }
-      updateWorldQuests("unique_find", { id: loot.id });
-      addHistory(` Loot: ${loot.icon} ${loot.name} → zaino`, "world");
-    }
-
-    // Razzia equip nemico umano
+    // Razzia equip nemico umanoide sconfitto (unico modo per ottenere armi/armature in missione)
     const enemyEquipPieces = enemyEquip ? Object.values(enemyEquip) : [];
     if (enemyEquipPieces.length > 0 && result.victory) {
       for (const piece of enemyEquipPieces) {
-        state.equipment.zaino.push({ id: piece.id, type: "equip" });
+        state.equipment.zaino.push({ id: piece.id, type: "equip", dur: 100 });
         _areaLootItemsCount++;
         if (piece.prezzo) updateWorldQuests("loot", { value: piece.prezzo });
-        if ((piece.tier || 0) >= 4) updateWorldQuests("rare_find", {});
+        if ((piece.tier || 0) >= 4 || piece.rarita !== "comune") updateWorldQuests("rare_find", {});
         if (!state.world.wq.unique_finds.includes(piece.id)) {
           state.world.wq.unique_finds.push(piece.id);
         }
         updateWorldQuests("unique_find", { id: piece.id });
       }
       const names = enemyEquipPieces.map(p => p.name).join(", ");
-      addHistory(` Razziato: ${names}`, "world");
-    }
-
-    // "Ottieni equipaggiamento da X nemici sconfitti": +1 per nemico sconfitto che rilascia equipaggiamento
-    if (loot || enemyEquipPieces.length > 0) {
+      addHistory(` Razziato da ${enemy.name}: ${names}`, "world");
       updateWorldQuests("equip_loot", { count: 1 });
     }
 
@@ -853,8 +823,8 @@ function executeDiscovery() {
   updateWorldQuests("discovery", {});
   updateWorldQuests("no_damage", {});
 
-  if (tr < 0.18) {
-    // Reliquia
+  if (tr < 0.20) {
+    // Reliquia (20%)
     const rel = pickRelic();
     state.equipment.zaino.push({ id: rel.id, type: "relic" });
     updateWorldQuests("relic", {});
@@ -868,26 +838,7 @@ function executeDiscovery() {
     w.missioniLog.unshift({ tipo: "relic", nome: rel.name, denari: 0, t: Date.now() });
     addHistory(` Reliquia: ${rel.icon} ${rel.name} — ${rel.desc}`, "world");
     showToast(`${rel.icon} Reliquia: ${rel.name}!`);
-  } else if (tr < 0.35) {
-    // Equipaggiamento da esplorazione
-    const pool = EQUIPMENT_POOL.filter(e => e.fonte.includes("esplorazione"));
-    if (pool.length) {
-      const piece = pool[rnd(0, pool.length - 1)];
-      state.equipment.zaino.push({ id: piece.id, type: "equip" });
-      if (piece.prezzo) updateWorldQuests("loot", { value: piece.prezzo });
-      if (piece.tier >= 4) updateWorldQuests("rare_find", {});
-      if (!state.world.wq.unique_finds.includes(piece.id)) {
-        state.world.wq.unique_finds.push(piece.id);
-      }
-      updateWorldQuests("unique_find", { id: piece.id });
-      updateAreaQuests([{ type: "loot", areaId: currentArea, lootCount: 1, denari: 0 }]);
-      w.missioniLog.unshift({ tipo: "equip", nome: piece.name, denari: 0, t: Date.now() });
-      addHistory(` Trovato: ${piece.icon} ${piece.name} → zaino`, "world");
-      showToast(`${piece.icon} ${piece.name} trovato!`);
-    } else {
-      pickTreasureReward();
-    }
-  } else if (tr < 0.80) {
+  } else if (tr < 0.65) {
     // Bottino d'area / tesoro (45%)
     const aLoot = pickAreaLoot(currentArea, heroS.fortuna);
     if (aLoot) {
@@ -910,7 +861,7 @@ function executeDiscovery() {
       pickTreasureReward();
     }
   } else {
-    // Materiali (20%)
+    // Materiali per il Fabbro e la Forgia (35%)
     const areaMats = MATERIALS.filter(m => m.areaId === currentArea);
     if (areaMats.length > 0) {
       areaMats.sort((a, b) => a.rarity - b.rarity);
@@ -944,7 +895,6 @@ function pickTreasureReward() {
   const w = state.world;
   const heroS = getHeroStats();
   const t = pickTreasure();
-  // Fortuna aumenta il valore del bottino fino al +80%
   const fortunaBonus = 1 + (heroS.fortuna * 0.008);
   const v = Math.round(rnd(t.minV, t.maxV) * fortunaBonus);
   w.denari += v;
@@ -954,11 +904,9 @@ function pickTreasureReward() {
   updateWorldQuests("loot", { value: v });
   updateWorldQuests("denari", { value: v });
   if ((t.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
-  // Missioni area — loot
   const _areaLoot = store.state.world.worldProgress?.areaCorrente || "foresta";
   updateAreaQuests([{ type: "loot", areaId: _areaLoot, lootCount: 1, denari: v }]);
 
-  // Oggetto unico per unique_finds
   if (!state.world.wq.unique_finds.includes(t.id)) {
     state.world.wq.unique_finds.push(t.id);
   }

@@ -4,7 +4,7 @@
  ============================================================ */
 
 import { showToast } from "./ui.js";
-import { AREA_LOOT_POOL, APP_VERSION } from "./data.js";
+import { AREA_LOOT_POOL, APP_VERSION, EQUIPMENT_POOL } from "./data.js";
 
 export const STORAGE_KEY = "kaizenV6_0";
 
@@ -34,8 +34,8 @@ const defaultHabits = () => ({
 });
 
 const defaultEquipment = () => ({
-  equipped: { arma:null, elmo:null, scudo:null, corazza:null, gambali:null, bracciali:null },
-  zaino: [], // array di { id, type } dove type = "equip"|"relic"
+  equipped: { testa: null, torace: null, braccia: null, mano_dx: null, mano_sx: null, gambe: null },
+  zaino: [], // array di { id, type } dove type = "equip"|"relic"|"material"
 });
 
 const defaultWorld = () => ({
@@ -149,12 +149,47 @@ export function migrate(p) {
     }
   }
   if (!p.equipment.equipped) p.equipment.equipped = defaultEquipment().equipped;
-  for (const slot of ["arma","elmo","scudo","corazza","gambali","bracciali"]) {
+  if (!p.equipment.zaino) p.equipment.zaino = [];
+
+  // Migrazione vecchi slot (v6.70 -> v6.71)
+  const legacyMap = {
+    elmo: "testa",
+    corazza: "torace",
+    bracciali: "braccia",
+    arma: "mano_dx",
+    scudo: "mano_sx",
+    gambali: "gambe",
+  };
+  for (const [oldSlot, newSlot] of Object.entries(legacyMap)) {
+    if (oldSlot in p.equipment.equipped) {
+      if (p.equipment.equipped[oldSlot] && !p.equipment.equipped[newSlot]) {
+        p.equipment.equipped[newSlot] = p.equipment.equipped[oldSlot];
+      }
+      delete p.equipment.equipped[oldSlot];
+    }
+  }
+
+  for (const slot of ["testa","torace","braccia","mano_dx","mano_sx","gambe"]) {
     if (!(slot in p.equipment.equipped)) p.equipment.equipped[slot] = null;
     else if (typeof p.equipment.equipped[slot] === "string") {
       p.equipment.equipped[slot] = { id: p.equipment.equipped[slot], dur: 100 };
     } else if (p.equipment.equipped[slot] && p.equipment.equipped[slot].dur === undefined) {
       p.equipment.equipped[slot].dur = 100;
+    }
+  }
+
+  // Se l'arma impugnata nella mano destra è a 2 mani ("2h"), sposta eventuale oggetto in mano sinistra nello zaino
+  if (p.equipment.equipped.mano_dx && p.equipment.equipped.mano_sx) {
+    const dxPiece = EQUIPMENT_POOL.find(e => e.id === p.equipment.equipped.mano_dx.id);
+    if (dxPiece && dxPiece.handType === "2h") {
+      const sxObj = p.equipment.equipped.mano_sx;
+      p.equipment.zaino.push({
+        id: sxObj.id,
+        type: "equip",
+        dur: sxObj.dur !== undefined ? sxObj.dur : 100,
+        ...(sxObj.rivestimento ? { rivestimento: sxObj.rivestimento } : {}),
+      });
+      p.equipment.equipped.mano_sx = null;
     }
   }
   if (!p.equipment.zaino) p.equipment.zaino = [];

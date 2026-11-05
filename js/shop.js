@@ -1,11 +1,15 @@
 /* ============================================================
- shop.js — Negozio: pozioni, equipaggiamento, reliquie
- KAIZEN v6.0
+ shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
+ equipaggiamento a 6 slot e zaino
+ KAIZEN v6.71
  ============================================================ */
 
 import { store, save } from "./state.js";
-import { POTIONS, EQUIPMENT_POOL,
- RELICS, AREA_LOOT_POOL, MATERIALS, MATERIAL_COATING_CONFIG, calculateCoatingCost, getCoatingBonus, getCoatingWearReduction } from "./data.js";
+import {
+  POTIONS, EQUIPMENT_POOL,
+  RELICS, AREA_LOOT_POOL, MATERIALS, MATERIAL_COATING_CONFIG,
+  calculateCoatingCost, getCoatingBonus, getCoatingWearReduction
+} from "./data.js";
 import { showToast } from "./ui.js";
 import { resolveImgs } from "./img.js";
 import { getHeroStats } from "./engine.js";
@@ -13,253 +17,374 @@ import { getMinsPerPV, getMinsPerPA } from "./world.js";
 
 /* ── Prezzo scontato ── */
 export function discountedPrice(base, discountPct) {
- return Math.max(1, Math.round(base * (1 - discountPct / 100)));
+  return Math.max(1, Math.round(base * (1 - discountPct / 100)));
 }
 
 /* ── Acquisto pozione ── */
 export function buyPotion(potId) {
- const potion = POTIONS.find(p => p.id === potId);
- if (!potion) return;
- const state = store.state;
- const w = state.world;
- const heroS = getHeroStats();
- const finalPrice = discountedPrice(potion.prezzo, heroS.shopDiscount);
+  const potion = POTIONS.find(p => p.id === potId);
+  if (!potion) return;
+  const state = store.state;
+  const w = state.world;
+  const heroS = getHeroStats();
+  const finalPrice = discountedPrice(potion.prezzo, heroS.shopDiscount);
 
- if (w.denari < finalPrice) { showToast("🪙 Denari insufficienti!"); return; }
+  if (w.denari < finalPrice) { showToast("🪙 Denari insufficienti!"); return; }
 
- w.denari -= finalPrice;
+  w.denari -= finalPrice;
 
- if (potion.effect.tipo === "heal") {
- const prima = w.pvAttuali;
- w.pvAttuali = Math.min(heroS.pvMax, w.pvAttuali + potion.effect.val);
- const gained = w.pvAttuali - prima;
- showToast(`${potion.icon} +${gained} PV ripristinati! (${w.pvAttuali}/${heroS.pvMax})`);
- state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: +${gained} PV (tot. ${w.pvAttuali}/${heroS.pvMax})`, cat:"shop" });
- } else if (potion.effect.tipo === "regen_boost") {
- w.regenBoostExpiry = Date.now() + potion.effect.durata;
- showToast(`${potion.icon} Regen raddoppiata per 24 ore!`);
- state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: regen PV x2 per 24h`, cat:"shop" });
- } else if (potion.effect.tipo === "restore_pa") {
- const { paMax } = getHeroStats();
- const prima = w.paAttuali;
- w.paAttuali = Math.min(paMax, w.paAttuali + potion.effect.val);
- const gained = w.paAttuali - prima;
- showToast(`${potion.icon} +${gained} Punti Azione! (${w.paAttuali}/${paMax})`);
- state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: +${gained} PA`, cat:"shop" });
- }
+  if (potion.effect.tipo === "heal") {
+    const prima = w.pvAttuali;
+    w.pvAttuali = Math.min(heroS.pvMax, w.pvAttuali + potion.effect.val);
+    const gained = w.pvAttuali - prima;
+    showToast(`${potion.icon} +${gained} PV ripristinati! (${w.pvAttuali}/${heroS.pvMax})`);
+    state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: +${gained} PV (tot. ${w.pvAttuali}/${heroS.pvMax})`, cat:"shop" });
+  } else if (potion.effect.tipo === "regen_boost") {
+    w.regenBoostExpiry = Date.now() + potion.effect.durata;
+    showToast(`${potion.icon} Regen raddoppiata per 24 ore!`);
+    state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: regen PV x2 per 24h`, cat:"shop" });
+  } else if (potion.effect.tipo === "restore_pa") {
+    const { paMax } = getHeroStats();
+    const prima = w.paAttuali;
+    w.paAttuali = Math.min(paMax, w.paAttuali + potion.effect.val);
+    const gained = w.paAttuali - prima;
+    showToast(`${potion.icon} +${gained} Punti Azione! (${w.paAttuali}/${paMax})`);
+    state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: +${gained} PA`, cat:"shop" });
+  }
 
- if (state.history.length > 200) state.history = state.history.slice(0,200);
- save();
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  if (state.history.length > 200) state.history = state.history.slice(0,200);
+  save();
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
-/* ── Acquisto equipaggiamento ── */
+/* ── Costruzione equipaggiamento dal Fabbro (denari + materiali) ── */
 export function buyEquipment(equipId) {
- const piece = EQUIPMENT_POOL.find(e => e.id === equipId);
- if (!piece || !piece.fonte.includes("negozio")) return;
- const state = store.state;
- const heroS = getHeroStats();
- const finalPrice = discountedPrice(piece.prezzo, heroS.shopDiscount);
+  const piece = EQUIPMENT_POOL.find(e => e.id === equipId);
+  if (!piece || (!piece.fonte.includes("fabbro") && !piece.fonte.includes("negozio"))) return;
+  const state = store.state;
+  const eq = state.equipment;
+  const heroS = getHeroStats();
+  const finalPrice = discountedPrice(piece.prezzo, heroS.shopDiscount);
 
- if (state.world.denari < finalPrice) { showToast("🪙 Denari insufficienti!"); return; }
+  if (state.world.denari < finalPrice) {
+    showToast("🪙 Denari insufficienti!");
+    return;
+  }
 
- state.world.denari -= finalPrice;
- state.equipment.zaino.push({ id:piece.id, type:"equip", dur:100 });
- state.history.unshift({ t:Date.now(), msg:` Acquistato: ${piece.icon} ${piece.name} → zaino`, cat:"shop" });
- if (state.history.length > 200) state.history = state.history.slice(0,200);
- save();
- showToast(`${piece.icon} ${piece.name} → zaino!`);
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  const recipe = Array.isArray(piece.recipe) ? piece.recipe : [];
+  for (const req of recipe) {
+    const owned = eq.zaino.filter(z => z.type === "material" && z.id === req.id).length;
+    if (owned < req.qty) {
+      const mat = MATERIALS.find(m => m.id === req.id);
+      showToast(`Materiali insufficienti: servono ${req.qty}× ${mat ? mat.name : req.id}!`);
+      return;
+    }
+  }
+
+  // Scala denari
+  state.world.denari -= finalPrice;
+
+  // Scala materiali richiesti dallo zaino
+  for (const req of recipe) {
+    let removed = 0;
+    for (let i = eq.zaino.length - 1; i >= 0 && removed < req.qty; i--) {
+      if (eq.zaino[i].type === "material" && eq.zaino[i].id === req.id) {
+        eq.zaino.splice(i, 1);
+        removed++;
+      }
+    }
+  }
+
+  eq.zaino.push({ id: piece.id, type: "equip", dur: 100 });
+  const matSummary = recipe.map(r => {
+    const m = MATERIALS.find(x => x.id === r.id);
+    return `${r.qty} ${m ? m.name : r.id}`;
+  }).join(", ");
+  state.history.unshift({
+    t: Date.now(),
+    msg: `⚒️ Forgiato: ${piece.name} (-${finalPrice} den${matSummary ? `, -${matSummary}` : ""}) → zaino`,
+    cat: "shop"
+  });
+  if (state.history.length > 200) state.history = state.history.slice(0,200);
+  save();
+  showToast(`⚒️ ${piece.name} costruito e aggiunto allo zaino!`);
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
-/* ── Equipaggia da zaino ── */
-export function equipItem(idx) {
- const state = store.state;
- const eq = state.equipment;
+/* ── Equipaggia da zaino (gestisce 1H, 2H, Scudo e 6 slot) ── */
+export function equipItem(idx, targetSlot = null) {
+  const state = store.state;
+  const eq = state.equipment;
 
- if (idx < 0 || idx >= eq.zaino.length) return;
- const zItem = eq.zaino[idx];
+  if (idx < 0 || idx >= eq.zaino.length) return;
+  const zItem = eq.zaino[idx];
 
- if (zItem.type !== "equip") { showToast("Non puoi equipaggiare questo oggetto!"); return; }
+  if (zItem.type !== "equip") { showToast("Non puoi equipaggiare questo oggetto!"); return; }
 
- const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
- if (!piece) return;
+  const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
+  if (!piece) return;
 
- eq.zaino.splice(idx, 1);
+  // Determina lo slot di destinazione
+  let destSlot = piece.slot;
+  if (piece.handType === "2h") {
+    destSlot = "mano_dx";
+  } else if (piece.handType === "shield") {
+    destSlot = "mano_sx";
+  } else if (piece.handType === "1h") {
+    destSlot = (targetSlot === "mano_sx" || targetSlot === "mano_dx") ? targetSlot : "mano_dx";
+  }
 
- const old = eq.equipped[piece.slot];
- if (old) eq.zaino.push({ id:old.id, type:"equip", dur:old.dur, rivestimento:old.rivestimento });
- eq.equipped[piece.slot] = { id:piece.id, dur:(zItem.dur !== undefined ? zItem.dur : 100), rivestimento:zItem.rivestimento };
+  // Rimuovi l'oggetto dallo zaino
+  eq.zaino.splice(idx, 1);
 
- save();
- showToast(`${piece.icon} ${piece.name} equipaggiato!`);
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  // Se stiamo equipaggiando un'arma a 2 mani ("2h") in mano_dx, libera anche mano_sx
+  if (piece.handType === "2h" && eq.equipped.mano_sx) {
+    const offOld = eq.equipped.mano_sx;
+    eq.zaino.push({
+      id: offOld.id,
+      type: "equip",
+      dur: offOld.dur !== undefined ? offOld.dur : 100,
+      ...(offOld.rivestimento ? { rivestimento: offOld.rivestimento } : {}),
+    });
+    eq.equipped.mano_sx = null;
+  }
+
+  // Se stiamo equipaggiando qualcosa in mano_sx mentre in mano_dx c'è un'arma a 2 mani ("2h"), rimuovi l'arma 2H
+  if (destSlot === "mano_sx" && eq.equipped.mano_dx) {
+    const mainOld = eq.equipped.mano_dx;
+    const mainPiece = EQUIPMENT_POOL.find(e => e.id === mainOld.id);
+    if (mainPiece && mainPiece.handType === "2h") {
+      eq.zaino.push({
+        id: mainOld.id,
+        type: "equip",
+        dur: mainOld.dur !== undefined ? mainOld.dur : 100,
+        ...(mainOld.rivestimento ? { rivestimento: mainOld.rivestimento } : {}),
+      });
+      eq.equipped.mano_dx = null;
+    }
+  }
+
+  // Sposta eventuale oggetto già presente nello slot di destinazione nello zaino
+  const old = eq.equipped[destSlot];
+  if (old) {
+    eq.zaino.push({
+      id: old.id,
+      type: "equip",
+      dur: old.dur !== undefined ? old.dur : 100,
+      ...(old.rivestimento ? { rivestimento: old.rivestimento } : {}),
+    });
+  }
+
+  eq.equipped[destSlot] = {
+    id: piece.id,
+    dur: (zItem.dur !== undefined ? zItem.dur : 100),
+    ...(zItem.rivestimento ? { rivestimento: zItem.rivestimento } : {}),
+  };
+
+  save();
+  const slotLabel = SLOT_NAMES[destSlot] || destSlot;
+  showToast(`${piece.name} equipaggiato (${slotLabel})!`);
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
 /* ── Disequipaggia ── */
 export function unequipItem(slot) {
- const eq = store.state.equipment;
- const eqObj = eq.equipped[slot];
- if (!eqObj) return;
- eq.equipped[slot] = null;
- eq.zaino.push({ id:eqObj.id, type:"equip", dur:eqObj.dur, rivestimento:eqObj.rivestimento });
- save();
- const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
- showToast(`${piece?.icon||""} Rimosso da ${slot}`);
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  const eq = store.state.equipment;
+  const eqObj = eq.equipped[slot];
+  if (!eqObj) return;
+  eq.equipped[slot] = null;
+  eq.zaino.push({
+    id: eqObj.id,
+    type: "equip",
+    dur: eqObj.dur !== undefined ? eqObj.dur : 100,
+    ...(eqObj.rivestimento ? { rivestimento: eqObj.rivestimento } : {}),
+  });
+  save();
+  const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+  showToast(`${piece?.name || "Oggetto"} rimosso da ${SLOT_NAMES[slot] || slot}`);
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
-/* ── Scarta oggetto ── */
+/* ── Scarta/Vendi oggetto ── */
 export function discardItem(target) {
- const state = store.state;
- const eq = state.equipment;
- let idx = -1;
- if (typeof target === "number") {
-   idx = target;
- } else if (typeof target === "string") {
-   idx = eq.zaino.findIndex(z => z.id === target);
- }
- if (idx < 0 || idx >= eq.zaino.length) return;
- const zItem = eq.zaino[idx];
- eq.zaino.splice(idx, 1);
+  const state = store.state;
+  const eq = state.equipment;
+  let idx = -1;
+  if (typeof target === "number") {
+    idx = target;
+  } else if (typeof target === "string") {
+    idx = eq.zaino.findIndex(z => z.id === target);
+  }
+  if (idx < 0 || idx >= eq.zaino.length) return;
+  const zItem = eq.zaino[idx];
+  eq.zaino.splice(idx, 1);
 
- let refund = 0;
- let name = zItem.id;
- let icon = "";
+  let refund = 0;
+  let name = zItem.id;
+  let icon = "";
 
- if (zItem.type === "equip") {
- const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
- if (piece) {
- refund = Math.floor(piece.prezzo * 0.30);
- name = piece.name;
- icon = piece.icon;
- }
- } else if (zItem.type === "relic") {
- const rel = RELICS.find(r => r.id === zItem.id);
- if (rel) { name = rel.name; icon = rel.icon; refund = 5; }
- } else if (zItem.type === "material") {
- const mat = MATERIALS.find(m => m.id === zItem.id);
- if (mat) { name = mat.name; icon = ""; refund = mat.value; }
- } else if (zItem.type === "arealoot") {
- let piece = null;
- for (const pool of Object.values(AREA_LOOT_POOL)) {
- piece = pool.find(i => i.id === zItem.id);
- if (piece) break;
- }
- if (piece) { name = piece.name; icon = "📦"; refund = piece.value; }
- }
+  if (zItem.type === "equip") {
+    const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
+    if (piece) {
+      refund = Math.floor(piece.prezzo * 0.30);
+      name = piece.name;
+      icon = piece.icon;
+    }
+  } else if (zItem.type === "relic") {
+    const rel = RELICS.find(r => r.id === zItem.id);
+    if (rel) { name = rel.name; icon = rel.icon; refund = 5; }
+  } else if (zItem.type === "material") {
+    const mat = MATERIALS.find(m => m.id === zItem.id);
+    if (mat) { name = mat.name; icon = ""; refund = mat.value; }
+  } else if (zItem.type === "arealoot") {
+    let piece = null;
+    for (const pool of Object.values(AREA_LOOT_POOL)) {
+      piece = pool.find(i => i.id === zItem.id);
+      if (piece) break;
+    }
+    if (piece) { name = piece.name; icon = "📦"; refund = piece.value; }
+  }
 
- if (refund > 0) state.world.denari += refund;
- save();
- const toastMsg = icon ? `${icon} ${name} scartato${refund > 0 ? ` +${refund} 🪙` : ""}` : `${name} venduto (+${refund} denari)`;
- showToast(toastMsg);
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  if (refund > 0) state.world.denari += refund;
+  save();
+  const toastMsg = icon ? `${icon} ${name} venduto${refund > 0 ? ` +${refund} 🪙` : ""}` : `${name} venduto (+${refund} denari)`;
+  showToast(toastMsg);
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
 /* ── Usa reliquia dallo zaino ── */
 export function useRelic(target) {
- const state = store.state;
- const w = state.world;
- let idx = -1;
- if (typeof target === "number") {
-   idx = target;
- } else if (typeof target === "string") {
-   idx = state.equipment.zaino.findIndex(z => z.type === "relic" && z.id === target);
- }
- if (idx < 0 || idx >= state.equipment.zaino.length) return;
- const zItem = state.equipment.zaino[idx];
- if (zItem.type !== "relic") return;
+  const state = store.state;
+  const w = state.world;
+  let idx = -1;
+  if (typeof target === "number") {
+    idx = target;
+  } else if (typeof target === "string") {
+    idx = state.equipment.zaino.findIndex(z => z.type === "relic" && z.id === target);
+  }
+  if (idx < 0 || idx >= state.equipment.zaino.length) return;
+  const zItem = state.equipment.zaino[idx];
+  if (zItem.type !== "relic") return;
 
- const rel = RELICS.find(r => r.id === zItem.id);
- if (!rel) return;
+  const rel = RELICS.find(r => r.id === zItem.id);
+  if (!rel) return;
 
- state.equipment.zaino.splice(idx, 1);
- // Attiva reliquia (sostituisce eventuale della stessa stat)
- w.reliquieAttive = (w.reliquieAttive||[]).filter(ra =>
- Date.now() < ra.expiry && ra.id !== zItem.id
- );
- w.reliquieAttive.push({ id: zItem.id, expiry: Date.now() + 24 * 3600 * 1000 });
- save();
- showToast(`${rel.icon} ${rel.name} attivata! ${rel.desc}`);
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  state.equipment.zaino.splice(idx, 1);
+  w.reliquieAttive = (w.reliquieAttive||[]).filter(ra =>
+    Date.now() < ra.expiry && ra.id !== zItem.id
+  );
+  w.reliquieAttive.push({ id: zItem.id, expiry: Date.now() + 24 * 3600 * 1000 });
+  save();
+  showToast(`${rel.icon} ${rel.name} attivata! ${rel.desc}`);
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
 /* ══════════════════════════════════════════════════════════
  TENDINE (condivise da Zaino e Mercato)
- Chiuse all'avvio; lo stato aperto viene ricordato per la sessione
- così non si richiudono quando la pagina viene ridisegnata.
 ══════════════════════════════════════════════════════════ */
 const zainoOpenCats = new Set();
 const mercatoOpenCats = new Set();
 
-function dropdownHTML(openSet, key, title, count, bodyHTML) {
- const countHTML = count != null ? `<span class="zaino-cat-count">${count}</span>` : "";
- return `
- <details class="zaino-details" data-cat="${key}" ${openSet.has(key) ? "open" : ""}>
- <summary>
- <span class="zaino-cat-title">${title}</span>
- ${countHTML}
- <span class="zaino-cat-chevron"></span>
- </summary>
- ${bodyHTML}
- </details>`;
-}
-
-function bindDropdownState(container, openSet) {
- container.querySelectorAll(".zaino-details").forEach(d => {
- d.addEventListener("toggle", () => {
- if (d.open) openSet.add(d.dataset.cat);
- else openSet.delete(d.dataset.cat);
- });
- });
-}
-
-
 /* ── Fabbro: Ripara equipaggiamento ── */
 export function repairItem(slot) {
- const state = store.state;
- const eqObj = state.equipment.equipped[slot];
- if (!eqObj) return;
- const dur = eqObj.dur !== undefined ? eqObj.dur : 100;
- if (dur >= 100) { showToast("L'oggetto è già in perfette condizioni!"); return; }
+  const state = store.state;
+  const eqObj = state.equipment.equipped[slot];
+  if (!eqObj) return;
+  const dur = eqObj.dur !== undefined ? eqObj.dur : 100;
+  if (dur >= 100) { showToast("L'oggetto è già in perfette condizioni!"); return; }
 
- const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
- if (!piece) return;
+  const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+  if (!piece) return;
 
- const missing = 100 - dur;
- const cost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
+  const missing = 100 - dur;
+  const cost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
 
- if (state.world.denari < cost) { showToast(`🪙 Denari insufficienti! Costo: ${cost}`); return; }
+  if (state.world.denari < cost) { showToast(`🪙 Denari insufficienti! Costo: ${cost}`); return; }
 
- state.world.denari -= cost;
- eqObj.dur = 100;
+  state.world.denari -= cost;
+  eqObj.dur = 100;
 
- save();
- showToast(`🛠️ ${piece.name} riparato per ${cost} 🪙!`);
- if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  save();
+  showToast(`🛠️ ${piece.name} riparato per ${cost} 🪙!`);
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
 /* ══════════════════════════════════════════════════════════
- RENDER MERCATO
+ HELPER GRAFICI EQUIPAGGIAMENTO E MERCATO
 ══════════════════════════════════════════════════════════ */
-
-/* ── Mercato: helper grafici ── */
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 const roman = n => ROMAN[n] || String(n);
 const fmtDen = n => Math.floor(n).toLocaleString("it-IT");
-const STAT_META = {
-  attacco:  { lbl:"ATK", acc:"#e0533d" },
-  difesa:   { lbl:"DEF", acc:"#3fb0c4" },
-  velocita: { lbl:"VEL", acc:"#5fb8ec" },
-  critico:  { lbl:"CRI", acc:"#f0903f" },
-};
-const statLbl = k => (STAT_META[k] || { lbl:k }).lbl;
-const bonusLine = obj => Object.entries(obj || {}).map(([k, v]) => `+${v} ${statLbl(k)}`).join(" · ");
-const COIN = `<span class="mk-coin"></span>`;
-const SLOT_NAMES = { arma:"Arma", elmo:"Elmo", scudo:"Scudo", corazza:"Corazza", gambali:"Gambali", bracciali:"Bracciali" };
 
-// Tab attiva dell'Armaiolo (persiste tra i render)
-let armaioloSlot = "arma";
+const STAT_META = {
+  attacco:   { lbl:"FOR", acc:"#e0533d" },
+  difesa:    { lbl:"DIF", acc:"#3fb0c4" },
+  velocita:  { lbl:"VEL", acc:"#5fb8ec" },
+  destrezza: { lbl:"DES", acc:"#3fbf8a" },
+  critico:   { lbl:"CRI", acc:"#f0903f" },
+};
+
+const RARITY_META = {
+  comune:      { lbl:"Comune",      color:"#9ca3af" },
+  magico:      { lbl:"Magico",      color:"#60a5fa" },
+  leggendario: { lbl:"Leggendario", color:"#f59e0b" },
+};
+
+const HAND_LABELS = {
+  "1h": "1 Mano",
+  "2h": "2 Mani",
+  "shield": "Scudo",
+};
+
+const statLbl = k => (STAT_META[k] || { lbl:k.toUpperCase() }).lbl;
+
+function scaleBonusVal(v, dur = 100) {
+  return v >= 0 ? Math.ceil(v * (dur / 100)) : v;
+}
+
+const bonusLine = (obj, dur = 100) =>
+  Object.entries(obj || {})
+    .map(([k, v]) => {
+      const sv = scaleBonusVal(v, dur);
+      return `${sv >= 0 ? "+" : "−"}${Math.abs(sv)} ${statLbl(k)}`;
+    })
+    .join(" · ");
+
+function bonusBadgesHTML(bonusObj, dur = 100) {
+  const entries = Object.entries(bonusObj || {});
+  if (!entries.length) return "";
+  const pills = entries.map(([k, v]) => {
+    const sv = scaleBonusVal(v, dur);
+    const meta = STAT_META[k] || { lbl: k.toUpperCase(), acc: "#c9a84c" };
+    const isNeg = sv < 0;
+    const color = isNeg ? "#ef4444" : meta.acc;
+    const bg = isNeg ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.05)";
+    const border = isNeg ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.12)";
+    const sign = sv >= 0 ? "+" : "−";
+    return `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:0.68rem;font-weight:700;color:${color};background:${bg};border:1px solid ${border};">${sign}${Math.abs(sv)} <small style="font-size:0.58rem;opacity:0.88;">${meta.lbl}</small></span>`;
+  }).join("");
+  return `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px;">${pills}</div>`;
+}
+
+function getPrimaryMeta(piece) {
+  const entries = Object.entries(piece.bonus || {});
+  const pos = entries.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const chosen = pos.length ? pos[0][0] : (entries[0]?.[0] || "attacco");
+  return STAT_META[chosen] || { lbl: chosen.toUpperCase(), acc: "var(--gold)" };
+}
+
+const COIN = `<span class="mk-coin"></span>`;
+const SLOT_NAMES = {
+  testa: "Testa",
+  torace: "Torace",
+  braccia: "Braccia",
+  mano_dx: "Mano Destra",
+  mano_sx: "Mano Sinistra",
+  gambe: "Gambe",
+};
+
+// Tab attiva della Bottega Costruzione (persiste tra i render)
+let armaioloSlot = "mano_dx";
 
 function mkShopHTML(key, num, name, tagline, body) {
   return `
@@ -318,7 +443,7 @@ export function openCoatingModal(slot) {
       <div class="mk-tile-cap">Rarità ${roman(m.rarity)}</div>
       <div class="mk-tile-name">${m.name}</div>
       <div class="mk-coat">
-        <div class="mk-coat-bonus">${bonusLine(getCoatingBonus(m.id, slot))}</div>
+        <div class="mk-coat-bonus">${bonusLine(getCoatingBonus(m.id, slot, piece))}</div>
         <div class="mk-coat-wear">usura −${Math.round((cfg.durabilityRes || 0) * 100)}%</div>
       </div>
       <div class="mk-chip ${hasMat ? "mk-chip--ok" : "mk-chip--lack"}">${owned} / ${cfg.reqQty} pezzi</div>
@@ -329,12 +454,12 @@ export function openCoatingModal(slot) {
   }).join("");
 
   const currentHTML = currentMat
-    ? `Rivestito in <b>${currentMat.name}</b><br><span class="mk-mono">${bonusLine(getCoatingBonus(currentMat.id, slot))} · usura −${Math.round(getCoatingWearReduction(currentMat.id) * 100)}%</span>`
+    ? `Rivestito in <b>${currentMat.name}</b><br><span class="mk-mono">${bonusLine(getCoatingBonus(currentMat.id, slot, piece))} · usura −${Math.round(getCoatingWearReduction(currentMat.id) * 100)}%</span>`
     : "Nessun rivestimento: il pezzo è ancora grezzo.";
 
   box.innerHTML = `
   <div class="mk mk-modal">
-    <div class="mk-modal-cap">Forgia · ${SLOT_NAMES[slot]} · Grado ${roman(piece.tier)}</div>
+    <div class="mk-modal-cap">Forgia · ${SLOT_NAMES[slot] || slot} · Grado ${roman(piece.tier)}</div>
     <div class="mk-modal-title">${piece.name}</div>
     <div class="mk-note">${currentHTML}</div>
     <div class="mk-modal-warn">Un nuovo rivestimento sostituisce il precedente</div>
@@ -360,7 +485,6 @@ export function applyCoating(slot, matId) {
   const cost = discountedPrice(calculateCoatingCost(piece, mat), heroS.shopDiscount);
   if (state.world.denari < cost) { showToast(`Denari insufficienti! Servono ${cost} denari`); return; }
 
-  // Check material quantity in backpack
   const matchingIndices = [];
   for (let i = 0; i < eq.zaino.length; i++) {
     if (eq.zaino[i].type === "material" && eq.zaino[i].id === mat.id) {
@@ -372,10 +496,8 @@ export function applyCoating(slot, matId) {
     return;
   }
 
-  // Deduct denari
   state.world.denari -= cost;
 
-  // Deduct materials from backpack
   let removed = 0;
   for (let i = eq.zaino.length - 1; i >= 0 && removed < cfg.reqQty; i--) {
     if (eq.zaino[i].type === "material" && eq.zaino[i].id === mat.id) {
@@ -384,7 +506,6 @@ export function applyCoating(slot, matId) {
     }
   }
 
-  // Overwrite previous coating
   eqObj.rivestimento = mat.id;
 
   state.history.unshift({
@@ -397,7 +518,6 @@ export function applyCoating(slot, matId) {
   save();
   showToast(`${piece.name} rivestito con ${mat.name}!`);
 
-  // Re-render modal if still open
   openCoatingModal(slot);
 
   if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
@@ -467,34 +587,53 @@ export function renderShop() {
   <div class="mk-group">Energia</div>
   <div class="mk-grid">${paPotions.map(potionTile).join("")}</div>`;
 
-  /* ── II · Armaiolo ── */
-  const shopEquip = EQUIPMENT_POOL.filter(e => e.fonte.includes("negozio"));
+  /* ── II · Fabbro: Costruzione Armi e Armature ── */
+  const shopEquip = EQUIPMENT_POOL.filter(e => e.fonte.includes("fabbro") || e.fonte.includes("negozio"));
   const tabDefs = [
-    ["arma","Armi"], ["elmo","Elmi"], ["scudo","Scudi"],
-    ["corazza","Corazze"], ["gambali","Gambali"], ["bracciali","Bracciali"],
+    ["mano_dx", "Armi"],
+    ["mano_sx", "Scudi & Secondarie"],
+    ["testa",   "Testa"],
+    ["torace",  "Torace"],
+    ["braccia", "Braccia"],
+    ["gambe",   "Gambe"],
   ].filter(([s]) => shopEquip.some(e => e.slot === s));
   if (!tabDefs.some(([s]) => s === armaioloSlot) && tabDefs.length) armaioloSlot = tabDefs[0][0];
 
   const equippedIds = new Set(Object.values(eq.equipped || {}).filter(Boolean).map(o => typeof o === "string" ? o : o.id));
   const bagCount = id => eq.zaino.filter(z => z.type === "equip" && z.id === id).length;
+  const matCount = id => eq.zaino.filter(z => z.type === "material" && z.id === id).length;
 
   const equipTiles = shopEquip.filter(e => e.slot === armaioloSlot).map(e => {
     const price = discountedPrice(e.prezzo, disc);
-    const can = w.denari >= price;
-    const [bStat, bVal] = Object.entries(e.bonus)[0];
-    const meta = STAT_META[bStat] || { lbl: bStat, acc: "var(--gold)" };
+    const hasDen = w.denari >= price;
+    const recipe = Array.isArray(e.recipe) ? e.recipe : [];
+    let hasAllMats = true;
+    const matChips = recipe.map(r => {
+      const m = MATERIALS.find(x => x.id === r.id);
+      const owned = matCount(r.id);
+      const ok = owned >= r.qty;
+      if (!ok) hasAllMats = false;
+      return `<span class="mk-chip ${ok ? "mk-chip--ok" : "mk-chip--lack"}" style="margin:0;">${owned}/${r.qty} ${m ? m.name : r.id}</span>`;
+    }).join("");
+
+    const can = hasDen && hasAllMats;
+    const meta = getPrimaryMeta(e);
     const inBag = bagCount(e.id);
-    const chip = equippedIds.has(e.id)
+    const statusChip = equippedIds.has(e.id)
       ? `<div class="mk-chip mk-chip--ok">indossato</div>`
       : inBag ? `<div class="mk-chip">nello zaino${inBag > 1 ? ` ×${inBag}` : ""}</div>` : "";
+    const handTag = e.handType ? ` · ${HAND_LABELS[e.handType] || e.handType}` : "";
+    const missingText = !hasAllMats ? "materiali insufficienti" : (!hasDen ? `mancano ${fmtDen(price - w.denari)}` : "");
+
     return `
     <div class="mk-tile ${can ? "" : "is-off"}" style="--acc:${meta.acc}">
-      <div class="mk-tile-cap">Grado ${roman(e.tier)}</div>
+      <div class="mk-tile-cap">Grado ${roman(e.tier)} · Comune${handTag}</div>
       <div class="mk-tile-name">${e.name}</div>
-      <div class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></div>
+      ${bonusBadgesHTML(e.bonus, 100)}
       <div class="mk-tile-desc">${e.desc}</div>
-      ${chip}
-      ${mkPriceBtn({ price, base: e.prezzo, can, onclick: `window.__kaizen.buyEquipment('${e.id}')`, missing: `mancano ${fmtDen(price - w.denari)}` })}
+      ${matChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${matChips}</div>` : ""}
+      ${statusChip}
+      ${mkPriceBtn({ price, base: e.prezzo, can, label: "Costruisci", onclick: `window.__kaizen.buyEquipment('${e.id}')`, missing: missingText })}
     </div>`;
   }).join("");
 
@@ -502,11 +641,11 @@ export function renderShop() {
   <div class="mk-tabs">
     ${tabDefs.map(([s, lbl]) => `<button class="mk-tab ${s === armaioloSlot ? "is-on" : ""}" data-armslot="${s}">${lbl}<b>${shopEquip.filter(e => e.slot === s).length}</b></button>`).join("")}
   </div>
-  <div class="mk-note">Gli acquisti finiscono nello zaino</div>
+  <div class="mk-note">Il Fabbro costruisce equipaggiamenti comuni usando denari e materiali grezzi. I pezzi magici e leggendari si possono solo sottrarre ai nemici umanoidi in missione.</div>
   <div class="mk-grid">${equipTiles}</div>`;
 
-  /* ── III · Fabbro ── */
-  const eqSlots = ["arma","elmo","scudo","corazza","gambali","bracciali"];
+  /* ── III · Forgia & Riparazioni ── */
+  const eqSlots = ["testa","torace","braccia","mano_dx","mano_sx","gambe"];
   const worn = eqSlots.map(slot => {
     const eqObj = eq.equipped[slot];
     if (!eqObj || typeof eqObj === "string") return null;
@@ -519,13 +658,13 @@ export function renderShop() {
     const coatHTML = mat
       ? `<div class="mk-coat">
            <div class="mk-coat-name">${mat.name}</div>
-           <div class="mk-coat-bonus">${bonusLine(getCoatingBonus(mat.id, slot))}</div>
+           <div class="mk-coat-bonus">${bonusLine(getCoatingBonus(mat.id, slot, piece))}</div>
            <div class="mk-coat-wear">usura −${Math.round(getCoatingWearReduction(mat.id) * 100)}%</div>
          </div>`
       : `<div class="mk-tile-desc">ancora grezzo</div>`;
     return `
     <div class="mk-tile ${mat ? "is-coated" : ""}" style="--acc:#6cc4ef">
-      <div class="mk-tile-cap">${SLOT_NAMES[slot]} · ${roman(piece.tier)}</div>
+      <div class="mk-tile-cap">${SLOT_NAMES[slot] || slot} · ${roman(piece.tier)}</div>
       <div class="mk-tile-name">${piece.name}</div>
       ${coatHTML}
       <button class="mk-price mk-price--blue" onclick="window.__kaizen.openCoatingModal('${slot}')">
@@ -540,7 +679,7 @@ export function renderShop() {
     const acc = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
     return `
     <div class="mk-tile ${can ? "" : "is-off"}" style="--acc:${acc}">
-      <div class="mk-tile-cap">${SLOT_NAMES[slot]}</div>
+      <div class="mk-tile-cap">${SLOT_NAMES[slot] || slot}</div>
       <div class="mk-tile-name">${piece.name}</div>
       <div class="mk-tile-big">${dur}<small>%</small></div>
       <div class="mk-vital-bar mk-dur"><i style="width:${dur}%"></i></div>
@@ -549,7 +688,7 @@ export function renderShop() {
   }).join("");
 
   const fabbroHTML = `
-  <div class="mk-group">Forgia</div>
+  <div class="mk-group">Rivestimenti</div>
   <div class="mk-note">Riveste armi e armature con i materiali raccolti: più raro il materiale, più forte il pezzo e più lenta l'usura.</div>
   ${worn.length
     ? `<div class="mk-grid">${forgeTiles}</div>`
@@ -563,18 +702,16 @@ export function renderShop() {
   <div class="mk">
     ${purseHTML}
     ${mkShopHTML("erborista", "I", "Erborista", "pozioni, tinture e rimedi", erboristaHTML)}
-    ${mkShopHTML("armaiolo", "II", "Armaiolo", "lame e corazze su misura", armaioloHTML)}
-    ${mkShopHTML("fabbro", "III", "Fabbro", "forgia e riparazioni", fabbroHTML)}
+    ${mkShopHTML("armaiolo", "II", "Fabbro · Costruzione", "armi e armature forgiate con materiali", armaioloHTML)}
+    ${mkShopHTML("fabbro", "III", "Forgia & Riparazioni", "rivestimenti e manutenzione dotazione", fabbroHTML)}
   </div>`;
 
-  // Stato aperto/chiuso delle botteghe
   el.querySelectorAll(".mk-shop").forEach(d => {
     d.addEventListener("toggle", () => {
       if (d.open) mercatoOpenCats.add(d.dataset.cat);
       else mercatoOpenCats.delete(d.dataset.cat);
     });
   });
-  // Tab dell'Armaiolo
   el.querySelectorAll("[data-armslot]").forEach(b => {
     b.addEventListener("click", () => {
       armaioloSlot = b.dataset.armslot;
@@ -594,15 +731,33 @@ export function renderEquipment() {
   const stats = getHeroStats();
 
   const slotDefs = [
-    { slot:"arma",      label:"Arma",      num:"I" },
-    { slot:"elmo",      label:"Elmo",      num:"II" },
-    { slot:"scudo",     label:"Scudo",     num:"III" },
-    { slot:"corazza",   label:"Corazza",   num:"IV" },
-    { slot:"gambali",   label:"Gambali",   num:"V" },
-    { slot:"bracciali", label:"Bracciali", num:"VI" },
+    { slot:"testa",   label:"Testa",         num:"I",   hint:"elmi, cappucci, copricapi" },
+    { slot:"torace",  label:"Torace",        num:"II",  hint:"corazze, cotte di maglia, vesti" },
+    { slot:"braccia", label:"Braccia",       num:"III", hint:"bracciali, manopole, guanti d'arme" },
+    { slot:"mano_dx", label:"Mano Destra",   num:"IV",  hint:"arma principale (1H o 2H)" },
+    { slot:"mano_sx", label:"Mano Sinistra", num:"V",   hint:"scudo o arma secondaria (1H)" },
+    { slot:"gambe",   label:"Gambe",         num:"VI",  hint:"gambali, schinieri, stivali" },
   ];
 
-  const slotsHTML = slotDefs.map(({ slot, label, num }) => {
+  const dxObj = eq.equipped.mano_dx;
+  const dxId = dxObj ? (typeof dxObj === "string" ? dxObj : dxObj.id) : null;
+  const dxPiece = dxId ? EQUIPMENT_POOL.find(e => e.id === dxId) : null;
+  const isTwoHandedEquipped = dxPiece?.handType === "2h";
+
+  const slotsHTML = slotDefs.map(({ slot, label, num, hint }) => {
+    // Se mano_sx è bloccata da un'arma a 2 mani in mano_dx
+    if (slot === "mano_sx" && isTwoHandedEquipped) {
+      return `
+      <div class="mk-tile is-off" style="--acc:#e3a32b;padding-bottom:9px;border-style:dashed;">
+        <div class="mk-tile-cap">Slot ${num} · ${label} · Doppia Impugnatura</div>
+        <div class="mk-tile-row-head">
+          <span class="mk-tile-name" style="color:#d4b46a;">Impegnata da ${dxPiece.name}</span>
+          <span class="mk-tile-desc" style="margin:0;">2 Mani</span>
+        </div>
+        <div class="mk-tile-desc" style="margin-bottom:0;">L'arma impugnata nella mano destra occupa entrambe le mani.</div>
+      </div>`;
+    }
+
     const eqObj = eq.equipped[slot];
     const id = eqObj ? (typeof eqObj === "string" ? eqObj : eqObj.id) : null;
     const dur = eqObj ? (typeof eqObj === "string" ? 100 : (eqObj.dur !== undefined ? eqObj.dur : 100)) : 100;
@@ -614,22 +769,21 @@ export function renderEquipment() {
         <div class="mk-tile-cap">Slot ${num} · ${label}</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name" style="color:#6f6656;">Nessun pezzo</span>
-          <span class="mk-tile-desc" style="margin:0;">slot vuoto</span>
+          <span class="mk-tile-desc" style="margin:0;">${hint}</span>
         </div>
       </div>`;
     }
 
-    const bStat = Object.keys(piece.bonus)[0];
-    const originalVal = Object.values(piece.bonus)[0] || 0;
-    const bVal = Math.ceil(originalVal * (dur / 100));
-    const meta = STAT_META[bStat] || { lbl: bStat, acc: "var(--gold)" };
+    const meta = getPrimaryMeta(piece);
     const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
+    const rar = RARITY_META[piece.rarita] || RARITY_META.comune;
+    const handTag = piece.handType ? ` · ${HAND_LABELS[piece.handType] || piece.handType}` : "";
 
     let coatHTML = "";
     if (eqObj && eqObj.rivestimento) {
       const mat = MATERIALS.find(m => m.id === eqObj.rivestimento);
       if (mat) {
-        const bObj = getCoatingBonus(mat.id, slot);
+        const bObj = getCoatingBonus(mat.id, slot, piece);
         const resPct = Math.round(getCoatingWearReduction(mat.id) * 100);
         coatHTML = `
         <div class="mk-coat">
@@ -642,11 +796,11 @@ export function renderEquipment() {
 
     return `
     <div class="mk-tile ${eqObj?.rivestimento ? "is-coated" : ""}" style="--acc:${meta.acc}">
-      <div class="mk-tile-cap">${label} · Grado ${roman(piece.tier)}</div>
+      <div class="mk-tile-cap">${label} · Grado ${roman(piece.tier)} · <span style="color:${rar.color}">${rar.lbl}</span>${handTag}</div>
       <div class="mk-tile-row-head">
         <span class="mk-tile-name">${piece.name}</span>
-        <span class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></span>
       </div>
+      ${bonusBadgesHTML(piece.bonus, dur)}
       <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
       ${coatHTML}
       <div class="mk-tile-desc">${piece.desc}</div>
@@ -656,9 +810,11 @@ export function renderEquipment() {
     </div>`;
   }).join("");
 
+  const fmtBonusTotal = v => `${v >= 0 ? "+" : "−"}${Math.abs(v)}`;
   const atkTotal = stats.eqBonus.attacco || 0;
   const defTotal = stats.eqBonus.difesa || 0;
   const velTotal = stats.eqBonus.velocita || 0;
+  const desTotal = stats.eqBonus.destrezza || 0;
   const criTotal = stats.eqBonus.critico || 0;
 
   // Reliquie attive
@@ -713,7 +869,7 @@ export function renderEquipment() {
       }
     });
 
-    const SLOT_ORDER = ["arma", "elmo", "scudo", "corazza", "gambali", "bracciali"];
+    const SLOT_ORDER = ["mano_dx", "mano_sx", "testa", "torace", "braccia", "gambe"];
     equipEntries.sort((a, b) => {
       if (a.piece.tier !== b.piece.tier) return a.piece.tier - b.piece.tier;
       const slotDiff = SLOT_ORDER.indexOf(a.piece.slot) - SLOT_ORDER.indexOf(b.piece.slot);
@@ -723,24 +879,48 @@ export function renderEquipment() {
 
     const equipHTMLs = equipEntries.map(({ zItem, idx, piece }) => {
       const dur = zItem.dur !== undefined ? zItem.dur : 100;
-      const bStat = Object.keys(piece.bonus)[0];
-      const bVal = Math.ceil(Object.values(piece.bonus)[0] * (dur / 100));
-      const meta = STAT_META[bStat] || { lbl: bStat, acc: "var(--gold)" };
+      const meta = getPrimaryMeta(piece);
       const refund = Math.floor(piece.prezzo * 0.30);
       const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
       const coatMat = zItem.rivestimento ? MATERIALS.find(m => m.id === zItem.rivestimento) : null;
+      const rar = RARITY_META[piece.rarita] || RARITY_META.comune;
+      const handTag = piece.handType ? ` · ${HAND_LABELS[piece.handType] || piece.handType}` : "";
+
+      let equipBtnsHTML = "";
+      if (piece.handType === "1h") {
+        equipBtnsHTML = `
+          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_dx')">Mano DX</button>
+          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_sx')">Mano SX</button>
+          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+        `;
+      } else if (piece.handType === "2h") {
+        equipBtnsHTML = `
+          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_dx')">Impugna (2H)</button>
+          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+        `;
+      } else if (piece.handType === "shield") {
+        equipBtnsHTML = `
+          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx}, 'mano_sx')">Mano SX</button>
+          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+        `;
+      } else {
+        equipBtnsHTML = `
+          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx})">Indossa</button>
+          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+        `;
+      }
 
       return `
       <div class="mk-tile" style="--acc:${meta.acc}">
-        <div class="mk-tile-cap">${SLOT_NAMES[piece.slot] || piece.slot} · Grado ${roman(piece.tier)}${coatMat ? ` · ✦ ${coatMat.name}` : ""}</div>
+        <div class="mk-tile-cap">${SLOT_NAMES[piece.slot] || piece.slot} · Grado ${roman(piece.tier)} · <span style="color:${rar.color}">${rar.lbl}</span>${handTag}${coatMat ? ` · ✦ ${coatMat.name}` : ""}</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name">${piece.name}</span>
-          <span class="mk-tile-big">+${bVal}<small>${meta.lbl}</small></span>
         </div>
+        ${bonusBadgesHTML(piece.bonus, dur)}
+        <div class="mk-tile-desc">${piece.desc}</div>
         <div class="mk-vital-bar mk-dur"><i style="width:${dur}%;background:${durColor}"></i></div>
         <div class="mk-split-actions">
-          <button class="mk-act mk-act--ok" onclick="window.__kaizen.equipItem(${idx})">Indossa</button>
-          <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem(${idx})">Vendi ${COIN}<b>${fmtDen(refund)}</b></button>
+          ${equipBtnsHTML}
         </div>
       </div>`;
     });
@@ -825,31 +1005,35 @@ export function renderEquipment() {
     zainoHTML =
       makeZainoSection("material", "Materiali", "minerali e risorse per la forgia", materialHTMLs, totalMaterialsCount) +
       makeZainoSection("relic", "Reliquie", "manufatti arcani ad uso temporaneo", relicHTMLs, totalRelicsCount) +
-      makeZainoSection("equip", "Equipaggiamento", "armi e corazze di riserva", equipHTMLs, equipHTMLs.length);
+      makeZainoSection("equip", "Equipaggiamento", "armi, scudi e armature di riserva", equipHTMLs, equipHTMLs.length);
   }
 
   el.innerHTML = `
   <div class="mk">
-    <div class="mk-vitals mk-vitals--4" style="margin-top:0;margin-bottom:14px;">
+    <div class="mk-vitals" style="grid-template-columns:repeat(5,1fr);margin-top:0;margin-bottom:14px;">
       <div class="mk-vital" style="--acc:#e0533d">
-        <div class="mk-vital-cap">Attacco</div>
-        <div class="mk-vital-val" style="color:#e0533d">+${atkTotal}</div>
+        <div class="mk-vital-cap">Forza</div>
+        <div class="mk-vital-val" style="color:${atkTotal < 0 ? '#ef4444' : '#e0533d'}">${fmtBonusTotal(atkTotal)}</div>
       </div>
       <div class="mk-vital" style="--acc:#3fb0c4">
         <div class="mk-vital-cap">Difesa</div>
-        <div class="mk-vital-val" style="color:#3fb0c4">+${defTotal}</div>
+        <div class="mk-vital-val" style="color:${defTotal < 0 ? '#ef4444' : '#3fb0c4'}">${fmtBonusTotal(defTotal)}</div>
       </div>
       <div class="mk-vital" style="--acc:#5fb8ec">
         <div class="mk-vital-cap">Velocità</div>
-        <div class="mk-vital-val" style="color:#5fb8ec">+${velTotal}</div>
+        <div class="mk-vital-val" style="color:${velTotal < 0 ? '#ef4444' : '#5fb8ec'}">${fmtBonusTotal(velTotal)}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#3fbf8a">
+        <div class="mk-vital-cap">Destrezza</div>
+        <div class="mk-vital-val" style="color:${desTotal < 0 ? '#ef4444' : '#3fbf8a'}">${fmtBonusTotal(desTotal)}</div>
       </div>
       <div class="mk-vital" style="--acc:#f0903f">
         <div class="mk-vital-cap">Critico</div>
-        <div class="mk-vital-val" style="color:#f0903f">+${criTotal}</div>
+        <div class="mk-vital-val" style="color:${criTotal < 0 ? '#ef4444' : '#f0903f'}">${fmtBonusTotal(criTotal)}</div>
       </div>
     </div>
 
-    <div class="mk-group">Dotazione Indossata</div>
+    <div class="mk-group">Dotazione Indossata (6 Slot)</div>
     <div class="mk-grid mk-grid--1">${slotsHTML}</div>
 
     ${relHTML}

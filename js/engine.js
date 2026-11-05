@@ -50,8 +50,8 @@ export function getHeroStats() {
  }
 
  // Bonus equipaggiamento
- const eqBonus = { attacco:0, difesa:0, velocita:0, critico:0 };
- for (const slot of ["arma","elmo","scudo","corazza","gambali","bracciali"]) {
+ const eqBonus = { attacco:0, difesa:0, velocita:0, destrezza:0, critico:0 }; const dxObj = eq.equipped.mano_dx; const dxPiece = dxObj ? EQUIPMENT_POOL.find(e => e.id === (typeof dxObj === "string" ? dxObj : dxObj.id)) : null; const isTwoHanded = dxPiece?.handType === "2h";
+ for (const slot of ["testa","torace","braccia","mano_dx","mano_sx","gambe"]) { if (slot === "mano_sx" && isTwoHanded) continue;
  const eqObj = eq.equipped[slot];
  if (!eqObj) continue;
  const id = typeof eqObj === "string" ? eqObj : eqObj.id;
@@ -59,10 +59,11 @@ export function getHeroStats() {
  const piece = EQUIPMENT_POOL.find(e => e.id === id);
  if (!piece) continue;
  for (const [k,v] of Object.entries(piece.bonus)) {
- eqBonus[k] = (eqBonus[k] || 0) + Math.ceil(v * (dur / 100));
+ const scaled = v >= 0 ? Math.ceil(v * (dur / 100)) : v;
+ eqBonus[k] = (eqBonus[k] || 0) + scaled;
  }
  if (eqObj.rivestimento) {
- const cBonus = getCoatingBonus(eqObj.rivestimento, slot);
+ const cBonus = getCoatingBonus(eqObj.rivestimento, slot, piece);
  if (cBonus) {
  for (const [k, v] of Object.entries(cBonus)) {
  eqBonus[k] = (eqBonus[k] || 0) + v;
@@ -81,10 +82,10 @@ export function getHeroStats() {
  }
 
  // Applica bonus equipaggiamento
- stats.forza += eqBonus.attacco || 0;
- stats.velocita += eqBonus.velocita || 0;
- stats.critico = Math.min(80, stats.critico + (eqBonus.critico || 0));
- const bonusDifesa = eqBonus.difesa || 0;
+ stats.forza = Math.max(1, stats.forza + (eqBonus.attacco || 0));
+ stats.velocita = Math.max(1, stats.velocita + (eqBonus.velocita || 0)); stats.destrezza = Math.max(0, Math.min(75, stats.destrezza + (eqBonus.destrezza || 0)));
+ stats.critico = Math.max(0, Math.min(80, stats.critico + (eqBonus.critico || 0)));
+ const bonusDifesa = Math.max(0, eqBonus.difesa || 0);
 
   // Applica bonus reliquie
   for (const [stat, mult] of Object.entries(relBonus)) {

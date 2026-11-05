@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.70";
+export const APP_VERSION = "6.71";
 export const APP_RELEASE = "05/11/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -206,210 +206,497 @@ export const QUEST_POOL_WORLD = [
 export const RANK_IMG_MAP = {}; // popolato dopo rankTitles
 
 /* ══════════════════════════════════════════════════════════
- EQUIPMENT POOL — 30 pezzi per slot (tier 1-10, 3 per tier)
- bonus: { stat, value } — stat in ["attacco","difesa","velocita","critico"]
+ EQUIPMENT POOL — 300 pezzi (50 per slot × 6 slot, 5 per tier nei tier 1-10)
+ Slot: testa, torace, braccia, mano_dx, mano_sx, gambe
+ Statistiche: attacco (Forza), difesa, velocita, destrezza, critico
+ Rarità: comune (costruibile dal fabbro o loot), magico (solo loot), leggendario (solo loot)
 ══════════════════════════════════════════════════════════ */
-function genEquip(slot, icon, tier, idx, name, bonusStat, bonusVal, desc, fonte) {
- // Prezzi bilanciati (moltiplicati circa 2.5x - 3x)
- const priceBase = [0, 50, 125, 280, 520, 900, 1450, 2150, 3050, 4350, 6600];
- const priceVar = [0, 15, 30, 60, 90, 125, 175, 240, 325, 500, 625];
- const prezzo = priceBase[tier] + (idx - 1) * priceVar[tier];
- const realIcon = icon || (slot === "arma" ? "🗡️" : "🛡️");
- return { id:`${slot[0]}${tier}${idx}`, slot, icon:realIcon, tier, name, bonus:{[bonusStat]:bonusVal}, desc, prezzo, fonte: fonte||["negozio"] };
+export const EQUIP_SLOTS = ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"];
+
+export const SLOT_LABELS = {
+  testa:   "Testa",
+  torace:  "Torace",
+  braccia: "Braccia",
+  mano_dx: "Mano Destra",
+  mano_sx: "Mano Sinistra",
+  gambe:   "Gambe",
+};
+
+const SLOT_PREFIX = {
+  mano_dx: "a",
+  testa:   "e",
+  mano_sx: "s",
+  torace:  "c",
+  gambe:   "g",
+  braccia: "b",
+};
+
+const TIER_DEFAULT_RECIPES = {
+  1: [
+    [{ id: "mat_legno", qty: 2 }],
+    [{ id: "mat_legno", qty: 3 }],
+    [{ id: "mat_legno", qty: 2 }, { id: "mat_ambra", qty: 1 }],
+  ],
+  2: [
+    [{ id: "mat_legno", qty: 2 }, { id: "mat_carbone", qty: 1 }],
+    [{ id: "mat_carbone", qty: 2 }, { id: "mat_rame", qty: 1 }],
+    [{ id: "mat_ambra", qty: 2 }, { id: "mat_rame", qty: 1 }],
+  ],
+  3: [
+    [{ id: "mat_rame", qty: 2 }, { id: "mat_carbone", qty: 2 }],
+    [{ id: "mat_rame", qty: 3 }, { id: "mat_carbone", qty: 2 }],
+    [{ id: "mat_rame", qty: 2 }, { id: "mat_ambra", qty: 2 }],
+  ],
+  4: [
+    [{ id: "mat_bronzo", qty: 2 }, { id: "mat_carbone", qty: 2 }],
+    [{ id: "mat_bronzo", qty: 3 }, { id: "mat_rame", qty: 2 }],
+    [{ id: "mat_bronzo", qty: 3 }, { id: "mat_ferro", qty: 1 }],
+  ],
+  5: [
+    [{ id: "mat_ferro", qty: 2 }, { id: "mat_carbone", qty: 3 }],
+    [{ id: "mat_ferro", qty: 3 }, { id: "mat_bronzo", qty: 2 }],
+    [{ id: "mat_ferro", qty: 4 }, { id: "mat_carbone", qty: 2 }],
+  ],
+  6: [
+    [{ id: "mat_ferro", qty: 3 }, { id: "mat_granito", qty: 2 }],
+    [{ id: "mat_granito", qty: 3 }, { id: "mat_ferro", qty: 3 }],
+    [{ id: "mat_granito", qty: 3 }, { id: "mat_argento", qty: 1 }],
+  ],
+  7: [
+    [{ id: "mat_argento", qty: 2 }, { id: "mat_granito", qty: 2 }],
+    [{ id: "mat_argento", qty: 3 }, { id: "mat_ferro", qty: 3 }],
+    [{ id: "mat_argento", qty: 4 }, { id: "mat_granito", qty: 2 }],
+  ],
+  8: [
+    [{ id: "mat_oro", qty: 2 }, { id: "mat_argento", qty: 2 }],
+    [{ id: "mat_oro", qty: 3 }, { id: "mat_topazio", qty: 2 }],
+    [{ id: "mat_topazio", qty: 3 }, { id: "mat_oro", qty: 2 }],
+  ],
+  9: [
+    [{ id: "mat_ossidiana", qty: 3 }, { id: "mat_topazio", qty: 2 }],
+    [{ id: "mat_ossidiana", qty: 3 }, { id: "mat_rubino", qty: 2 }],
+    [{ id: "mat_rubino", qty: 3 }, { id: "mat_ossidiana", qty: 3 }],
+  ],
+  10: [
+    [{ id: "mat_platino", qty: 3 }, { id: "mat_rubino", qty: 2 }],
+    [{ id: "mat_platino", qty: 3 }, { id: "mat_diamante", qty: 2 }],
+    [{ id: "mat_diamante", qty: 3 }, { id: "mat_platino", qty: 3 }],
+  ],
+};
+
+function genEquip(slot, tier, idx, name, bonus, desc, opts = {}) {
+  const priceBase = [0, 45, 110, 240, 450, 780, 1250, 1900, 2750, 3900, 5800];
+  const priceVar  = [0, 12, 25,  50,  85,  120, 170,  230,  310,  450,  600];
+  const rarita = opts.rarita || (idx <= 3 ? "comune" : idx === 4 ? "magico" : "leggendario");
+  const raritaMult = rarita === "leggendario" ? 1.4 : rarita === "magico" ? 1.2 : 1.0;
+  const prezzo = Math.round((priceBase[tier] + (idx - 1) * priceVar[tier]) * raritaMult);
+  const fonte = opts.fonte || (idx <= 2 ? ["fabbro"] : (idx === 3 && tier <= 6) ? ["fabbro"] : ["loot"]);
+  const handType = opts.handType || (slot === "mano_dx" ? "1h" : slot === "mano_sx" ? "shield" : null);
+  const recipe = fonte.includes("fabbro")
+    ? (opts.recipe || (TIER_DEFAULT_RECIPES[tier] && TIER_DEFAULT_RECIPES[tier][Math.min(2, idx - 1)]) || [{ id: "mat_legno", qty: 2 }])
+    : null;
+  const prefix = SLOT_PREFIX[slot] || slot[0];
+  const icon = slot === "mano_dx" ? "🗡️" : (slot === "mano_sx" && handType === "1h" ? "🗡️" : "🛡️");
+  return {
+    id: `${prefix}${tier}${idx}`,
+    slot,
+    handType,
+    rarita,
+    icon,
+    tier,
+    name,
+    bonus,
+    desc,
+    prezzo,
+    fonte,
+    recipe,
+  };
 }
 
 export const EQUIPMENT_POOL = [
- // ── ARMI (attacco) ──
- genEquip("arma","",1,1,"Bastone Nodoso", "attacco",2, "Un ramo robusto, meglio di niente",["negozio","esplorazione"]),
- genEquip("arma","",1,2,"Coltello Arrugginito","attacco",3, "La lama regge ancora",["negozio","esplorazione"]),
- genEquip("arma","",1,3,"Forcone da Contadino","attacco",3, "Tre punte, altrettante ferite",["esplorazione"]),
- genEquip("arma","",2,1,"Spada Corta", "attacco",5, "Affidabile nel corpo a corpo",["negozio"]),
- genEquip("arma","",2,2,"Ascia da Guerra", "attacco",6, "Pesante ma devastante",["negozio","loot"]),
- genEquip("arma","",2,3,"Mazza Ferrata", "attacco",5, "Spezza armature e ossa",["negozio"]),
- genEquip("arma","",3,1,"Spada Lunga", "attacco",9, "Equilibrio tra velocità e forza",["negozio","loot","esplorazione"]),
- genEquip("arma","",3,2,"Alabarda", "attacco",10,"Tiene il nemico a distanza",["negozio"]),
- genEquip("arma","",3,3,"Spada del Gladiatore", "attacco",11,"Forgiata nell'arena",["loot"]),
- genEquip("arma","",4,1,"Lama Oscura", "attacco",14,"Assorbe la luce attorno a sé",["negozio","loot"]),
- genEquip("arma","",4,2,"Spada del Campione", "attacco",16,"Apparteneva a un eroe caduto",["loot"]),
- genEquip("arma","",4,3,"Falce dell'Arciduca", "attacco",17,"Falcia tutto ciò che tocca",["loot"]),
- genEquip("arma","",5,1,"Lama Infuocata", "attacco",20,"Arde di fiamme eterne",["loot"]),
- genEquip("arma","",5,2,"Spada di Diamante", "attacco",22,"Tagliente come la verità",["loot"]),
- genEquip("arma","",5,3,"Tridente del Mare", "attacco",21,"Forgiata negli abissi",["loot"]),
- genEquip("arma","",6,1,"Lama del Fulmine", "attacco",25,"Colpisce alla velocità del tuono",["loot"]),
- genEquip("arma","",6,2,"Falce Lunare", "attacco",27,"Brilla sotto la luna piena",["loot"]),
- genEquip("arma","",6,3,"Spada di Ghiaccio", "attacco",26,"Congela il sangue dei nemici",["loot"]),
- genEquip("arma","",7,1,"Lama Velenosa", "attacco",31,"Avvelenata con estratti rari",["loot"]),
- genEquip("arma","",7,2,"Costola di Titano", "attacco",33,"Forgiata dall'osso di un titano",["loot"]),
- genEquip("arma","",7,3,"Zanna del Drago", "attacco",32,"Strappata da un drago antico",["loot"]),
- genEquip("arma","",8,1,"Scettro Regale", "attacco",37,"Simbolo di potere assoluto",["loot"]),
- genEquip("arma","",8,2,"Spada delle Stelle", "attacco",39,"Caduta dal cielo",["loot"]),
- genEquip("arma","",8,3,"Bastone Arcano", "attacco",38,"Canalizza energia mistica",["loot"]),
- genEquip("arma","",9,1,"Lama Meteoritica", "attacco",44,"Forgiata da metallo cosmico",["loot"]),
- genEquip("arma","",9,2,"Falce della Morte", "attacco",46,"Solo i più forti possono sollevarla",["loot"]),
- genEquip("arma","",9,3,"Spada dell'Oblio", "attacco",45,"Chi la tocca dimentica il timore",["loot"]),
- genEquip("arma","",10,1,"Lama dell'Asceso", "attacco",52,"Arma leggendaria primordiale",["loot"]),
- genEquip("arma","",10,2,"Spada del Re Eterno", "attacco",54,"Forgiata da un dio",["loot"]),
- genEquip("arma","",10,3,"Excalibur dell'Abisso", "attacco",53,"La lama definitiva",["loot"]),
+  // ══════════════════════════════════════════════════════════
+  // 1. MANO DESTRA (50 Armi Principali: 1H e 2H)
+  // ══════════════════════════════════════════════════════════
+  // Tier 1
+  genEquip("mano_dx",1,1,"Coltello da Scuoiatore",      {attacco:2,velocita:1,destrezza:1},           "Lama corta in ferro grezzo, leggera e rapida nei fendenti ravvicinati", {handType:"1h"}),
+  genEquip("mano_dx",1,2,"Randello Ferrato",            {attacco:4,velocita:-1},                      "Bastone di frassino appesantito da chiodi in ferro battuto", {handType:"1h"}),
+  genEquip("mano_dx",1,3,"Forcone da Guerra",           {attacco:6,difesa:1,velocita:-2,destrezza:-1},"Attrezzo contadino riadattato a lancia lunga per tenere a bada le belve", {handType:"2h"}),
+  genEquip("mano_dx",1,4,"Pugnale di Selce Nera",       {attacco:3,velocita:2,critico:3,destrezza:1}, "Lama rituale scheggiata da una vena vulcanica che vibra al buio", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",1,5,"Spada Spezzata del Disertore",{attacco:6,critico:4,velocita:1,difesa:-1},   "Vecchia lama militare riforgiata nel sangue lungo i confini della foresta", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 2
+  genEquip("mano_dx",2,1,"Spada Corta da Fante",        {attacco:5,velocita:1,destrezza:1},           "Ordinanza leggera della milizia cittadina, ben bilanciata per le stoccate", {handType:"1h"}),
+  genEquip("mano_dx",2,2,"Mazza Chiodata",              {attacco:7,critico:1,velocita:-1},            "Testa di ferro massiccio progettata per ammaccare elmi e piastre", {handType:"1h"}),
+  genEquip("mano_dx",2,3,"Picca da Trincea",            {attacco:10,difesa:2,velocita:-2,destrezza:-1},"Lunga asta di rovere con punta piramidale, richiede entrambe le mani", {handType:"2h"}),
+  genEquip("mano_dx",2,4,"Sciabola del Contrabbandiere",{attacco:7,velocita:3,destrezza:2,critico:2}, "Lama ricurva incisa con segni del vento che fende l'aria senza rumore", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",2,5,"Maglio del Capominiera",      {attacco:13,critico:5,velocita:-3,destrezza:-2},"Pesante martello a due mani intriso del calore delle gallerie profonde", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 3
+  genEquip("mano_dx",3,1,"Spada d'Arme",                {attacco:8,difesa:1,destrezza:1},             "Classica spada dritta a doppio filo con elsa a croce in acciaio temprato", {handType:"1h"}),
+  genEquip("mano_dx",3,2,"Ascia Barbuta",               {attacco:11,critico:2,velocita:-1,difesa:-1}, "Scure a una mano dal tagliente allungato per agganciare gli scudi avversari", {handType:"1h"}),
+  genEquip("mano_dx",3,3,"Alabarda da Guardia",         {attacco:15,difesa:3,velocita:-2,destrezza:-2},"Combina scure, lancia e uncino su un'asta di due metri", {handType:"2h"}),
+  genEquip("mano_dx",3,4,"Stocco d'Argento Vivo",       {attacco:10,velocita:4,destrezza:3,critico:4},"Lama sottile temprata in sali alchemici, micidiale nei punti vitali", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",3,5,"Spadone del Giudice",         {attacco:19,critico:6,difesa:2,velocita:-3},  "Lama di esecuzione a due mani recante i versi di un antico codice penale", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 4
+  genEquip("mano_dx",4,1,"Sciabola da Abordaggio",      {attacco:13,velocita:2,destrezza:2},          "Lama corta e robusta con guardia a cestello per proteggere le nocche", {handType:"1h"}),
+  genEquip("mano_dx",4,2,"Martello da Guerra",          {attacco:16,critico:3,velocita:-2},           "Becco di corvo posteriore e testa battente per sfondare le corazze pesanti", {handType:"1h"}),
+  genEquip("mano_dx",4,3,"Spadone da Fante",            {attacco:22,critico:4,velocita:-3,destrezza:-2},"Zweihänder d'acciaio con ricasso in cuoio per le prese ravvicinate", {handType:"2h"}),
+  genEquip("mano_dx",4,4,"Lama Nera di Corallo",        {attacco:16,velocita:3,critico:5,destrezza:2},"Forgiata dai pirati abissali con corallo nero indurito dal sangue", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",4,5,"Tridente del Naufrago Re",    {attacco:26,difesa:4,critico:5,velocita:-2},  "Arma inastata a tre punte che richiama la furia delle mareggiate", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 5
+  genEquip("mano_dx",5,1,"Rapiera da Duello",           {attacco:18,velocita:4,destrezza:3,critico:3},"Lama flessibile ed elegante, progettata per affondi fulminei", {handType:"1h"}),
+  genEquip("mano_dx",5,2,"Spada Bastarda",              {attacco:21,difesa:2,critico:2,velocita:-1},  "Lama lunga e solida, bilanciata per fendenti potenti a una mano", {handType:"1h"}),
+  genEquip("mano_dx",5,3,"Berdica del Nord",            {attacco:29,critico:6,velocita:-4,destrezza:-2},"Enorme lama a mezzaluna montata su asta, spacca scudi e cavalli", {handType:"2h"}),
+  genEquip("mano_dx",5,4,"Brando delle Braci",          {attacco:23,critico:6,velocita:2,difesa:-2},  "Lama perennemente rovente lungo il filo, lascia scie di cenere nell'aria", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",5,5,"Claymore dei Venti Gelidi",   {attacco:34,velocita:3,critico:7,difesa:-2},  "Spadone leggendario dei clan montani, leggero come il vento di tormenta", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 6
+  genEquip("mano_dx",6,1,"Cinquedea Veneziana",         {attacco:23,velocita:3,critico:4,destrezza:2},"Lama larga alla base e scanalata, letale negli scontri stretti", {handType:"1h"}),
+  genEquip("mano_dx",6,2,"Mazza Flangiata d'Acciaio",   {attacco:27,difesa:2,critico:3,velocita:-2},  "Sei alette d'acciaio temprato che non rimbalzano mai sulle piastre", {handType:"1h"}),
+  genEquip("mano_dx",6,3,"Lancia da Cavalleria Pesante",{attacco:36,difesa:4,velocita:-3,destrezza:-2},"Lunga lancia d'assalto bilanciata per impatti devastanti a due mani", {handType:"2h"}),
+  genEquip("mano_dx",6,4,"Spada Runica del Tuono",      {attacco:28,velocita:5,critico:6,destrezza:2},"Incisa con glifi celesti che scaricano archi voltaici a ogni parata", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",6,5,"Falce Lunare dell'Eclissi",   {attacco:42,critico:10,destrezza:3,difesa:-4},"Grande falce da guerra a due mani che miete le ombre stesse dei nemici", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 7
+  genEquip("mano_dx",7,1,"Khopesh delle Dune",          {attacco:29,velocita:3,critico:4,destrezza:2},"Spada-falce in bronzo e acciaio meteorico usata dalle guardie reali", {handType:"1h"}),
+  genEquip("mano_dx",7,2,"Scimitarra di Damasco",       {attacco:32,velocita:4,destrezza:4,critico:3},"Acciaio marezzato a cento strati, scorre come acqua tra le difese", {handType:"1h"}),
+  genEquip("mano_dx",7,3,"Glaive del Guardiano",        {attacco:43,difesa:5,critico:4,velocita:-3},  "Lama ricurva su lunga asta dorata, orgoglio dei custodi del tempio", {handType:"2h",fonte:["loot"]}),
+  genEquip("mano_dx",7,4,"Lama Velenosa di Scorpione",  {attacco:35,velocita:5,critico:8,destrezza:3},"Scanalature interne rilasciano una neurotossina a ogni ferita inflitta", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",7,5,"Spadone del Re Sepolto",      {attacco:50,difesa:4,critico:8,velocita:-4},  "Colossale lama cerimoniale intrisa del potere necromantico delle piramidi", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 8
+  genEquip("mano_dx",8,1,"Spada Lunga in Mithril",      {attacco:36,velocita:6,destrezza:4,critico:3},"Forgiata nel raro argento delle vette, pesa la metà dell'acciaio comune", {handType:"1h"}),
+  genEquip("mano_dx",8,2,"Ascia Reale a Mano Singola",  {attacco:40,critico:6,difesa:2,velocita:-1},  "Lama d'oro temprato e acciaio scuro, spezza scudi e volontà", {handType:"1h"}),
+  genEquip("mano_dx",8,3,"Martello Colossale dei Titani",{attacco:53,critico:8,velocita:-5,destrezza:-3},"Blocco di metallo astrale che richiede forza sovrumana per essere brandito", {handType:"2h",fonte:["loot"]}),
+  genEquip("mano_dx",8,4,"Stocco Astrale",              {attacco:42,velocita:7,destrezza:5,critico:7},"La punta brilla come una stella fissa, guidando la mano verso il cuore", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",8,5,"Alabarda del Sole Nero",      {attacco:58,difesa:6,critico:9,velocita:-3},  "Reliquia bellica di un impero caduto, avvolta da una corona di fuoco oscuro", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 9
+  genEquip("mano_dx",9,1,"Lama d'Ossidiana Infernale",  {attacco:44,velocita:5,critico:7,difesa:-2},  "Vetro vulcanico dell'Oltretomba affilato a livello molecolare", {handType:"1h"}),
+  genEquip("mano_dx",9,2,"Mazza del Signore dei Morti", {attacco:48,difesa:4,critico:5,velocita:-2},  "Testa forgiata a forma di teschio coronato che rintocca a ogni impatto", {handType:"1h"}),
+  genEquip("mano_dx",9,3,"Falce del Mietitore d'Anime", {attacco:63,critico:12,velocita:-3,difesa:-4},"Lunga falce spettrale a due mani che recide il legame tra corpo e spirito", {handType:"2h",fonte:["loot"]}),
+  genEquip("mano_dx",9,4,"Spada del Vuoto Silente",     {attacco:51,velocita:6,destrezza:5,critico:8},"Non emette alcun suono quando colpisce, divorando la luce circostante", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",9,5,"Zweihänder dell'Abisso",      {attacco:68,critico:11,difesa:5,velocita:-4}, "Spadone monumentale temprato nelle fucine demoniache del nono cerchio", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 10
+  genEquip("mano_dx",10,1,"Spada Celata di Platino",    {attacco:52,velocita:7,destrezza:6,critico:6},"Lama perfetta forgiata nel metallo incorruttibile dell'Empireo", {handType:"1h"}),
+  genEquip("mano_dx",10,2,"Scettro Bellico del Sovrano",{attacco:56,difesa:6,critico:7,velocita:-1},  "Simbolo di dominio assoluto, capace di frantumare barriere divine", {handType:"1h"}),
+  genEquip("mano_dx",10,3,"Lancia del Firmamento",      {attacco:72,difesa:8,destrezza:5,velocita:-2},"Asta di luce solidificata che richiede entrambe le mani per essere dominata", {handType:"2h",fonte:["loot"]}),
+  genEquip("mano_dx",10,4,"Lama dell'Asceso",           {attacco:62,velocita:8,critico:10,destrezza:6},"Arma primordiale che risponde istantaneamente al pensiero del portatore", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_dx",10,5,"Excalibur del Crepuscolo",   {attacco:82,critico:14,difesa:6,velocita:-2}, "Lo spadone definitivo, forgiato all'alba del mondo per abbattere gli dèi", {handType:"2h",rarita:"leggendario",fonte:["loot"]}),
 
- // ── ELMI (difesa) ──
- genEquip("elmo","",1,1,"Cappello di Paglia","difesa",1,"Protegge dal sole, non dalle spade",["negozio"]),
- genEquip("elmo","",1,2,"Cuffia di Cuoio", "difesa",1,"Semplice ma meglio di nulla",["negozio","esplorazione"]),
- genEquip("elmo","",1,3,"Fascia di Cuoio", "difesa",2,"Almeno copre la fronte",["esplorazione"]),
- genEquip("elmo","",2,1,"Elmo di Ferro", "difesa",3,"Protezione standard dei soldati",["negozio"]),
- genEquip("elmo","",2,2,"Elmo con Visiera", "difesa",4,"Copre anche il viso",["negozio","loot"]),
- genEquip("elmo","",2,3,"Casco Legionario", "difesa",3,"Stile romano, resistenza assoluta",["negozio"]),
- genEquip("elmo","",3,1,"Elmo del Cavaliere","difesa",6,"Inciso con stemmi nobiliari",["negozio","loot"]),
- genEquip("elmo","",3,2,"Elmo del Gladiatore","difesa",7,"La cresta lo rende inconfondibile",["loot"]),
- genEquip("elmo","",3,3,"Elmo a Visiera Piena","difesa",6,"Protegge ogni angolo del viso",["negozio"]),
- genEquip("elmo","",4,1,"Elmo Oscuro", "difesa",9,"Incute terrore nei nemici",["loot"]),
- genEquip("elmo","",4,2,"Elmo del Templare", "difesa",10,"Benedetto da ordini sacri",["loot","esplorazione"]),
- genEquip("elmo","",4,3,"Elmo del Generale", "difesa",9,"Portato in mille battaglie",["loot"]),
- genEquip("elmo","",5,1,"Elmo Infuocato", "difesa",12,"Arde di un fuoco eterno",["loot"]),
- genEquip("elmo","",5,2,"Elmo Glaciale", "difesa",13,"Freddo come l'inverno eterno",["loot"]),
- genEquip("elmo","",5,3,"Elmo Lunare", "difesa",12,"Brilla di luce argentata",["loot"]),
- genEquip("elmo","",6,1,"Elmo del Fulmine", "difesa",15,"Conduce l'energia degli dei",["loot"]),
- genEquip("elmo","",6,2,"Elmo del Drago", "difesa",16,"Fatto con le squame di un drago",["loot"]),
- genEquip("elmo","",6,3,"Elmo Velenoso", "difesa",15,"Avvelenato alla minima scalfitura",["loot"]),
- genEquip("elmo","",7,1,"Corona Guerriera", "difesa",19,"Corona e protezione in uno",["loot"]),
- genEquip("elmo","",7,2,"Elmo delle Stelle", "difesa",20,"Caduto dal firmamento",["loot"]),
- genEquip("elmo","",7,3,"Elmo Arcano", "difesa",19,"Protezione magica assoluta",["loot"]),
- genEquip("elmo","",8,1,"Elmo Meteorico", "difesa",23,"Forgiato da un meteorite",["loot"]),
- genEquip("elmo","",8,2,"Elmo di Diamante", "difesa",24,"Indistruttibile come il diamante",["loot"]),
- genEquip("elmo","",8,3,"Elmo dell'Oblio", "difesa",23,"Chi lo indossa non teme la morte",["loot"]),
- genEquip("elmo","",9,1,"Teschio del Titano", "difesa",27,"Rimosso da un titano sconfitto",["loot"]),
- genEquip("elmo","",9,2,"Elmo Primordiale", "difesa",29,"Esiste dall'alba dei tempi",["loot"]),
- genEquip("elmo","",9,3,"Elmo Cosmico", "difesa",28,"Protegge anche l'anima",["loot"]),
- genEquip("elmo","",10,1,"Corona di Ferro", "difesa",33,"Protezione regale assoluta",["loot"]),
- genEquip("elmo","",10,2,"Elmo dell'Asceso", "difesa",34,"Nessun colpo lo scalfisce",["loot"]),
- genEquip("elmo","",10,3,"Diadema Eterno", "difesa",33,"Forgiato prima del tempo",["loot"]),
+  // ══════════════════════════════════════════════════════════
+  // 2. MANO SINISTRA (50 Scudi e Armi Secondarie 1H)
+  // ══════════════════════════════════════════════════════════
+  // Tier 1
+  genEquip("mano_sx",1,1,"Brocchiere di Legno",         {difesa:2,destrezza:1},                       "Piccolo scudo tondo da pugno, utile per deviare fendenti rapidi", {handType:"shield"}),
+  genEquip("mano_sx",1,2,"Tavola di Rovere Ferrata",    {difesa:4,velocita:-1,destrezza:-1},          "Asse spessa rinforzata con fasce di ferro grezzo, pesante ma solida", {handType:"shield"}),
+  genEquip("mano_sx",1,3,"Coltello da Caccia Secondario",{attacco:2,velocita:2,critico:1},            "Lama corta bilanciata per essere impugnata nella mano non dominante", {handType:"1h"}),
+  genEquip("mano_sx",1,4,"Targa d'Ambra Silvana",       {difesa:4,velocita:1,destrezza:2},            "Scudo leggero incrostato di resina fossile che attutisce i colpi", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",1,5,"Artiglio del Branco",         {attacco:4,velocita:3,critico:3,difesa:-1},   "Pugnale ricurvo ricavato dalla zanna di un lupo alfa antico", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 2
+  genEquip("mano_sx",2,1,"Rotella di Cuoio Bollito",    {difesa:4,velocita:1,destrezza:1},            "Scudo circolare foderato in cuoio indurito a cera, molto maneggevole", {handType:"shield"}),
+  genEquip("mano_sx",2,2,"Scudo Rotondo Vichingo",      {difesa:7,velocita:-1,destrezza:-1},          "Tavole di tiglio con umbone centrale in ferro per respingere gli assalti", {handType:"shield"}),
+  genEquip("mano_sx",2,3,"Daga da Parata",              {attacco:4,difesa:2,destrezza:2},             "Guardia ad anello progettata per intrappolare la lama avversaria", {handType:"1h"}),
+  genEquip("mano_sx",2,4,"Stiletto delle Ombre",        {attacco:6,velocita:3,critico:4,destrezza:2}, "Lama a sezione triangolare per colpi furtivi con la mano sinistra", {handType:"1h",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",2,5,"Scudo del Minatore Sepolto",  {difesa:10,attacco:2,velocita:-2,destrezza:-1},"Piastra di carrello minerario temprata da crolli e fiamme sotterranee", {handType:"shield",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 3
+  genEquip("mano_sx",3,1,"Brocchiere d'Acciaio",        {difesa:6,destrezza:2,critico:1},             "Scudo da duello interamente metallico, eccellente per il contrattacco", {handType:"shield"}),
+  genEquip("mano_sx",3,2,"Scudo a Goccia Normanno",     {difesa:11,velocita:-2,destrezza:-1},         "Profilo allungato che protegge dal torso fino al ginocchio sinistro", {handType:"shield"}),
+  genEquip("mano_sx",3,3,"Manosinistra da Duello",      {attacco:6,difesa:3,destrezza:2,critico:2},   "Daga rinascimentale con vela protettiva e lama spezza-punte", {handType:"1h"}),
+  genEquip("mano_sx",3,4,"Scudo Eraldico Benedetto",    {difesa:12,velocita:1,destrezza:1},           "Dipinto con i colori di un ordine cavalleresco, infonde calma in mischia", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",3,5,"Zanna Gemella del Gladiatore",{attacco:10,velocita:4,critico:5,destrezza:2},"Spada corta da arena pensata per chi combatte senza scudo", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 4
+  genEquip("mano_sx",4,1,"Targa Chiodata da Corsaro",   {difesa:9,attacco:2,destrezza:2},             "Munita di uno spuntone centrale per colpire con il dorso dello scudo", {handType:"shield"}),
+  genEquip("mano_sx",4,2,"Pavese da Fanteria",          {difesa:15,velocita:-3,destrezza:-2},         "Grande scudo rettangolare in grado di fermare dardi e fendenti pesanti", {handType:"shield"}),
+  genEquip("mano_sx",4,3,"Trincia-Lame Dentato",        {attacco:9,difesa:4,critico:3,destrezza:2},   "Profonde intaccature lungo il dorso permettono di spezzare le spade nemiche", {handType:"1h"}),
+  genEquip("mano_sx",4,4,"Rotella delle Maree",         {difesa:14,velocita:2,destrezza:3},           "Forgiata in bronzo marino, devia i colpi con la fluidità dell'acqua", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",4,5,"Arpione Corto del Kraken",    {attacco:14,critico:6,velocita:3,difesa:2},   "Lama secondaria uncinata ricavata dal rostro di un mostro degli abissi", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 5
+  genEquip("mano_sx",5,1,"Scudo Riscaldato da Sella",   {difesa:13,velocita:1,destrezza:2},           "Scudo triangolare compatto, ideale per non ostacolare i movimenti", {handType:"shield"}),
+  genEquip("mano_sx",5,2,"Scudo Torre Legionario",      {difesa:20,velocita:-3,destrezza:-3},         "Muraglia portatile curvata che copre l'intero corpo del guerriero", {handType:"shield"}),
+  genEquip("mano_sx",5,3,"Wakizashi d'Acciaio Piegato", {attacco:13,velocita:4,critico:4,destrezza:3},"Spada corta orientale dal filo rasoio per doppi fendenti incrociati", {handType:"1h"}),
+  genEquip("mano_sx",5,4,"Scudo Glaciale delle Vette",  {difesa:19,attacco:3,velocita:-1},            "Ricoperto di ghiaccio perenne che intorpidisce le braccia di chi lo colpisce", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",5,5,"Lama d'Ombra Secondaria",     {attacco:18,velocita:6,critico:7,destrezza:4},"Appare e scompare tra le dita della mano sinistra, impossibile da prevedere", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 6
+  genEquip("mano_sx",6,1,"Rotella d'Acciaio Incisa",    {difesa:16,destrezza:3,velocita:2},           "Scudo leggero nervato che fa scivolare via anche i colpi di mazza", {handType:"shield"}),
+  genEquip("mano_sx",6,2,"Grande Bastione d'Assedio",   {difesa:25,velocita:-4,destrezza:-3},         "Lastra d'acciaio massiccio progettata per avanzare sotto il fuoco nemico", {handType:"shield"}),
+  genEquip("mano_sx",6,3,"Kriss Serpeggiante",          {attacco:17,velocita:4,critico:6,destrezza:3},"Pugnale a lama ondulata che lacera le giunture delle armature", {handType:"1h"}),
+  genEquip("mano_sx",6,4,"Scudo di Scaglie di Wyvern",  {difesa:23,velocita:2,destrezza:2},           "Leggero come il cuoio ma più duro del ferro grazie alle scaglie draconiche", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",6,5,"Egida del Fulmine Bianco",    {difesa:27,velocita:3,attacco:4,destrezza:2}, "Scudo leggendario dei cieli che respinge gli assalti con un boato di tuono", {handType:"shield",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 7
+  genEquip("mano_sx",7,1,"Targa Dorata del Deserto",    {difesa:20,velocita:2,destrezza:3},           "Scudo curvo in lega d'oro e bronzo che riflette la luce accecando il nemico", {handType:"shield"}),
+  genEquip("mano_sx",7,2,"Scudo Sarcofago",             {difesa:30,velocita:-4,destrezza:-3},         "Pesante scudo torre scolpito come il coperchio di una tomba regale", {handType:"shield"}),
+  genEquip("mano_sx",7,3,"Katar da Pugno",              {attacco:22,velocita:5,critico:7,destrezza:3},"Pugnale a spinta con impugnatura trasversale, estensione naturale del braccio", {handType:"1h",fonte:["loot"]}),
+  genEquip("mano_sx",7,4,"Scudo dello Scarabeo Sacro",  {difesa:27,destrezza:4,critico:3},            "Avvolto da un campo di sabbia vorticosa che devia i fendenti", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",7,5,"Zanna di Anubi",              {attacco:27,velocita:6,critico:9,difesa:3},   "Lama corta cerimoniale usata per pesare il cuore dei guerrieri caduti", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 8
+  genEquip("mano_sx",8,1,"Brocchiere di Mithril",       {difesa:24,velocita:4,destrezza:5},           "Talmente leggero da sembrare privo di peso, perfetto per schivare e parare", {handType:"shield"}),
+  genEquip("mano_sx",8,2,"Muro dei Titani",             {difesa:36,attacco:3,velocita:-5,destrezza:-4},"Scudo colossale forgiato per reggere l'urto di giganti e draghi", {handType:"shield"}),
+  genEquip("mano_sx",8,3,"Daga Reale in Topazio",       {attacco:27,velocita:5,critico:8,destrezza:4},"Lama secondaria della guardia imperiale che brilla di luce solare", {handType:"1h",fonte:["loot"]}),
+  genEquip("mano_sx",8,4,"Scudo Specchio Arcano",       {difesa:32,destrezza:5,velocita:3},           "Superficie levigata a specchio che disorienta chiunque tenti di affondare il colpo", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",8,5,"Lama Gemella delle Stelle",   {attacco:33,velocita:8,critico:10,destrezza:5},"Forgiata dallo stesso meteorite della Spada delle Stelle per il dual-wielding", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 9
+  genEquip("mano_sx",9,1,"Targa d'Ossidiana Tagliente", {difesa:28,attacco:6,critico:4,destrezza:2},  "I bordi affilati dello scudo trasformano ogni parata in un fendente", {handType:"shield"}),
+  genEquip("mano_sx",9,2,"Bastione delle Anime Dannate",{difesa:42,velocita:-5,destrezza:-3},         "Pesante scudo nero su cui affiorano i volti pietrificati dei caduti", {handType:"shield"}),
+  genEquip("mano_sx",9,3,"Stiletto Cremisi del Vampiro",{attacco:33,velocita:7,critico:9,destrezza:4},"Daga sottile dell'Oltretomba che cerca istintivamente le arterie scoperte", {handType:"1h",fonte:["loot"]}),
+  genEquip("mano_sx",9,4,"Egida Spettrale",             {difesa:37,velocita:4,destrezza:6},           "Parzialmente incorporea, assorbe l'energia cinetica senza trasmettere l'urto", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",9,5,"Artiglio del Signore Abissale",{attacco:40,velocita:8,critico:12,difesa:4}, "Lama secondaria demoniaca viva che squarcia ferro e carne con uguale facilità", {handType:"1h",rarita:"leggendario",fonte:["loot"]}),
+  // Tier 10
+  genEquip("mano_sx",10,1,"Rotella di Platino Celeste", {difesa:34,velocita:5,destrezza:6},           "Scudo da duello divino, bilanciato con perfezione geometrica assoluta", {handType:"shield"}),
+  genEquip("mano_sx",10,2,"Bastione Incorruttibile",    {difesa:48,velocita:-4,destrezza:-2},         "Scudo torre forgiato in diamante e platino, nessuna forza mortale può incrinare", {handType:"shield"}),
+  genEquip("mano_sx",10,3,"Daga di Luce Solida",        {attacco:39,velocita:8,critico:10,destrezza:6},"Impugnatura d'oro da cui scaturisce una lama corta di puro fulgore", {handType:"1h",fonte:["loot"]}),
+  genEquip("mano_sx",10,4,"Scudo dell'Orizzonte Eterno",{difesa:44,velocita:4,destrezza:5,attacco:4}, "Riflette la volta dell'Empireo, deviando i colpi prima ancora che arrivino", {handType:"shield",rarita:"magico",fonte:["loot"]}),
+  genEquip("mano_sx",10,5,"Egida del Re Eterno",        {difesa:52,attacco:8,velocita:3,destrezza:5}, "Lo scudo supremo degli dèi, unisce difesa impenetrabile e grazia assoluta", {handType:"shield",rarita:"leggendario",fonte:["loot"]}),
 
- // ── SCUDI (difesa) ──
- genEquip("scudo","",1,1,"Tavola di Legno", "difesa",1,"Non durerà a lungo",["negozio","esplorazione"]),
- genEquip("scudo","",1,2,"Scudo di Cuoio", "difesa",2,"Leggero e manovrabile",["negozio","esplorazione"]),
- genEquip("scudo","",1,3,"Scudo di Paglia", "difesa",1,"Meglio di niente",["esplorazione"]),
- genEquip("scudo","",2,1,"Scudo Rotondo", "difesa",4,"Il classico scudo del soldato",["negozio"]),
- genEquip("scudo","",2,2,"Scudo a Goccia", "difesa",5,"Protegge anche le gambe",["negozio","loot"]),
- genEquip("scudo","",2,3,"Scudo Longobardo", "difesa",4,"Resistente e affidabile",["negozio"]),
- genEquip("scudo","",3,1,"Scudo del Paladino","difesa",7,"Benedetto da un ordine sacro",["negozio","loot"]),
- genEquip("scudo","",3,2,"Scudo Eraldico", "difesa",8,"Stemma di una casata caduta",["loot"]),
- genEquip("scudo","",3,3,"Scudo del Crociato","difesa",7,"Portato in mille crociate",["negozio","esplorazione"]),
- genEquip("scudo","",4,1,"Scudo del Generale","difesa",10,"Deviato mille colpi mortali",["loot","esplorazione"]),
- genEquip("scudo","",4,2,"Scudo Infuocato", "difesa",11,"Brucia chi osa toccarlo",["loot"]),
- genEquip("scudo","",4,3,"Scudo Glaciale", "difesa",10,"Congela i proiettili in volo",["loot"]),
- genEquip("scudo","",5,1,"Scudo del Fulmine", "difesa",13,"Conduce l'energia divina",["loot"]),
- genEquip("scudo","",5,2,"Scudo Lunare", "difesa",14,"Brilla di luce argentata",["loot"]),
- genEquip("scudo","",5,3,"Scudo del Drago", "difesa",13,"Squame di drago fuse insieme",["loot"]),
- genEquip("scudo","",6,1,"Scudo Velenoso", "difesa",16,"Avvelena chi lo colpisce",["loot"]),
- genEquip("scudo","",6,2,"Scudo di Diamante", "difesa",17,"Impossibile scalfirlo",["loot"]),
- genEquip("scudo","",6,3,"Scudo dell'Ombra", "difesa",16,"Si nasconde nell'oscurità",["loot"]),
- genEquip("scudo","",7,1,"Scudo Regale", "difesa",20,"Portato da un re leggendario",["loot"]),
- genEquip("scudo","",7,2,"Scudo delle Stelle","difesa",21,"Caduto dal cielo in fiamme",["loot"]),
- genEquip("scudo","",7,3,"Scudo Arcano", "difesa",20,"Assorbe la magia ostile",["loot"]),
- genEquip("scudo","",8,1,"Scudo Meteorico", "difesa",24,"Forgiato da metallo cosmico",["loot"]),
- genEquip("scudo","",8,2,"Scudo del Titano", "difesa",25,"Pesante come un titano",["loot"]),
- genEquip("scudo","",8,3,"Scudo dell'Oblio", "difesa",24,"Annulla qualsiasi danno",["loot"]),
- genEquip("scudo","",9,1,"Scudo Primordiale", "difesa",28,"Antico quanto il mondo",["loot"]),
- genEquip("scudo","",9,2,"Scudo Eterno", "difesa",30,"Non si è mai rotto",["loot"]),
- genEquip("scudo","",9,3,"Scudo Cosmico", "difesa",29,"Protegge anche i sogni",["loot"]),
- genEquip("scudo","",10,1,"Egida dell'Asceso","difesa",34,"Scudo cosmico indistruttibile",["loot"]),
- genEquip("scudo","",10,2,"Scudo del Re Eterno","difesa",35,"Portato dall'eroe dei tempi",["loot"]),
- genEquip("scudo","",10,3,"Bastione Divino", "difesa",34,"Dono degli dei",["loot"]),
+  // ══════════════════════════════════════════════════════════
+  // 3. TESTA (50 Elmi, Copricapi, Cappucci)
+  // ══════════════════════════════════════════════════════════
+  // Tier 1
+  genEquip("testa",1,1,"Cappuccio di Lana Grezza",      {difesa:1,velocita:1,destrezza:1},            "Ripara dal freddo e lascia la visuale completamente libera"),
+  genEquip("testa",1,2,"Cuffia di Cuoio Imbottita",     {difesa:2,destrezza:1},                       "Sottocasco trapuntato che attutisce le percosse alla testa"),
+  genEquip("testa",1,3,"Cerchiata di Ferro",            {difesa:3,velocita:-1},                       "Banda di ferro chiodata attorno alle tempie con nasale dritto"),
+  genEquip("testa",1,4,"Cappuccio del Bracconiere",     {difesa:2,destrezza:2,critico:2,velocita:1},  "Tessuto mimetico intriso di resine del bosco che acuisce i sensi", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",1,5,"Maschera di Corteccia Antica",  {difesa:4,attacco:2,destrezza:1,velocita:-1}, "Volto ligneo scolpito dagli spiriti silvani, dura come la quercia", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 2
+  genEquip("testa",2,1,"Cappuccio in Pelle di Lupo",    {difesa:2,velocita:2,destrezza:1,critico:1},  "Leggero e caldo, permette movimenti rapidi del collo"),
+  genEquip("testa",2,2,"Cappello di Ferro da Fante",    {difesa:4,destrezza:1},                       "Elmo a tesa larga che protegge dai fendenti dall'alto senza chiudere la vista"),
+  genEquip("testa",2,3,"Elmo Normanno con Nasale",      {difesa:6,velocita:-1,destrezza:-1},          "Calotta conica in ferro battuto che fa scivolare via i colpi di spada"),
+  genEquip("testa",2,4,"Diadema di Rame Runico",        {difesa:4,velocita:2,critico:3,destrezza:2},  "Cerchio metallico estratto dalle miniere che schiarisce i riflessi", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",2,5,"Elmo Chiuso del Caposquadra",   {difesa:8,attacco:2,velocita:-2,destrezza:-1},"Pesante celata forgiata per resistere ai crolli di roccia", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 3
+  genEquip("testa",3,1,"Cappuccio di Maglia Fine",      {difesa:5,destrezza:1,velocita:1},            "Camaglio di anelli intrecciati che avvolge capo, nuca e spalle"),
+  genEquip("testa",3,2,"Barbuta d'Acciaio",             {difesa:7,critico:1,destrezza:-1},            "Elmo integrale con apertura a T che coniuga protezione e respiro"),
+  genEquip("testa",3,3,"Grande Elmo Crociato",          {difesa:10,velocita:-2,destrezza:-2},         "Cilindro d'acciaio piatto con strette fessure oculari, quasi impenetrabile"),
+  genEquip("testa",3,4,"Celata del Duellante",          {difesa:7,velocita:3,destrezza:3,critico:2},  "Profilo aerodinamico temperato nell'argento per non rallentare mai lo sguardo", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",3,5,"Elmo Creato del Gladiatore",    {difesa:11,attacco:4,critico:3,destrezza:-1}, "Sormontato da una cresta bronzea insanguinata in cento battaglie nell'arena", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 4
+  genEquip("testa",4,1,"Tricorno Foderato in Cuoio",    {difesa:7,velocita:3,destrezza:3,critico:2},  "Copricapo da capitano di ventura rinforzato internamente con lamine sottili"),
+  genEquip("testa",4,2,"Morione Spagnolo",              {difesa:10,critico:2,destrezza:1},            "Elmo a cresta alta e falde ricurve, protegge il volto lasciando mira perfetta"),
+  genEquip("testa",4,3,"Bacinetto a Muso di Cane",      {difesa:14,velocita:-2,destrezza:-2},         "Visiera conica allungata progettata per deviare lance e frecce"),
+  genEquip("testa",4,4,"Cappuccio delle Nebbie Marine", {difesa:10,velocita:4,destrezza:4,critico:3}, "Tessuto incantato che confonde la sagoma della testa tra i flutti", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",4,5,"Elmo di Corallo del Re Pirata", {difesa:15,attacco:4,critico:4,velocita:-1},  "Incrostato di madrepore indistruttibili e forgiato nell'oro sommerso", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 5
+  genEquip("testa",5,1,"Cappuccio Furtivo d'Ombra",     {difesa:10,velocita:4,destrezza:4,critico:3}, "Seta scura multistrato che permette una percezione periferica totale"),
+  genEquip("testa",5,2,"Borgognotta da Ufficiale",      {difesa:14,attacco:2,critico:2},              "Elmo aperto con frontale e guanciali mobili, prediletto dai comandanti"),
+  genEquip("testa",5,3,"Armet Completo da Giostra",     {difesa:19,velocita:-3,destrezza:-3},         "Elmo chiuso a piastre incernierate che blinda interamente testa e gola"),
+  genEquip("testa",5,4,"Diadema del Gelo Boreale",      {difesa:14,velocita:4,critico:5,destrezza:3}, "Cristallo delle vette che mantiene la mente fredda e calcolatrice", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",5,5,"Elmo Cornuto del Valchiria",    {difesa:20,attacco:5,velocita:3,destrezza:-1},"Forgiato in acciaio bianco con ali laterali che fischiano nella carica", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 6
+  genEquip("testa",6,1,"Fascia Tattica del Maestro",    {difesa:12,velocita:5,destrezza:5,critico:4}, "Rinforzata con piastre di titanio cucite nella seta, zero ingombro"),
+  genEquip("testa",6,2,"Celata Gotica Scanalata",       {difesa:18,destrezza:1,velocita:-1},          "Nervature nell'acciaio aumentano la resistenza strutturale riducendo il peso"),
+  genEquip("testa",6,3,"Elmo a Testa di Rospo",         {difesa:24,velocita:-4,destrezza:-3},         "Pesantissimo elmo da cavalleria imbullonato direttamente alla corazza"),
+  genEquip("testa",6,4,"Elmo di Scaglie di Drago",      {difesa:21,attacco:4,critico:4,velocita:1},   "Modellato sul cranio di una viverna, resiste al fuoco e alle lame", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",6,5,"Corona di Ferro del Conquistatore",{difesa:25,attacco:6,critico:5,velocita:-1},"Cerchio bellico forgiato fondendo le spade di dieci re sconfitti", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 7
+  genEquip("testa",7,1,"Turbante Corazzato del Deserto",{difesa:16,velocita:4,destrezza:4,critico:2}, "Strati di seta avvolti attorno a una calotta d'acciaio, protegge da sole e fendenti"),
+  genEquip("testa",7,2,"Elmo a Maschera Immortale",     {difesa:22,attacco:3,critico:3,destrezza:-1}, "Maschera funeraria in bronzo dorato che cela ogni espressione di dolore"),
+  genEquip("testa",7,3,"Grande Elmo del Custode",       {difesa:28,velocita:-3,destrezza:-3},         "Pesante elmo cerimoniale in lega d'oro e ferro meteorico", {fonte:["loot"]}),
+  genEquip("testa",7,4,"Cappuccio del Miraggio",        {difesa:20,velocita:6,destrezza:6,critico:4}, "Rifrange la luce del deserto facendo apparire la testa spostata di un palmo", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",7,5,"Nemes d'Oro del Faraone",       {difesa:29,attacco:6,velocita:3,critico:5},   "Copricapo regale con l'ureo sacro che incenerisce lo sguardo dei vili", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 8
+  genEquip("testa",8,1,"Diadema in Mithril Filigranato",{difesa:20,velocita:6,destrezza:6,critico:5}, "Leggero come una piuma, proietta un velo deflettente davanti al volto"),
+  genEquip("testa",8,2,"Elmo Reale in Oro Temprato",    {difesa:26,attacco:4,critico:4,velocita:-1},  "Forgiato per la guardia del trono con visiera a griglia finissima"),
+  genEquip("testa",8,3,"Casco Colossale di Granito",    {difesa:34,velocita:-4,destrezza:-4},         "Scolpito nel cuore della montagna e rinforzato con vene di metallo astrale", {fonte:["loot"]}),
+  genEquip("testa",8,4,"Elmo delle Costellazioni",      {difesa:28,velocita:5,destrezza:5,critico:6}, "All'interno della visiera brillano mappe stellari che anticipano le mosse nemiche", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",8,5,"Teschio Coronato del Titano",   {difesa:36,attacco:8,critico:6,velocita:-3},  "Elmo ricavato dall'osso frontale di un antico gigante, indistruttibile", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 9
+  genEquip("testa",9,1,"Cappuccio del Carnefice Nero",  {difesa:24,velocita:6,destrezza:5,critico:7}, "Cuoio d'ombra cucito con tendini demoniaci, ispira terrore puro"),
+  genEquip("testa",9,2,"Elmo d'Ossidiana e Rubino",     {difesa:31,attacco:5,critico:5,velocita:-2},  "Cresta di vetro vulcanico con un rubino centrale che pulsa di furore"),
+  genEquip("testa",9,3,"Elmo Chiuso del Cavaliere Nero",{difesa:39,velocita:-4,destrezza:-3},         "Acciaio dell'Oltretomba saldato a freddo, nessuna lama può penetrarlo", {fonte:["loot"]}),
+  genEquip("testa",9,4,"Corona di Spine Spettrali",     {difesa:30,attacco:7,velocita:6,critico:8},   "Sussurra i punti deboli del nemico direttamente nella mente dell'eroe", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",9,5,"Elmo del Signore dell'Oblio",   {difesa:42,attacco:9,critico:8,velocita:-2},  "Chi guarda nelle sue fessure vuote dimentica come impugnare la spada", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 10
+  genEquip("testa",10,1,"Aureola di Platino",           {difesa:29,velocita:8,destrezza:7,critico:7}, "Cerchio fluttuante di metallo divino che protegge il capo senza toccarlo"),
+  genEquip("testa",10,2,"Elmo Alato dell'Empireo",      {difesa:36,attacco:6,velocita:4,critico:5},   "Forgiato nelle fucine celesti, unisce protezione regale e vista d'aquila"),
+  genEquip("testa",10,3,"Grande Elmo di Diamante Puro", {difesa:46,velocita:-3,destrezza:-2},         "Sfaccettato da un unico blocco di diamante immortale", {fonte:["loot"]}),
+  genEquip("testa",10,4,"Diadema dell'Onniscienza",     {difesa:38,velocita:8,destrezza:8,critico:9}, "Permette di percepire il flusso del tempo un istante prima del colpo", {rarita:"magico",fonte:["loot"]}),
+  genEquip("testa",10,5,"Corona dell'Asceso Eterno",    {difesa:48,attacco:10,velocita:5,critico:8},  "Insegna suprema di chi ha superato i limiti mortali e sconfitto il pantheon", {rarita:"leggendario",fonte:["loot"]}),
 
- // ── CORAZZE (difesa) ──
- genEquip("corazza","",1,1,"Camicia di Cuoio", "difesa",2,"Indurisce col sale e il sudore",["negozio"]),
- genEquip("corazza","",1,2,"Giaco Imbottito", "difesa",2,"Assorbe i colpi con ovatta",["negozio","esplorazione"]),
- genEquip("corazza","",1,3,"Veste di Stracci", "difesa",1,"Almeno copre qualcosa",["esplorazione"]),
- genEquip("corazza","",2,1,"Cotta di Maglia", "difesa",5,"Anelli di ferro intrecciati",["negozio", "esplorazione"]),
- genEquip("corazza","",2,2,"Corazza a Lamelle", "difesa",6,"Protezione mobile e robusta",["negozio","loot"]),
- genEquip("corazza","",2,3,"Giaco di Ferro", "difesa",5,"Pesante ma efficace",["negozio"]),
- genEquip("corazza","",3,1,"Corazza del Guerriero","difesa",9,"Rune di protezione incise",["negozio","loot"]),
- genEquip("corazza","",3,2,"Corazza del Veterano","difesa",10,"Ogni ammaccatura è una storia",["loot"]),
- genEquip("corazza","",3,3,"Corazza Legionaria","difesa",9,"Indossata dalle legioni imperiali",["negozio","esplorazione"]),
- genEquip("corazza","",4,1,"Corazza dell'Imperatore","difesa",13,"Regge l'assalto di un esercito",["loot"]),
- genEquip("corazza","",4,2,"Corazza Infuocata", "difesa",14,"Arde di un fuoco interiore",["loot"]),
- genEquip("corazza","",4,3,"Corazza Glaciale", "difesa",13,"Fredda come l'inverno",["loot"]),
- genEquip("corazza","",5,1,"Corazza del Fulmine","difesa",16,"Carica elettrica permanente",["loot"]),
- genEquip("corazza","",5,2,"Corazza Lunare", "difesa",17,"Brilla d'argento alla luna",["loot"]),
- genEquip("corazza","",5,3,"Scaglia del Drago", "difesa",16,"Squame di un drago antico",["loot"]),
- genEquip("corazza","",6,1,"Corazza Velenosa", "difesa",20,"Avvelena chi la colpisce",["loot"]),
- genEquip("corazza","",6,2,"Corazza di Diamante","difesa",21,"Indistruttibile come il diamante",["loot"]),
- genEquip("corazza","",6,3,"Corazza dell'Ombra", "difesa",20,"Si dissolve nell'oscurità",["loot"]),
- genEquip("corazza","",7,1,"Corazza Regale", "difesa",24,"Indossata solo dai re",["loot"]),
- genEquip("corazza","",7,2,"Corazza Stellare", "difesa",25,"Caduta da un meteorite",["loot"]),
- genEquip("corazza","",7,3,"Corazza Arcana", "difesa",24,"Assorbe energia magica",["loot"]),
- genEquip("corazza","",8,1,"Corazza Meteoritica","difesa",28,"Forgiata da un meteorite",["loot"]),
- genEquip("corazza","",8,2,"Corazza del Titano", "difesa",29,"Pesa quanto un titano",["loot"]),
- genEquip("corazza","",8,3,"Corazza dell'Oblio", "difesa",28,"Annulla qualsiasi danno",["loot"]),
- genEquip("corazza","",9,1,"Corazza Primordiale","difesa",33,"Antica quanto il mondo",["loot"]),
- genEquip("corazza","",9,2,"Corazza Eterna", "difesa",35,"Non si è mai rotta",["loot"]),
- genEquip("corazza","",9,3,"Corazza Cosmica", "difesa",34,"Protegge corpo e spirito",["loot"]),
- genEquip("corazza","",10,1,"Armatura Primordiale","difesa",40,"Plasmata prima del mondo",["loot"]),
- genEquip("corazza","",10,2,"Corazza dell'Asceso","difesa",42,"Indossata dal più grande",["loot"]),
- genEquip("corazza","",10,3,"Veste degli Dei", "difesa",41,"Tessuta con fili divini",["loot"]),
+  // ══════════════════════════════════════════════════════════
+  // 4. TORACE (50 Corazze, Cotte di Maglia, Vesti)
+  // ══════════════════════════════════════════════════════════
+  // Tier 1
+  genEquip("torace",1,1,"Tunica di Lino Spesso",        {difesa:2,velocita:1,destrezza:1},            "Veste robusta a trama fitta che non impaccia la corsa né la schivata"),
+  genEquip("torace",1,2,"Gambeson Imbottito",           {difesa:3,velocita:-1},                       "Giacca trapuntata di cotone grezzo e crine, assorbe l'impatto delle mazze"),
+  genEquip("torace",1,3,"Pettorale di Cuoio Crudo",     {difesa:4,velocita:-1,destrezza:-1},          "Pelli sovrapposte indurite nel sego bollente, rigido ma protettivo"),
+  genEquip("torace",1,4,"Cappa Verde del Guardaboschi", {difesa:3,velocita:2,destrezza:3,critico:1},  "Intrecciata con fibre vive che si mimetizzano nel sottobosco", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",1,5,"Corazza di Corteccia di Treant",{difesa:6,attacco:1,velocita:-2,destrezza:-1},"Spessa scorza arborea rigenerante strappata a un antico spirito del bosco", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 2
+  genEquip("torace",2,1,"Farsetto da Schermidore",      {difesa:4,velocita:2,destrezza:2},            "Pelle morbida rinforzata sul petto con stecche d'osso flessibili"),
+  genEquip("torace",2,2,"Giaco di Maglia di Rame",      {difesa:7,velocita:-1},                       "Anelli metallici intrecciati che proteggono il busto dai tagli"),
+  genEquip("torace",2,3,"Corazza a Scaglie di Ferro",   {difesa:9,velocita:-2,destrezza:-2},          "Centinaia di piastrine cucite su cuoio, rumorosa e pesante ma solida"),
+  genEquip("torace",2,4,"Tunica Runica del Minatore",   {difesa:7,velocita:2,destrezza:2,critico:2},  "Tessuto ignifugo inciso con sigilli di protezione contro i crolli", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",2,5,"Pettorale del Re Cinghiale",   {difesa:11,attacco:3,velocita:-2,destrezza:-1},"Forgiato con ferro scuro e zanne ricurve, respinge chiunque carichi", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 3
+  genEquip("torace",3,1,"Giaco in Pelle di Daino",      {difesa:7,velocita:3,destrezza:3},            "Leggerissimo e aderente, pensato per chi fa affidamento sui riflessi"),
+  genEquip("torace",3,2,"Cotta di Maglia Rivettata",    {difesa:11,velocita:-1,destrezza:-1},         "Ogni anello d'acciaio è chiuso con un rivetto per impedire alle punte di aprirlo"),
+  genEquip("torace",3,3,"Corazza a Lamelle Legionaria", {difesa:14,velocita:-3,destrezza:-2},         "Fasce d'acciaio orizzontali sovrapposte, la difesa classica della fanteria pesante"),
+  genEquip("torace",3,4,"Veste Cremisi del Duellante",  {difesa:10,velocita:4,destrezza:3,critico:3}, "Seta alchemica più resistente del cuoio che favorisce affondi letali", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",3,5,"Pettorale del Leone d'Oro",    {difesa:16,attacco:4,critico:2,velocita:-2},  "Scolpito con le fauci di un leone sul torace, appartenuto a un generale invitto", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 4
+  genEquip("torace",4,1,"Cappotto d'Arme del Corsaro",  {difesa:10,velocita:3,destrezza:4,critico:2}, "Lungo soprabito in cuoio salmastro con piastre nascoste sul cuore"),
+  genEquip("torace",4,2,"Brigantina Foderata",          {difesa:15,velocita:-1,destrezza:-1},         "Piastre d'acciaio rivettate all'interno di un corpetto di velluto robusto"),
+  genEquip("torace",4,3,"Corazza da Arrembaggio Pesante",{difesa:19,velocita:-3,destrezza:-3},        "Spesso pettorale bombato a prova di dardo di balestra"),
+  genEquip("torace",4,4,"Manto delle Profondità",       {difesa:14,velocita:4,destrezza:5,critico:3}, "Tessuto con fili d'alga abissale su cui le lame scivolano via", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",4,5,"Corazza del Leviatano",        {difesa:22,attacco:4,velocita:-2,destrezza:-1},"Ricavata dal carapace impenetrabile di un mostro oceanico", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 5
+  genEquip("torace",5,1,"Tunica del Vento del Nord",    {difesa:14,velocita:5,destrezza:5,critico:2}, "Pelliccia leggera e seta glaciale che aumenta l'agilità nei climi estremi"),
+  genEquip("torace",5,2,"Mezza Armatura da Mercenario", {difesa:20,attacco:2,velocita:-2,destrezza:-1},"Protegge petto, schiena e spalle lasciando liberi i fianchi"),
+  genEquip("torace",5,3,"Armatura Bianca a Piastre",    {difesa:25,velocita:-4,destrezza:-3},         "Corazza cavalleresca liscia e lucidata per deviare ogni impatto frontale"),
+  genEquip("torace",5,4,"Cotta di Cristallo Glaciale",  {difesa:21,velocita:3,critico:4,destrezza:2}, "Anelli di ghiaccio perenne fusi nell'acciaio, irradia un freddo pungente", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",5,5,"Corazza dell'Orso Bianco Reale",{difesa:27,attacco:6,velocita:-3,destrezza:-2},"Piastra toracica massiccia avvolta nel manto di una bestia leggendaria", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 6
+  genEquip("torace",6,1,"Giubba d'Ombra dell'Assassino",{difesa:17,velocita:6,destrezza:6,critico:4}, "Cuoio nero trattato con oli silenzianti per muoversi come uno spettro"),
+  genEquip("torace",6,2,"Armatura Gotica Scanalata",    {difesa:24,destrezza:1,velocita:-2},          "Capolavoro di armeria: le nervature scaricano la forza dei colpi senza appesantire"),
+  genEquip("torace",6,3,"Corazza da Giostra Massiccia", {difesa:31,velocita:-5,destrezza:-4},         "Doppio spessore frontale progettato per reggere lo schianto delle lance"),
+  genEquip("torace",6,4,"Pettorale di Scaglie di Drago",{difesa:26,attacco:5,velocita:2,critico:3},   "Scaglie rosse sovrapposte che pulsano di calore vitale", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",6,5,"Egida Toracica della Tempesta",{difesa:32,velocita:4,attacco:5,destrezza:2}, "Armatura leggendaria percorsa da saette che respingono gli assalitori", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 7
+  genEquip("torace",7,1,"Veste Sacerdotale del Sole",   {difesa:21,velocita:6,destrezza:6,critico:4}, "Lino dorato intessuto con fili metallici incantati del deserto"),
+  genEquip("torace",7,2,"Corazza a Scaglie d'Oro",      {difesa:29,attacco:3,critico:3,velocita:-2},  "Armatura della guardia reale delle dune, tanto splendida quanto letale"),
+  genEquip("torace",7,3,"Armatura del Colosso di Sabbia",{difesa:36,velocita:-5,destrezza:-4},        "Piastre di granito e bronzo antico che trasformano l'eroe-in una fortezza", {fonte:["loot"]}),
+  genEquip("torace",7,4,"Manto del Djinn del Fuoco",    {difesa:27,velocita:6,destrezza:5,critico:5}, "Avvolge il torso in un turbine di aria calda che devia i fendenti", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",7,5,"Corazza Reale di Ozymandias",  {difesa:38,attacco:7,critico:5,velocita:-2},  "Reliquia del Re dei Re, incisa con maledizioni contro chiunque osi colpirla", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 8
+  genEquip("torace",8,1,"Cotta di Mithril Puro",        {difesa:27,velocita:7,destrezza:7,critico:3}, "Si indossa sotto una camicia comune ma ferma una lancia da guerra"),
+  genEquip("torace",8,2,"Corazza Astrale in Topazio",   {difesa:34,attacco:5,critico:4,velocita:-1},  "Lega d'oro e gemme solari che rafforza il vigore di chi la porta"),
+  genEquip("torace",8,3,"Armatura Muraglia del Titano", {difesa:43,velocita:-6,destrezza:-5},         "Piastre spesse un pollice forgiate per i campioni più possenti", {fonte:["loot"]}),
+  genEquip("torace",8,4,"Veste delle Stelle Cadenti",   {difesa:33,velocita:7,destrezza:7,critico:6}, "Brilla come il firmamento notturno, rendendo i movimenti imprevedibili", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",8,5,"Corazza del Re della Montagna",{difesa:45,attacco:8,critico:4,velocita:-3},  "Forgiata nel cuore di un vulcano spento, non conosce ammaccature", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 9
+  genEquip("torace",9,1,"Manto Spettrale dell'Ade",     {difesa:31,velocita:8,destrezza:8,critico:6}, "Tessuto d'ombra che lascia passare parte delle lame attraverso il vuoto"),
+  genEquip("torace",9,2,"Corazza Cremisi d'Ossidiana",  {difesa:39,attacco:6,critico:6,velocita:-2},  "Piastre nere bordate di rubino sangue che alimentano la furia in battaglia"),
+  genEquip("torace",9,3,"Armatura Infernale a Piastre", {difesa:49,velocita:-5,destrezza:-4},         "Forgiata nel ferro nero dell'Oltretomba e chiusa con catene ardenti", {fonte:["loot"]}),
+  genEquip("torace",9,4,"Corazza del Signore dei Lich", {difesa:41,velocita:5,destrezza:5,critico:8}, "Proietta una barriera necrotica che indebolisce la forza degli impatti", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",9,5,"Armatura del Divoratore",      {difesa:52,attacco:10,critico:8,velocita:-3}, "Viva e pulsante, divora l'energia dei colpi subiti trasformandola in potenza", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 10
+  genEquip("torace",10,1,"Veste Eterea dell'Empireo",   {difesa:36,velocita:10,destrezza:9,critico:7},"Tessuta con raggi di luce solidificata, conferisce la rapidità del pensiero"),
+  genEquip("torace",10,2,"Corazza Reale di Platino",    {difesa:45,attacco:7,velocita:3,critico:5},   "L'armatura d'ordinanza delle schiere celesti, perfetta in ogni giuntura"),
+  genEquip("torace",10,3,"Armatura Monolitica di Diamante",{difesa:57,velocita:-4,destrezza:-3},      "Scolpita nel diamante eterno, resiste persino all'ira degli dèi", {fonte:["loot"]}),
+  genEquip("torace",10,4,"Manto del Firmamento Stellato",{difesa:47,velocita:8,destrezza:8,critico:9},"Contiene una galassia vivente nel tessuto che distorce lo spazio attorno al busto", {rarita:"magico",fonte:["loot"]}),
+  genEquip("torace",10,5,"Corazza dell'Asceso Immortale",{difesa:60,attacco:12,velocita:5,critico:8}, "Il capolavoro supremo della creazione, rende il portatore pari a una divinità", {rarita:"leggendario",fonte:["loot"]}),
 
- // ── GAMBALI (difesa) ──
- genEquip("gambali","",1,1,"Brache di Tela", "difesa",1,"Almeno coprono le ginocchia",["negozio"]),
- genEquip("gambali","",1,2,"Schinieri di Cuoio","difesa",1,"Proteggono gli stinchi",["negozio","esplorazione"]),
- genEquip("gambali","",1,3,"Calze di Lana", "difesa",1,"Caldo ma non protettivo",["esplorazione"]),
- genEquip("gambali","",2,1,"Gambali di Ferro", "difesa",3,"Pesanti ma efficaci",["negozio"]),
- genEquip("gambali","",2,2,"Schinieri Rinforzati","difesa",4,"Piastre d'acciaio aggiunte",["negozio","loot"]),
- genEquip("gambali","",2,3,"Gambali a Lamelle", "difesa",3,"Protezione mobile",["negozio","esplorazione"]),
- genEquip("gambali","",3,1,"Gambali del Paladino","difesa",6,"Parte di un set benedetto",["negozio","loot"]),
- genEquip("gambali","",3,2,"Schinieri del Gladiatore","difesa",7,"Scene di combattimento decorate",["loot","esplorazione"]),
- genEquip("gambali","",3,3,"Gambali del Crociato","difesa",6,"Resistenti come la fede",["negozio"]),
- genEquip("gambali","",4,1,"Gambali del Campione","difesa",9,"Nessun colpo li ha mai scalfiti",["loot","esplorazione"]),
- genEquip("gambali","",4,2,"Gambali Infuocati", "difesa",10,"Ardono di fuoco eterno",["loot"]),
- genEquip("gambali","",4,3,"Gambali Glaciali", "difesa",9,"Freddi come l'inverno",["loot"]),
- genEquip("gambali","",5,1,"Gambali del Fulmine","difesa",12,"Veloci come il fulmine",["loot"]),
- genEquip("gambali","",5,2,"Gambali Lunari", "difesa",13,"Brillano sotto la luna",["loot"]),
- genEquip("gambali","",5,3,"Gambali del Drago", "difesa",12,"Squame di drago alle gambe",["loot"]),
- genEquip("gambali","",6,1,"Gambali Velenosi", "difesa",15,"Avvelenano i nemici di contatto",["loot"]),
- genEquip("gambali","",6,2,"Gambali di Diamante","difesa",16,"Indistruttibili come il diamante",["loot"]),
- genEquip("gambali","",6,3,"Gambali dell'Ombra","difesa",15,"Invisibili nell'oscurità",["loot"]),
- genEquip("gambali","",7,1,"Gambali Regali", "difesa",19,"Solo per chi ha valore reale",["loot"]),
- genEquip("gambali","",7,2,"Gambali Stellari", "difesa",20,"Caduti dal cielo in fiamme",["loot"]),
- genEquip("gambali","",7,3,"Gambali Arcani", "difesa",19,"Protezione magica assoluta",["loot"]),
- genEquip("gambali","",8,1,"Gambali Meteorici", "difesa",23,"Forgiati da metallo cosmico",["loot"]),
- genEquip("gambali","",8,2,"Gambali del Titano","difesa",24,"Pesanti come un gigante",["loot"]),
- genEquip("gambali","",8,3,"Gambali dell'Oblio","difesa",23,"Annullano qualsiasi impatto",["loot"]),
- genEquip("gambali","",9,1,"Gambali Primordiali","difesa",27,"Antichi quanto il mondo",["loot"]),
- genEquip("gambali","",9,2,"Gambali Eterni", "difesa",29,"Non si sono mai rotti",["loot"]),
- genEquip("gambali","",9,3,"Gambali Cosmici", "difesa",28,"Proteggono fino all'anima",["loot"]),
- genEquip("gambali","",10,1,"Gambali Eterei", "difesa",32,"Fatti di pura luce cristallizzata",["loot"]),
- genEquip("gambali","",10,2,"Gambali dell'Asceso","difesa",34,"Nessun colpo li scalfisce",["loot"]),
- genEquip("gambali","",10,3,"Sandali degli Dei","difesa",33,"Dono divino per i prescelti",["loot"]),
+  // ══════════════════════════════════════════════════════════
+  // 5. BRACCIA (50 Bracciali, Guanti, Manopole)
+  // ══════════════════════════════════════════════════════════
+  // Tier 1
+  genEquip("braccia",1,1,"Fasce da Polso in Lino",      {velocita:1,destrezza:1},                     "Stringono i polsi garantendo presa salda sull'impugnatura"),
+  genEquip("braccia",1,2,"Bracciali di Cuoio Grezzo",   {difesa:1,critico:1},                         "Proteggono gli avambracci dai rimbalzi delle lame"),
+  genEquip("braccia",1,3,"Guanti da Lavoro Chiodati",   {difesa:2,attacco:1,destrezza:-1},            "Pelle spessa con borchie in ferro sulle nocche"),
+  genEquip("braccia",1,4,"Polsini d'Ambra del Cacciatore",{velocita:2,destrezza:2,critico:2},         "Guidano il movimento del braccio con naturalezza felina", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",1,5,"Catene Spezzate del Forzato", {attacco:3,critico:2,difesa:1,velocita:-1},   "Pesanti anelli di ferro rimasti ai polsi di un feroce ribelle", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 2
+  genEquip("braccia",2,1,"Guanti in Pelle di Cervo",    {velocita:2,destrezza:2,critico:1},           "Morbidezza estrema che aumenta la sensibilità sull'elsa"),
+  genEquip("braccia",2,2,"Parabraccia in Cuoio Bollito",{difesa:2,attacco:1,critico:1},               "Stecche rigide lungo l'ulna per parare fendenti improvvisi"),
+  genEquip("braccia",2,3,"Manopole a Scaglie di Rame",  {difesa:4,attacco:2,velocita:-1,destrezza:-1},"Coprono dita e polsi con lamine metalliche sovrapposte"),
+  genEquip("braccia",2,4,"Bracciali Incisi del Duellante",{velocita:3,destrezza:3,critico:2},         "Leggeri cerchi di rame runico che accelerano la rotazione del polso", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",2,5,"Guanti d'Arme del Picconatore",{attacco:5,difesa:3,critico:2,destrezza:-2}, "Rinforzati con piastre da miniera per vibrare colpi demolitori", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 3
+  genEquip("braccia",3,1,"Polsini da Schermidore",      {velocita:3,destrezza:3,critico:2},           "Disegnati per massimizzare la rapidità di affondo e recupero"),
+  genEquip("braccia",3,2,"Vambracci d'Acciaio",         {difesa:4,attacco:2,critico:2},               "Tubi d'acciaio anatomici che avvolgono l'avambraccio dal polso al gomito"),
+  genEquip("braccia",3,3,"Guanti di Maglia d'Acciaio",  {difesa:6,attacco:3,velocita:-1,destrezza:-2},"Permettono quasi di afferrare la lama avversaria a mani nude"),
+  genEquip("braccia",3,4,"Guanti Cremisi dell'Assassino",{velocita:4,critico:5,destrezza:3},          "Cuciti con filo d'argento, guidano la lama dritta alle giunture", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",3,5,"Cestus da Arena del Campione",{attacco:8,critico:5,difesa:3,destrezza:-2},  "Guanti da gladiatore armati di spuntoni che trasformano ogni gesto in un'arma", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 4
+  genEquip("braccia",4,1,"Bracciali da Arciere Marino", {velocita:4,destrezza:4,critico:3},           "Cuoio di razza impermeabile che non scivola mai nemmeno col sangue"),
+  genEquip("braccia",4,2,"Guanti con Cubitiere in Bronzo",{difesa:6,attacco:3,critico:3},             "Proteggono l'articolazione del gomito con coppe metalliche affilate"),
+  genEquip("braccia",4,3,"Manopole a Clessidra",        {difesa:9,attacco:4,velocita:-2,destrezza:-2},"Forma svasata sul polso che devia le stoccate proteggendo i tendini"),
+  genEquip("braccia",4,4,"Polsini della Corrente",      {velocita:6,destrezza:5,critico:4},           "Accompagnano il braccio come una corrente marina impetuosa", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",4,5,"Manopole del Capitano Spettrale",{attacco:9,difesa:6,critico:6,velocita:-1},"Fredde come gli abissi, intorpidiscono il nemico a ogni contatto", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 5
+  genEquip("braccia",5,1,"Guanti di Seta e Acciaio",    {velocita:6,destrezza:5,critico:5},           "Micro-maglia d'acciaio nascosta tra due strati di seta finissima"),
+  genEquip("braccia",5,2,"Bracciali del Berserker",     {attacco:8,critico:6,velocita:3,difesa:-3},   "Lasciano scoperte le vene ma infondono una forza brutale nelle braccia"),
+  genEquip("braccia",5,3,"Manopole Gotiche Articolate", {difesa:11,attacco:5,velocita:-2,destrezza:-1},"Decine di piastrine mobili sulle falangi garantiscono presa d'acciaio"),
+  genEquip("braccia",5,4,"Bracciali del Fulmine",       {velocita:8,critico:6,attacco:4},             "Scintille elettriche percorrono le dita rendendo gli attacchi istantanei", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",5,5,"Artigli del Drago Bianco",    {attacco:12,velocita:5,critico:8,difesa:3},   "Manopole forgiate con veri artigli di drago sulle nocche", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 6
+  genEquip("braccia",6,1,"Polsini del Maestro di Spada",{velocita:7,destrezza:7,critico:6},           "Perfettamente calibrati per raddoppiare la precisione delle parate"),
+  genEquip("braccia",6,2,"Vambracci Reali Incisi",      {difesa:9,attacco:6,critico:5},               "Acciaio temprato ad olio con guardie sporgenti per spezzare l'impeto nemico"),
+  genEquip("braccia",6,3,"Manopole d'Assedio Pesanti",  {difesa:14,attacco:7,velocita:-3,destrezza:-2},"Blindatura totale per le braccia, progettata per chi impugna armi pesanti"),
+  genEquip("braccia",6,4,"Guanti Velenosi della Vipera",{velocita:8,critico:9,destrezza:5},           "Sottili aghi sul dorso iniettano veleno al minimo graffio", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",6,5,"Pugni di Ferro del Colosso",  {attacco:16,difesa:10,critico:6,velocita:-3}, "Manopole monolitiche che conferiscono la stretta inesorabile di un golem", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 7
+  genEquip("braccia",7,1,"Fasce Sacre Imbalsamate",     {velocita:9,destrezza:8,critico:6},           "Lino antico intriso di resine solari che impedisce qualsiasi fatica muscolare"),
+  genEquip("braccia",7,2,"Bracciali d'Oro dei Faraoni", {difesa:11,attacco:8,critico:7},              "Larghi bracciali regali incastonati di lapislazzuli e bronzo celeste"),
+  genEquip("braccia",7,3,"Manopole del Guardiano del Tempio",{difesa:17,attacco:8,velocita:-3,destrezza:-2},"Pesanti guanti cerimoniali che non lasciano mai cadere l'arma", {fonte:["loot"]}),
+  genEquip("braccia",7,4,"Polsini delle Sabbie Mobili", {velocita:10,destrezza:9,critico:8},          "Deviando la traiettoria dell'aria, fanno scivolare a vuoto le lame nemiche", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",7,5,"Bracciali della Dea Guerriera",{attacco:18,velocita:7,critico:10,difesa:5}, "Benedetti dal fuoco del deserto, rendono ogni fendente una sentenza", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 8
+  genEquip("braccia",8,1,"Guanti in Maglia di Mithril", {velocita:11,destrezza:10,critico:8,difesa:6},"Flessibili come seta ma impenetrabili, il sogno di ogni spadaccino"),
+  genEquip("braccia",8,2,"Vambracci Solari in Topazio", {difesa:14,attacco:10,critico:9},             "Emettono un bagliore accecante ogni volta che si incrociano le armi"),
+  genEquip("braccia",8,3,"Manopole del Titano di Roccia",{difesa:21,attacco:11,velocita:-4,destrezza:-3},"Pietra vulcanica e oro fusi insieme per una difesa incrollabile", {fonte:["loot"]}),
+  genEquip("braccia",8,4,"Polsini Astrali",             {velocita:13,destrezza:10,critico:10},        "Allineano il movimento delle braccia con la rotazione delle stelle", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",8,5,"Stretta del Re dei Giganti",  {attacco:23,difesa:12,critico:10,velocita:-2},"Conferiscono alle braccia la potenza necessaria a spaccare le montagne", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 9
+  genEquip("braccia",9,1,"Guanti di Seta d'Ombra",      {velocita:14,destrezza:12,critico:11},        "Le mani sembrano muoversi in più punti contemporaneamente"),
+  genEquip("braccia",9,2,"Bracciali d'Ossidiana Sangue",{attacco:14,critico:12,difesa:10,velocita:-1},"Assorbono il calore del sangue versato trasformandolo in vigore"),
+  genEquip("braccia",9,3,"Manopole delle Catene Infernali",{difesa:24,attacco:13,velocita:-3,destrezza:-2},"Avvolte da anelli roventi che bloccano le armi degli avversari", {fonte:["loot"]}),
+  genEquip("braccia",9,4,"Polsini del Vuoto",           {velocita:16,destrezza:12,critico:12},        "Annullano l'attrito dell'aria, portando la velocità d'attacco al limite", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",9,5,"Artigli dell'Arcidemone",     {attacco:26,velocita:10,critico:14,difesa:6}, "Manopole demoniache che lacerano realtà e armature a ogni fendente", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 10
+  genEquip("braccia",10,1,"Polsini di Luce Eterea",     {velocita:18,destrezza:15,critico:13},        "Pura energia celeste che guida i polsi con precisione infallibile"),
+  genEquip("braccia",10,2,"Vambracci di Platino Divino",{difesa:19,attacco:15,critico:12,velocita:4}, "Forgiati per i campioni dell'Empireo, coniugano grazia e potenza"),
+  genEquip("braccia",10,3,"Manopole di Diamante Eterno",{difesa:28,attacco:16,velocita:-2,destrezza:-1},"Cristallo immortale che non può essere scalfito da alcuna lama", {fonte:["loot"]}),
+  genEquip("braccia",10,4,"Guanti del Tessitore del Tempo",{velocita:20,destrezza:15,critico:15},     "Rallentano il tempo attorno alle mani del portatore nel momento del colpo", {rarita:"magico",fonte:["loot"]}),
+  genEquip("braccia",10,5,"Manopole dell'Asceso",       {attacco:28,velocita:14,critico:16,difesa:12},"Ogni colpo vibrato con questi guanti porta il peso del giudizio divino", {rarita:"leggendario",fonte:["loot"]}),
 
- // ── BRACCIALI (velocità o critico alternati) ──
- genEquip("bracciali","",1,1,"Cinturino di Corda", "velocita",1,"Migliora l'impugnatura",["negozio"]),
- genEquip("bracciali","",1,2,"Bracciale di Cuoio", "critico",1, "Rinforza il polso",["negozio","esplorazione"]),
- genEquip("bracciali","",1,3,"Catena del Prigioniero","velocita",1,"Tolta da un carceriere",["esplorazione"]),
- genEquip("bracciali","",2,1,"Polsini di Ferro", "velocita",2,"Proteggono i polsi",["negozio"]),
- genEquip("bracciali","",2,2,"Amuleto del Guerriero", "critico",2, "Guida la mano nei colpi",["negozio","loot"]),
- genEquip("bracciali","",2,3,"Bracciali a Lamelle", "velocita",3,"Mobili e resistenti",["negozio","esplorazione"]),
- genEquip("bracciali","",3,1,"Guanti del Duellante", "critico",4, "Precisione al duello",["negozio","loot"]),
- genEquip("bracciali","",3,2,"Polsini del Gladiatore","velocita",5,"Portati nell'arena",["loot","esplorazione"]),
- genEquip("bracciali","",3,3,"Bracciali del Templare","critico",4, "Benedetti dall'ordine",["negozio","esplorazione"]),
- genEquip("bracciali","",4,1,"Bracciali del Campione","velocita",6,"Velocità da campione",["loot","esplorazione"]),
- genEquip("bracciali","",4,2,"Polsini Infuocati", "critico",7, "I colpi bruciano",["loot"]),
- genEquip("bracciali","",4,3,"Bracciali Glaciali", "velocita",6,"Movimenti freddi e precisi",["loot"]),
- genEquip("bracciali","",5,1,"Polsini del Fulmine", "velocita",8,"Riflessi soprannaturali",["loot"]),
- genEquip("bracciali","",5,2,"Bracciali Lunari", "critico",9, "Precisi come la luna piena",["loot"]),
- genEquip("bracciali","",5,3,"Artigli del Drago", "velocita",8,"Velocità di un drago",["loot"]),
- genEquip("bracciali","",6,1,"Polsini Velenosi", "critico",10,"Il veleno entra nel colpo",["loot"]),
- genEquip("bracciali","",6,2,"Bracciali di Diamante", "velocita",11,"Indistruttibili",["loot"]),
- genEquip("bracciali","",6,3,"Polsini dell'Ombra", "critico",10,"Colpisce dal nulla",["loot"]),
- genEquip("bracciali","",7,1,"Polsini Regali", "velocita",13,"Autorità nel gesto",["loot"]),
- genEquip("bracciali","",7,2,"Bracciali Stellari", "critico",14,"Precisi come le stelle",["loot"]),
- genEquip("bracciali","",7,3,"Polsini Arcani", "velocita",13,"Magicamente veloci",["loot"]),
- genEquip("bracciali","",8,1,"Polsini Meteorici", "critico",16,"Impatto da meteorite",["loot"]),
- genEquip("bracciali","",8,2,"Bracciali del Titano", "velocita",17,"Forza di un titano",["loot"]),
- genEquip("bracciali","",8,3,"Polsini dell'Oblio", "critico",16,"Colpi dimenticati dai nemici",["loot"]),
- genEquip("bracciali","",9,1,"Polsini Primordiali", "velocita",20,"Antichi quanto il mondo",["loot"]),
- genEquip("bracciali","",9,2,"Bracciali Eterni", "critico",21,"Non si sono mai rotti",["loot"]),
- genEquip("bracciali","",9,3,"Polsini Cosmici", "velocita",20,"Riflessi cosmici",["loot"]),
- genEquip("bracciali","",10,1,"Polsini dell'Asceso", "velocita",24,"Velocità leggendaria",["loot"]),
- genEquip("bracciali","",10,2,"Guanti Divini", "critico",25,"Ogni colpo è perfetto",["loot"]),
- genEquip("bracciali","",10,3,"Polsini Eterei", "velocita",23,"Fatti di pura energia",["loot"]),
+  // ══════════════════════════════════════════════════════════
+  // 6. GAMBE (50 Gambali, Schinieri, Stivali)
+  // ══════════════════════════════════════════════════════════
+  // Tier 1
+  genEquip("gambe",1,1,"Calzari di Cuoio Morbido",      {velocita:2,destrezza:1},                     "Suola flessibile per muoversi in silenzio sui sentieri del bosco"),
+  genEquip("gambe",1,2,"Brache di Tela Rinforzata",     {difesa:1,velocita:1},                        "Doppio strato sulle ginocchia per resistere a rovi e cadute"),
+  genEquip("gambe",1,3,"Schinieri di Cuoio Bollito",    {difesa:3,velocita:-1},                       "Proteggono gli stinchi dai fendenti bassi senza costare una fortuna"),
+  genEquip("gambe",1,4,"Stivali del Passo Silvano",     {difesa:2,velocita:3,destrezza:2},            "Non lasciano impronte sul muschio e aumentano lo slancio nel salto", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",1,5,"Gambali del Lupo Grigio",       {difesa:4,velocita:3,destrezza:2,critico:1},  "Foderati con pelliccia d'alfa, donano lo scatto implacabile del predatore", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 2
+  genEquip("gambe",2,1,"Stivali da Marcia Leggeri",     {difesa:2,velocita:3,destrezza:2},            "Chiodati sotto la suola per non scivolare mai sul fango"),
+  genEquip("gambe",2,2,"Cosciali Imbottiti",            {difesa:4,destrezza:1},                       "Proteggono le arterie femorali con spessi strati di lana pressata"),
+  genEquip("gambe",2,3,"Schinieri di Ferro Battuto",    {difesa:6,velocita:-2,destrezza:-1},          "Mezzi tubi di ferro legati con cinghie dietro il polpaccio"),
+  genEquip("gambe",2,4,"Calzari del Vento Sotterraneo", {difesa:4,velocita:4,destrezza:3},            "Permettono di schivare lateralmente con un semplice spostamento di peso", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",2,5,"Gambali Corazzati del Nano",    {difesa:9,attacco:2,velocita:-2,destrezza:-1},"Piastre basse e massicce che radicano il guerriero al suolo come una roccia", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 3
+  genEquip("gambe",3,1,"Stivali da Schermidore",        {difesa:4,velocita:4,destrezza:4},            "Tacco bilanciato per affondi rapidi e immediati balzi all'indietro"),
+  genEquip("gambe",3,2,"Gambali di Maglia d'Acciaio",   {difesa:7,velocita:-1},                       "Calze di anelli metallici che coprono interamente la gamba"),
+  genEquip("gambe",3,3,"Schinieri Legionari a Lamelle", {difesa:10,velocita:-2,destrezza:-2},         "Protezione pesante per stinco e ginocchio usata nelle prime linee"),
+  genEquip("gambe",3,4,"Stivali dell'Arena",            {difesa:7,velocita:5,destrezza:3,critico:2},  "Cuoio rosso benedetto che favorisce giochi di gambe imprevedibili", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",3,5,"Schinieri Dorati del Centurione",{difesa:12,attacco:3,velocita:1,destrezza:-1},"Cesellati con aquile imperiali, guidano la carica senza mai vacillare", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 4
+  genEquip("gambe",4,1,"Stivali Alti da Corsaro",       {difesa:6,velocita:5,destrezza:5},            "Progettati per mantenere l'equilibrio sul ponte scivoloso delle navi in tempesta"),
+  genEquip("gambe",4,2,"Cosciali e Ginocchiere d'Acciaio",{difesa:10,destrezza:1,velocita:-1},        "Coppe alate sulle ginocchia che deviano i fendenti diretti alle giunture"),
+  genEquip("gambe",4,3,"Gambali Pesanti da Cavalleria", {difesa:14,velocita:-3,destrezza:-2},         "Corazzatura rigida completa dalla cintura fino allo sperone"),
+  genEquip("gambe",4,4,"Calzari della schiuma Marina",  {difesa:10,velocita:6,destrezza:6},           "Chi li indossa sembra pattinare sull'acqua e sulla sabbia", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",4,5,"Schinieri d'Osso di Leviatano", {difesa:16,attacco:3,velocita:2,destrezza:-1},"Scolpiti nelle costole di un colosso marino, infrangibili", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 5
+  genEquip("gambe",5,1,"Calzari Silenziosi del Nord",   {difesa:9,velocita:7,destrezza:6,critico:2},  "Pelle di renna bianca che permette scatti fulminei anche sul ghiaccio"),
+  genEquip("gambe",5,2,"Gambali Scanalati da Torneo",   {difesa:14,velocita:1,destrezza:1},           "Acciaio temperato leggero con articolazioni fluide alla caviglia"),
+  genEquip("gambe",5,3,"Sabaton e Schinieri a Piastre", {difesa:19,velocita:-3,destrezza:-3},         "Scarpe d'arme in ferro laminato unite a schinieri chiusi a cerniera"),
+  genEquip("gambe",5,4,"Stivali della Tormenta",        {difesa:14,velocita:8,destrezza:6,critico:2}, "Avvolti da correnti d'aria gelida che spingono i talloni in avanti", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",5,5,"Gambali Alati della Valchiria", {difesa:19,velocita:7,destrezza:5,attacco:3}, "Fatti di argento celeste, permettono balzi che sfidano la gravità", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 6
+  genEquip("gambe",6,1,"Stivali d'Ombra Furtivi",       {difesa:12,velocita:8,destrezza:8,critico:3}, "Assorbono ogni rumore del passo, ideali per aggirare il nemico alle spalle"),
+  genEquip("gambe",6,2,"Gambali di Scaglie Draconiche", {difesa:18,velocita:2,destrezza:2},           "Flessibili e resistenti al fuoco, accompagnano ogni piegamento"),
+  genEquip("gambe",6,3,"Schinieri da Giostra Blindati", {difesa:24,velocita:-4,destrezza:-3},         "Doppio strato d'acciaio temprato, impossibili da perforare"),
+  genEquip("gambe",6,4,"Calzari del Fulmine Globulare", {difesa:17,velocita:10,destrezza:8,critico:3},"Trasformano lo scatto dell'eroe in un lampo accecante", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",6,5,"Gambali del Signore dei Draghi",{difesa:25,attacco:5,velocita:5,destrezza:3}, "Forgiati nel fuoco antico, fanno tremare il suolo a ogni passo", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 7
+  genEquip("gambe",7,1,"Sandali Alati del Deserto",     {difesa:15,velocita:10,destrezza:9,critico:3},"Non affondano mai nella sabbia finissima, garantendo velocità sovrumana"),
+  genEquip("gambe",7,2,"Schinieri Reali in Bronzo Solare",{difesa:22,velocita:3,attacco:3},           "Riflettono il sole accecando chi guarda in basso per colpire le gambe"),
+  genEquip("gambe",7,3,"Gambali del Colosso di Pietra", {difesa:29,velocita:-4,destrezza:-3},         "Pilastri di granito incantato che rendono impossibile atterrare l'eroe", {fonte:["loot"]}),
+  genEquip("gambe",7,4,"Stivali del Vento del Simoom",  {difesa:21,velocita:11,destrezza:10,critico:4},"Sollevano mulinelli di sabbia rovente a ogni cambio di direzione", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",7,5,"Gambali d'Oro del Re Scorpione",{difesa:30,attacco:6,velocita:6,critico:5},   "Speroni avvelenati e piastre regali appartenute al dominatore delle dune", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 8
+  genEquip("gambe",8,1,"Stivali in Mithril Intrecciato",{difesa:20,velocita:12,destrezza:11,critico:4},"Offrono la protezione della piastra pesante con il peso di una scarpa di tela"),
+  genEquip("gambe",8,2,"Gambali Solari in Topazio",     {difesa:26,velocita:5,destrezza:4,attacco:4}, "Accumulano energia cinetica a ogni passo liberandola negli affondi"),
+  genEquip("gambe",8,3,"Schinieri Monolitici dei Titani",{difesa:35,velocita:-5,destrezza:-4},        "Forgiati per sostenere il peso del mondo senza piegarsi mai", {fonte:["loot"]}),
+  genEquip("gambe",8,4,"Calzari delle Comete",          {difesa:25,velocita:14,destrezza:12,critico:5},"Lasciano una scia luminosa, triplicando la rapidità di schivata", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",8,5,"Gambali del Padre dei Giganti", {difesa:37,attacco:8,velocita:5,destrezza:3}, "Ogni passo risuona come una valanga sulle vette eterne", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 9
+  genEquip("gambe",9,1,"Calzari del Passo Spettrale",   {difesa:24,velocita:15,destrezza:14,critico:5},"Permettono di attraversare le ombre riapparendo al fianco del nemico"),
+  genEquip("gambe",9,2,"Gambali d'Ossidiana e Rubino",  {difesa:31,attacco:6,velocita:5,critico:6},   "Cristallo nero affilato sulle ginocchiere che squarcia chi tenta il placcaggio"),
+  genEquip("gambe",9,3,"Schinieri Infernali del Terrore",{difesa:41,velocita:-4,destrezza:-3},        "Acciaio dell'abisso che brucia l'erba sotto la suola", {fonte:["loot"]}),
+  genEquip("gambe",9,4,"Stivali del Signore dei Morti", {difesa:33,velocita:14,destrezza:13,critico:6},"Sfidano le leggi fisiche permettendo scatti silenziosi e letali", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",9,5,"Gambali dell'Araldo dell'Abisso",{difesa:43,attacco:9,velocita:8,critico:7},  "Forgiati nelle fiamme nere, conferiscono inarrestabile slancio demoniaco", {rarita:"leggendario",fonte:["loot"]}),
+  // Tier 10
+  genEquip("gambe",10,1,"Calzari Alati di Ermes",       {difesa:29,velocita:18,destrezza:17,critico:6},"Ali di pura luce alle caviglie che rendono l'eroe imprendibile"),
+  genEquip("gambe",10,2,"Gambali Reali di Platino",     {difesa:37,velocita:8,destrezza:8,attacco:6}, "L'armatura perfetta per gli arti inferiori, forgiata nell'Empireo"),
+  genEquip("gambe",10,3,"Schinieri di Diamante Immortale",{difesa:48,velocita:-3,destrezza:-2},       "Pura luce cristallizzata, nessun colpo può spezzarli", {fonte:["loot"]}),
+  genEquip("gambe",10,4,"Stivali del Viaggiatore Astrale",{difesa:39,velocita:18,destrezza:16,critico:8},"Piegano lo spazio ad ogni passo, rendendo la schivata quasi assoluta", {rarita:"magico",fonte:["loot"]}),
+  genEquip("gambe",10,5,"Gambali dell'Asceso Eterno",   {difesa:50,velocita:14,destrezza:12,attacco:8},"Il passo definitivo di chi cammina sopra i troni degli dèi sconfitti", {rarita:"leggendario",fonte:["loot"]}),
 ];
 
 /* ── Raggruppa equipaggiamento per slot ── */
@@ -1440,10 +1727,10 @@ export const MATERIAL_COATING_CONFIG = {
   },
 };
 
-export function getCoatingBonus(matId, slot) {
+export function getCoatingBonus(matId, slot, piece = null) {
   const cfg = MATERIAL_COATING_CONFIG[matId];
   if (!cfg) return null;
-  return slot === "arma" ? cfg.arma : cfg.armatura;
+  const isWeapon = slot === "mano_dx" || slot === "arma" || piece?.handType === "1h" || piece?.handType === "2h"; return isWeapon ? cfg.arma : cfg.armatura;
 }
 
 export function getCoatingWearReduction(matId) {

@@ -463,10 +463,10 @@ export function createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor 
   const arch = ARCHETYPES[detectArchetype(enemy)] || ARCHETYPES.bestia;
   const E = strong(enemy.name);
   const heroFam = heroWeapon ? weaponFamily(heroWeapon) : "none";
-  const eneWeapon = enemyEquip?.arma?.name || null;
+  const eneWeapon = enemyEquip?.mano_dx?.name || (enemyEquip?.mano_sx?.handType === "1h" ? enemyEquip?.mano_sx?.name : null) || enemyEquip?.arma?.name || null;
   const eneFam = eneWeapon ? weaponFamily(eneWeapon) : null;
-  const eneShield = enemyEquip?.scudo?.name || null;
-  const eneArmor = enemyEquip?.corazza?.name || enemyEquip?.elmo?.name ||
+  const eneShield = (enemyEquip?.mano_sx?.handType === "shield" ? enemyEquip?.mano_sx?.name : null) || enemyEquip?.scudo?.name || null;
+  const eneArmor = enemyEquip?.torace?.name || enemyEquip?.testa?.name || enemyEquip?.gambe?.name || enemyEquip?.braccia?.name || enemyEquip?.corazza?.name || enemyEquip?.elmo?.name ||
                    enemyEquip?.gambali?.name || enemyEquip?.bracciali?.name || null;
 
   // Evita di ripetere la stessa frase due volte di fila
