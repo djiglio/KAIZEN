@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.72
+ KAIZEN v6.74
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -518,7 +518,7 @@ function renderEquipCardMainHTML({ piece, dur = 100, coatMat = null, slotKey = n
         <span class="eq-subtag">${typeLabel} · <span style="color:${theme.color}">${rar.lbl}</span>${extraRightTag}</span>
       </div>
       <div class="eq-row-2">
-        <span class="eq-grade">GRADO ${roman(piece.tier)}</span>
+        <span class="eq-grade">${roman(piece.tier)}</span>
         ${bonusBadgesHTML(piece.bonus, 100, true)}
       </div>
       <div class="eq-row-3">
@@ -811,7 +811,7 @@ export function renderShop() {
         <div class="eq-body">
           <div class="eq-row-1">
             <span class="eq-name">${e.name}${statusTag}</span>
-            <span class="eq-grade">GRADO ${roman(e.tier)}</span>
+            <span class="eq-grade eq-grade--right">${roman(e.tier)}</span>
           </div>
           <div class="eq-row-2">
             ${bonusBadgesHTML(e.bonus, 100, true)}
