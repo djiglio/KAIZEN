@@ -433,11 +433,21 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  const eqOf = slot => {
    const o = store.state.equipment?.equipped?.[slot];
    const id = typeof o === "string" ? o : o?.id;
-   return id ? EQUIPMENT_POOL.find(e => e.id === id)?.name || null : null;
+   return id ? EQUIPMENT_POOL.find(e => e.id === id) || null : null;
  };
- const heroWeapon = eqOf("mano_dx") || eqOf("mano_sx");
- const heroArmor = eqOf("mano_sx") || eqOf("torace") || eqOf("testa") || eqOf("gambe") || eqOf("braccia");
- const narrator = createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor });
+ // Dotazione completa dell'eroe (per narrare due armi / scudo / due mani / mani nude)
+ const heroEquip = {};
+ for (const s of ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"]) {
+   const p = eqOf(s);
+   if (p) heroEquip[s] = p;
+ }
+ const narrator = createCombatNarrator({ enemy, enemyEquip, heroEquip });
+
+ // Riga introduttiva sugli stili di combattimento
+ const introTxt = narrator.intro();
+ if (introTxt) {
+   logEl.innerHTML += `<div class="combat-line" style="font-style:italic;opacity:.85;">${introTxt}</div>`;
+ }
 
  let i = 0;
  function showNextTurn() {

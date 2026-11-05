@@ -2,8 +2,9 @@
  combatText.js — Narratore del log di combattimento
  Frasi personalizzate per tipologia di nemico (archetipo) e per
  l'equipaggiamento di eroe e nemico: attacco, schivata, critico,
- parata, vittoria e sconfitta.
- Segnaposto: {E}=nemico  {D}=danno  {W}=arma  {S}=scudo/armatura
+ parata, vittoria e sconfitta. Varianti per stile di combattimento
+ (due armi, arma + scudo, arma a due mani, arma singola, mani nude).
+ Segnaposto: {E}=nemico  {D}=danno  {W}=arma  {O}=arma secondaria  {S}=scudo
  ============================================================ */
 
 /* ── Archetipi: rilevati da tag + parole chiave nel nome ── */
@@ -362,52 +363,77 @@ function detectArchetype(enemy) {
   return "bestia";
 }
 
-/* ── Famiglie d'arma (rilevate dal nome) ── */
+/* ── Famiglie d'arma (rilevate dal nome; l'ordine conta) ── */
 const WEAPON_FAMILIES = [
+  { id:"spadone",     keys:["spadone", "claymore", "zweih", "excalibur"] },
   { id:"falce",       keys:["falce"] },
+  { id:"asta",        keys:["picca", "alabarda", "berdica", "lancia", "glaive", "forcone", "tridente", "arpione"] },
   { id:"ascia",       keys:["ascia"] },
-  { id:"asta",        keys:["alabarda", "forcone", "tridente"] },
-  { id:"contundente", keys:["mazza", "bastone", "scettro"] },
-  { id:"corta",       keys:["coltello", "zanna", "costola", "pugnale"] },
-  { id:"lama",        keys:["spada", "lama", "excalibur"] },
+  { id:"contundente", keys:["maglio", "martello", "mazza", "randello", "scettro", "bastone"] },
+  { id:"stocco",      keys:["stocco", "rapiera"] },
+  { id:"curva",       keys:["sciabola", "scimitarra", "khopesh", "wakizashi"] },
+  { id:"artiglio",    keys:["artiglio", "katar"] },
+  { id:"corta",       keys:["coltello", "pugnale", "daga", "stiletto", "cinquedea", "kriss", "manosinistra", "trincia", "zanna", "costola"] },
+  { id:"lama",        keys:["spada", "brando", "lama"] },
 ];
 function weaponFamily(name) {
   if (!name) return null;
   const n = name.toLowerCase();
   return (WEAPON_FAMILIES.find(f => f.keys.some(k => n.includes(k))) || { id:"lama" }).id;
 }
+const famPool = (dict, fam) => dict[fam] || dict.lama;
 
+/* ── Colpi dell'eroe per famiglia d'arma ── */
 const HERO_WEAPON = {
   lama:        ["Cali {W} con un fendente su {E}: infliggi {D}",
                 "Affondi {W} nel fianco di {E}: infliggi {D}",
                 "La lama di {W} disegna un arco lucente su {E}: infliggi {D}"],
+  spadone:     ["Il pesante {W} si abbatte su {E} come una ghigliottina: infliggi {D}",
+                "Un fendente orizzontale di {W} spazza via la guardia di {E}: infliggi {D}",
+                "Sollevi {W} sopra la testa e lo cali su {E}: infliggi {D}"],
   ascia:       ["Abbatti {W} su {E} con tutto il tuo peso: infliggi {D}",
-                "Il filo di {W} morde la carne di {E}: infliggi {D}"],
+                "Il filo di {W} morde la carne di {E}: infliggi {D}",
+                "Agganci la guardia di {E} con la barba di {W} e colpisci: infliggi {D}"],
   contundente: ["Fai roteare {W} e colpisci {E} in pieno: infliggi {D}",
-                "Un colpo sordo di {W} raggiunge {E}: infliggi {D}"],
+                "Un colpo sordo di {W} raggiunge {E}: infliggi {D}",
+                "{W} si schianta sulla spalla di {E} con un rumore di ossa: infliggi {D}"],
   asta:        ["Tieni a distanza {E} e affondi {W}: infliggi {D}",
-                "La punta di {W} trafigge {E}: infliggi {D}"],
+                "La punta di {W} trafigge {E}: infliggi {D}",
+                "Fai scorrere {W} tra le mani e colpisci {E} di punta: infliggi {D}"],
   falce:       ["Descrivi un arco ampio con {W} e falci {E}: infliggi {D}",
                 "La lama ricurva di {W} uncina {E}: infliggi {D}"],
+  stocco:      ["Un affondo fulmineo di {W} trova un varco nella difesa di {E}: infliggi {D}",
+                "Finti alto e colpisci {E} di punta con {W}: infliggi {D}",
+                "La punta sottile di {W} punge {E} con precisione chirurgica: infliggi {D}"],
+  curva:       ["La lama ricurva di {W} scivola lungo il fianco di {E}: infliggi {D}",
+                "Un fendente tirato di {W} apre un taglio su {E}: infliggi {D}",
+                "Fai sibilare {W} in un arco rapido contro {E}: infliggi {D}"],
+  artiglio:    ["Le lame di {W} graffiano {E} da cima a fondo: infliggi {D}",
+                "Sferri un pugno armato di {W} nello stomaco di {E}: infliggi {D}"],
   corta:       ["Ti avvicini e colpisci {E} con {W}: infliggi {D}",
-                "Pugnali {E} con un colpo rapido di {W}: infliggi {D}"],
-  none:        ["Colpisci {E} a mani nude: infliggi {D}",
-                "Sferri un pugno deciso a {E}: infliggi {D}",
-                "Afferri {E} e lo colpisci con una gomitata: infliggi {D}"],
+                "Pugnali {E} con un colpo rapido di {W}: infliggi {D}",
+                "Scivoli sotto la guardia di {E} e affondi {W}: infliggi {D}"],
 };
 const HERO_WEAPON_CRIT = {
   lama:        ["Trovi un varco e affondi {W} fino all'elsa in {E}: infliggi {D}!",
                 "Un fendente perfetto di {W} squarcia {E}: infliggi {D}!"],
+  spadone:     ["{W} spezza la difesa di {E} e lo fende quasi in due: infliggi {D}!"],
   ascia:       ["{W} si abbatte su {E} con un colpo devastante: infliggi {D}!"],
   contundente: ["{W} centra {E} con un colpo che rimbomba: infliggi {D}!"],
   asta:        ["Impali {E} con un affondo preciso di {W}: infliggi {D}!"],
   falce:       ["{W} miete {E} con un colpo micidiale: infliggi {D}!"],
+  stocco:      ["{W} penetra tra le giunture dell'armatura di {E}: infliggi {D}!"],
+  curva:       ["Un fendente ricurvo di {W} recide i tendini di {E}: infliggi {D}!"],
+  artiglio:    ["Pianti {W} sotto le costole di {E}: infliggi {D}!"],
   corta:       ["Pianti {W} in un punto vitale di {E}: infliggi {D}!"],
-  none:        ["Un pugno ben assestato manda {E} al tappeto: infliggi {D}!"],
 };
+
+/* ── Colpi del nemico per famiglia d'arma ── */
 const ENEMY_WEAPON = {
   lama:        ["{E} mena un fendente con {W}: subisci {D}",
                 "{E} affonda {W} verso di te: subisci {D}"],
+  spadone:     ["{E} cala il pesante {W} su di te: subisci {D}",
+                "{E} spazza l'aria con {W} e ti travolge: subisci {D}"],
   ascia:       ["{E} cala {W} con un grido di guerra: subisci {D}",
                 "{E} fa roteare {W} e ti colpisce: subisci {D}"],
   contundente: ["{E} ti percuote con {W}: subisci {D}",
@@ -416,16 +442,131 @@ const ENEMY_WEAPON = {
                 "{E} ti tiene a distanza e ti colpisce con {W}: subisci {D}"],
   falce:       ["{E} ti falcia con {W}: subisci {D}",
                 "La lama ricurva di {W} impugnata da {E} ti raggiunge: subisci {D}"],
+  stocco:      ["{E} ti punge con un affondo rapidissimo di {W}: subisci {D}",
+                "{E} finta e ti colpisce di punta con {W}: subisci {D}"],
+  curva:       ["{E} ti taglia con un arco sibilante di {W}: subisci {D}",
+                "{E} fa scivolare {W} lungo il tuo braccio: subisci {D}"],
+  artiglio:    ["{E} ti graffia con {W}: subisci {D}",
+                "{E} ti colpisce con un pugno armato di {W}: subisci {D}"],
   corta:       ["{E} ti pugnala con {W}: subisci {D}",
                 "{E} si avvicina e ti ferisce con {W}: subisci {D}"],
 };
 const ENEMY_WEAPON_CRIT = {
   lama:        ["{E} ti squarcia con un fendente di {W}: subisci {D}!"],
+  spadone:     ["{W} di {E} ti travolge con forza spaventosa: subisci {D}!"],
   ascia:       ["{W} di {E} si abbatte su di te con forza brutale: subisci {D}!"],
   contundente: ["{E} ti centra in pieno con {W}: subisci {D}!"],
   asta:        ["{E} ti trapassa con {W}: subisci {D}!"],
   falce:       ["{E} ti miete con {W}: subisci {D}!"],
+  stocco:      ["{E} infila {W} tra le giunture della tua armatura: subisci {D}!"],
+  curva:       ["{E} ti apre uno squarcio profondo con {W}: subisci {D}!"],
+  artiglio:    ["{E} ti dilania con {W}: subisci {D}!"],
   corta:       ["{E} pianta {W} in un punto scoperto: subisci {D}!"],
+};
+
+/* ══════════════════════════════════════════════════════════
+ STILI DI COMBATTIMENTO (impugnatura)
+ dual = due armi · shield = arma + scudo · twohand = arma a due mani
+ single = arma singola con mano libera · shieldOnly = solo scudo
+ unarmed = mani nude · natural = creature (armi naturali)
+ Segnaposto extra: {O}=arma secondaria  {S}=scudo
+══════════════════════════════════════════════════════════ */
+const HERO_STANCE_HIT = {
+  dual:       ["Incroci {W} e {O} in una forbice d'acciaio su {E}: infliggi {D}",
+               "Pari con {O} e affondi subito {W} in {E}: infliggi {D}",
+               "Una raffica alternata di {W} e {O} travolge {E}: infliggi {D}",
+               "Fingi con {W} e colpisci {E} di rovescio con {O}: infliggi {D}"],
+  shield:     ["Avanzi coperto da {S} e colpisci {E} con {W}: infliggi {D}",
+               "Spingi {E} con il bordo di {S} e lo ferisci con {W}: infliggi {D}",
+               "Da dietro {S} sferri un colpo secco di {W} a {E}: infliggi {D}",
+               "Urti {E} con {S} sbilanciandolo, poi affondi {W}: infliggi {D}"],
+  twohand:    ["Stringi {W} a due mani e lo abbatti su {E}: infliggi {D}",
+               "Fai roteare {W} in un ampio arco che investe {E}: infliggi {D}",
+               "Carichi tutto il peso del corpo su {W} e travolgi {E}: infliggi {D}"],
+  single:     ["Con la mano libera afferri {E} e lo colpisci con {W}: infliggi {D}",
+               "Ti muovi agile, senza scudo, e raggiungi {E} con {W}: infliggi {D}",
+               "Bilanci il corpo con il braccio libero e colpisci {E} con {W}: infliggi {D}"],
+  shieldOnly: ["Senz'arma, colpisci {E} con il bordo di {S}: infliggi {D}",
+               "Ti scagli contro {E} facendo di {S} un ariete: infliggi {D}"],
+  unarmed:    ["Colpisci {E} a mani nude: infliggi {D}",
+               "Sferri un pugno deciso a {E}: infliggi {D}",
+               "Afferri {E} e lo colpisci con una gomitata: infliggi {D}",
+               "Colpisci {E} con un calcio al ginocchio: infliggi {D}",
+               "Ti avventi su {E} e lo tempesti di pugni: infliggi {D}"],
+};
+const HERO_STANCE_CRIT = {
+  dual:       ["{W} e {O} colpiscono {E} nello stesso istante, da due lati: infliggi {D}!",
+               "Blocchi {E} con {O} e lo trafiggi con {W}: infliggi {D}!"],
+  shield:     ["Stordisci {E} con un colpo di {S} e lo finisci con {W}: infliggi {D}!",
+               "{E} sbatte contro {S} e {W} trova il varco: infliggi {D}!"],
+  twohand:    ["Un colpo a due mani di {W} sfonda ogni difesa di {E}: infliggi {D}!"],
+  single:     ["Afferri {E} per il bavero e lo trafiggi con {W}: infliggi {D}!"],
+  shieldOnly: ["Schianti {S} sul volto di {E}: infliggi {D}!"],
+  unarmed:    ["Un pugno ben assestato manda {E} al tappeto: infliggi {D}!",
+               "Proietti {E} a terra e lo colpisci alla gola: infliggi {D}!"],
+};
+// L'eroe evita/para l'attacco nemico
+const HERO_STANCE_PARRY = {
+  dual:       ["Incroci {W} e {O} e blocchi l'attacco di {E} nella forbice delle lame!",
+               "Devii il colpo di {E} con {O} e rispondi con una finta di {W}!"],
+  shield:     ["Sollevi {S} e l'attacco di {E} vi si infrange contro!",
+               "Il colpo di {E} rimbomba su {S}: nessun danno!"],
+  twohand:    ["Usi il manico di {W} per deviare l'assalto di {E}!",
+               "Pari il colpo di {E} con il piatto di {W}!"],
+  single:     ["Devii l'attacco di {E} con {W} e ti scosti!",
+               "Pari con {W} e scivoli fuori dalla portata di {E}!"],
+  shieldOnly: ["Ti ripari dietro {S}: {E} non trova varchi!"],
+  unarmed:    ["Senza armi né scudo, ti affidi ai riflessi: schivi {E} con una piroetta!",
+               "Afferri il polso di {E} e devii il colpo!"],
+};
+
+const ENEMY_STANCE_HIT = {
+  dual:       ["{E} ti incalza con {W} e {O} in una raffica alternata: subisci {D}",
+               "{E} para con {O} e ti ferisce con {W}: subisci {D}",
+               "{E} ti stringe tra {W} e {O} come una tenaglia: subisci {D}"],
+  shield:     ["{E} avanza dietro {S} e ti colpisce con {W}: subisci {D}",
+               "{E} ti urta con {S} e affonda {W}: subisci {D}"],
+  twohand:    ["{E} solleva {W} a due mani e lo cala su di te: subisci {D}",
+               "{E} fa roteare {W} in un ampio arco: subisci {D}"],
+  single:     ["{E} ti afferra con la mano libera e ti colpisce con {W}: subisci {D}",
+               "{E} danza leggero e ti raggiunge con {W}: subisci {D}"],
+  shieldOnly: ["{E} ti colpisce col bordo di {S}: subisci {D}"],
+  unarmed:    ["{E} ti colpisce con un pugno al volto: subisci {D}",
+               "{E} ti afferra e ti rifila una testata: subisci {D}",
+               "{E} ti assesta un calcio al fianco: subisci {D}"],
+};
+const ENEMY_STANCE_CRIT = {
+  dual:       ["{E} ti colpisce con {W} e {O} insieme: subisci {D}!"],
+  shield:     ["{E} ti stordisce con {S} e ti ferisce con {W}: subisci {D}!"],
+  twohand:    ["{E} ti investe con un colpo a due mani di {W}: subisci {D}!"],
+  single:     ["{E} ti tira a sé e ti trafigge con {W}: subisci {D}!"],
+  shieldOnly: ["{E} ti schianta {S} sul volto: subisci {D}!"],
+  unarmed:    ["{E} ti colpisce alla tempia con un pugno: subisci {D}!"],
+};
+// Il nemico evita/para l'attacco dell'eroe
+const ENEMY_STANCE_PARRY = {
+  dual:       ["{E} incrocia {W} e {O} e blocca il tuo colpo!",
+               "{E} devia il tuo attacco con {O} e ti minaccia con {W}!"],
+  shield:     ["{E} alza {S} e il tuo attacco vi rimbalza contro!",
+               "Il tuo colpo si schianta su {S} di {E}!"],
+  twohand:    ["{E} devia il tuo colpo con il manico di {W}!"],
+  single:     ["{E} para con {W} e scivola di lato!"],
+  shieldOnly: ["{E} si rannicchia dietro {S}!"],
+  unarmed:    ["{E} si abbassa e il tuo colpo fende l'aria!",
+               "{E} ti blocca il braccio e devia l'attacco!"],
+};
+
+/* ── Scontri tra stili (situazioni specifiche) ── */
+const MATCHUP_HERO_HIT = {
+  "twohand>shield": ["{W} si abbatte su {S} di {E} e glielo strappa quasi di mano: infliggi {D}"],
+  "any>unarmed":    ["{E} è disarmato e {W} trova facilmente la carne: infliggi {D}"],
+  "unarmed>armed":  ["Eviti {X} di {E} e lo colpisci a pugni nudi: infliggi {D}"],
+  "dual>shield":    ["Mentre {E} si copre con {S}, {O} lo aggira e colpisce: infliggi {D}"],
+};
+const MATCHUP_ENEMY_HIT = {
+  "twohand>shield": ["{E} cala {W} sul tuo {Z} con tanta forza che il braccio ti si intorpidisce: subisci {D}"],
+  "armed>unarmed":  ["Disarmato, non puoi parare {W} di {E}: subisci {D}"],
+  "dual>shield":    ["{E} impegna {Z} con {W} e ti colpisce di lato con {O}: subisci {D}"],
 };
 
 const HERO_CRIT_GENERIC = [
@@ -439,10 +580,17 @@ const HERO_DOUBLE = [
   "Non dai respiro a {E} e incalzi con un secondo colpo: infliggi {D}",
   "Approfitti dell'apertura e colpisci ancora {E}: infliggi {D}",
 ];
+const HERO_DOUBLE_DUAL = [
+  "Non hai finito: anche {O} si abbatte su {E}: infliggi {D}",
+  "Il secondo colpo arriva da {O}, prima che {E} possa reagire: infliggi {D}",
+];
 const ENEMY_DOUBLE = [
   "{E} approfitta della sua rapidità e ti colpisce ancora: subisci {D}",
   "Prima che tu possa reagire, {E} attacca di nuovo: subisci {D}",
   "{E} incalza senza sosta: subisci {D}",
+];
+const ENEMY_DOUBLE_DUAL = [
+  "{E} ti colpisce ancora, questa volta con {O}: subisci {D}",
 ];
 
 /* ── Helper ── */
@@ -452,22 +600,86 @@ function fill(tpl, ctx) {
     .replace(/\{E\}/g, ctx.E || "")
     .replace(/\{D\}/g, ctx.D || "")
     .replace(/\{W\}/g, ctx.W || "")
-    .replace(/\{S\}/g, ctx.S || "");
+    .replace(/\{O\}/g, ctx.O || "")
+    .replace(/\{S\}/g, ctx.S || "")
+    .replace(/\{X\}/g, ctx.X || "")
+    .replace(/\{Z\}/g, ctx.Z || "");
 }
+
+/* ── Ricava la dotazione da un oggetto { slot: piece } ── */
+function getLoadout(equip, { isHuman = true } = {}) {
+  const lo = { stance: "unarmed", main: null, off: null, shield: null, armor: null };
+  if (!equip) {
+    lo.stance = isHuman ? "unarmed" : "natural";
+    return lo;
+  }
+  const dx = equip.mano_dx || equip.arma || null;
+  const sx = equip.mano_sx || equip.scudo || null;
+  let main = dx && dx.handType !== "shield" ? dx : null;
+  let off = null, shield = null;
+  if (sx) {
+    if (sx.handType === "shield" || (!sx.handType && equip.scudo)) shield = sx;
+    else off = sx;
+  }
+  if (main?.handType === "2h") { off = null; shield = null; }
+  if (!main && off) { main = off; off = null; }
+
+  lo.main = main; lo.off = off; lo.shield = shield;
+  lo.armor = equip.torace || equip.testa || equip.braccia || equip.gambe ||
+             equip.corazza || equip.elmo || equip.gambali || equip.bracciali || null;
+
+  if (main?.handType === "2h") lo.stance = "twohand";
+  else if (main && off) lo.stance = "dual";
+  else if (main && shield) lo.stance = "shield";
+  else if (main) lo.stance = "single";
+  else if (shield) lo.stance = "shieldOnly";
+  else lo.stance = isHuman ? "unarmed" : "natural";
+  return lo;
+}
+
+const isArmed = lo => !!lo.main;
 
 /* ══════════════════════════════════════════════════════════
  Crea un narratore per un singolo combattimento
- opts: { enemy, enemyEquip, heroWeapon, heroArmor }
+ opts: { enemy, enemyEquip, heroEquip, heroWeapon, heroArmor }
 ══════════════════════════════════════════════════════════ */
-export function createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor }) {
-  const arch = ARCHETYPES[detectArchetype(enemy)] || ARCHETYPES.bestia;
+export function createCombatNarrator({ enemy, enemyEquip, heroEquip, heroWeapon, heroArmor }) {
+  const archId = detectArchetype(enemy);
+  const arch = ARCHETYPES[archId] || ARCHETYPES.bestia;
   const E = strong(enemy.name);
-  const heroFam = heroWeapon ? weaponFamily(heroWeapon) : "none";
-  const eneWeapon = enemyEquip?.mano_dx?.name || (enemyEquip?.mano_sx?.handType === "1h" ? enemyEquip?.mano_sx?.name : null) || enemyEquip?.arma?.name || null;
+
+  // Dotazione eroe (retro-compatibile con heroWeapon/heroArmor)
+  const hero = heroEquip
+    ? getLoadout(heroEquip, { isHuman: true })
+    : getLoadout(heroWeapon ? { mano_dx: { name: heroWeapon, handType: "1h" } } : {}, { isHuman: true });
+  // Dotazione nemico: le creature senza equipaggiamento usano armi naturali
+  const ene = getLoadout(enemyEquip, { isHuman: !!enemy.human });
+
+  const heroWeaponName = hero.main?.name || null;
+  const heroFam = heroWeaponName ? weaponFamily(heroWeaponName) : null;
+  const heroArmorName = hero.shield?.name || hero.armor?.name || heroArmor || null;
+  const eneWeapon = ene.main?.name || null;
   const eneFam = eneWeapon ? weaponFamily(eneWeapon) : null;
-  const eneShield = (enemyEquip?.mano_sx?.handType === "shield" ? enemyEquip?.mano_sx?.name : null) || enemyEquip?.scudo?.name || null;
-  const eneArmor = enemyEquip?.torace?.name || enemyEquip?.testa?.name || enemyEquip?.gambe?.name || enemyEquip?.braccia?.name || enemyEquip?.corazza?.name || enemyEquip?.elmo?.name ||
-                   enemyEquip?.gambali?.name || enemyEquip?.bracciali?.name || null;
+  const eneShield = ene.shield?.name || null;
+  const eneArmor = ene.armor?.name || null;
+
+  // Contesti base per i segnaposto
+  const heroCtx = {
+    E,
+    W: heroWeaponName ? strong(heroWeaponName) : "",
+    O: hero.off ? strong(hero.off.name) : "",
+    S: hero.shield ? strong(hero.shield.name) : "",
+    X: eneWeapon ? strong(eneWeapon) : "",
+  };
+  const eneCtx = {
+    E,
+    W: eneWeapon ? strong(eneWeapon) : "",
+    O: ene.off ? strong(ene.off.name) : "",
+    S: eneShield ? strong(eneShield) : "",
+    Z: hero.shield ? strong(hero.shield.name) : "",
+  };
+  // Per i matchup in cui il nemico colpisce, {S} deve riferirsi allo scudo nemico
+  const heroVsShieldCtx = { ...heroCtx, S: eneShield ? strong(eneShield) : "" };
 
   // Evita di ripetere la stessa frase due volte di fila
   const last = {};
@@ -478,52 +690,124 @@ export function createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor 
     last[key] = p;
     return p;
   }
-  const dmgHero  = t => strong(`-${t.dmg} PV`);
+  const dmgHero = t => strong(`-${t.dmg} PV`);
+  const chance = p => Math.random() < p;
+
+  // Matchup eroe → nemico
+  function heroMatchup() {
+    if (hero.stance === "twohand" && ene.stance === "shield") return MATCHUP_HERO_HIT["twohand>shield"];
+    if (hero.stance === "dual" && ene.stance === "shield") return MATCHUP_HERO_HIT["dual>shield"];
+    if (isArmed(hero) && ene.stance === "unarmed") return MATCHUP_HERO_HIT["any>unarmed"];
+    if (hero.stance === "unarmed" && isArmed(ene)) return MATCHUP_HERO_HIT["unarmed>armed"];
+    return null;
+  }
+  // Matchup nemico → eroe
+  function enemyMatchup() {
+    if (ene.stance === "twohand" && hero.shield) return MATCHUP_ENEMY_HIT["twohand>shield"];
+    if (ene.stance === "dual" && hero.shield) return MATCHUP_ENEMY_HIT["dual>shield"];
+    if (isArmed(ene) && hero.stance === "unarmed") return MATCHUP_ENEMY_HIT["armed>unarmed"];
+    return null;
+  }
 
   return {
-    archetype: detectArchetype(enemy),
+    archetype: archId,
+    heroStance: hero.stance,
+    enemyStance: ene.stance,
+
+    // Riga introduttiva: come si presentano i duellanti
+    intro() {
+      const W = heroCtx.W, O = heroCtx.O, S = heroCtx.S;
+      const heroTxt = {
+        dual:       `Sguaini ${W} e ${O}: combatterai a due armi.`,
+        shield:     `Imbracci ${S} e stringi ${W}.`,
+        twohand:    `Afferri ${W} saldamente a due mani.`,
+        single:     `Impugni ${W}, lasciando libera la mano sinistra.`,
+        shieldOnly: `Imbracci ${S}, senza un'arma da impugnare.`,
+        unarmed:    `Non hai armi: combatterai a mani nude.`,
+      }[hero.stance] || "";
+      const eW = eneCtx.W, eO = eneCtx.O, eS = eneCtx.S;
+      const eneTxt = {
+        dual:       `${E} estrae ${eW} e ${eO}, una per mano.`,
+        shield:     `${E} si copre con ${eS} e brandisce ${eW}.`,
+        twohand:    `${E} solleva ${eW} a due mani.`,
+        single:     `${E} punta ${eW} verso di te.`,
+        shieldOnly: `${E} si ripara dietro ${eS}.`,
+        unarmed:    `${E} alza i pugni: è disarmato.`,
+      }[ene.stance] || "";
+      return [heroTxt, eneTxt].filter(Boolean).join(" ");
+    },
 
     heroHit(turn) {
-      const ctx = { E, D: dmgHero(turn), W: heroWeapon ? strong(heroWeapon) : "" };
+      const ctx = { ...heroCtx, D: dmgHero(turn) };
       if (turn.isCrit) {
-        const pool = Math.random() < 0.5 ? HERO_WEAPON_CRIT[heroFam] : HERO_CRIT_GENERIC;
-        return fill(pick("hcrit", pool), ctx);
+        const pools = [HERO_CRIT_GENERIC, HERO_STANCE_CRIT[hero.stance]];
+        if (heroFam) pools.push(famPool(HERO_WEAPON_CRIT, heroFam));
+        return fill(pick("hcrit", pools[Math.floor(Math.random() * pools.length)] || HERO_CRIT_GENERIC), ctx);
       }
-      if (turn.isDouble) return fill(pick("hdbl", HERO_DOUBLE), ctx);
-      const pool = Math.random() < 0.5 ? HERO_WEAPON[heroFam] : arch.hurt;
-      return fill(pick("hhit", pool), ctx);
+      if (turn.isDouble) {
+        const pool = hero.stance === "dual" && chance(0.6) ? HERO_DOUBLE_DUAL : HERO_DOUBLE;
+        return fill(pick("hdbl", pool), ctx);
+      }
+      const mu = heroMatchup();
+      if (mu && chance(0.25)) {
+        const mctx = { ...heroVsShieldCtx, D: dmgHero(turn) };
+        return fill(pick("hmu", mu), mctx);
+      }
+      const r = Math.random();
+      let pool;
+      if (r < 0.4) pool = HERO_STANCE_HIT[hero.stance];
+      else if (r < 0.75 && heroFam) pool = famPool(HERO_WEAPON, heroFam);
+      else pool = arch.hurt;
+      return fill(pick("hhit", pool || arch.hurt), ctx);
     },
 
     enemyHit(turn) {
-      const ctx = { E, D: dmgHero(turn), W: eneWeapon ? strong(eneWeapon) : "" };
+      const ctx = { ...eneCtx, D: dmgHero(turn) };
+      const hasStance = ene.stance !== "natural";
       if (turn.isCrit) {
-        const pool = eneFam && Math.random() < 0.5 ? ENEMY_WEAPON_CRIT[eneFam] : arch.crit;
-        return fill(pick("ecrit", pool), ctx);
+        const pools = [arch.crit];
+        if (hasStance) pools.push(ENEMY_STANCE_CRIT[ene.stance]);
+        if (eneFam) pools.push(famPool(ENEMY_WEAPON_CRIT, eneFam));
+        return fill(pick("ecrit", pools[Math.floor(Math.random() * pools.length)] || arch.crit), ctx);
       }
-      if (turn.isDouble) return fill(pick("edbl", ENEMY_DOUBLE), ctx);
-      const pool = eneFam && Math.random() < 0.6 ? ENEMY_WEAPON[eneFam] : arch.atk;
-      return fill(pick("ehit", pool), ctx);
+      if (turn.isDouble) {
+        const pool = ene.stance === "dual" && chance(0.6) ? ENEMY_DOUBLE_DUAL : ENEMY_DOUBLE;
+        return fill(pick("edbl", pool), ctx);
+      }
+      const mu = enemyMatchup();
+      if (mu && chance(0.25)) return fill(pick("emu", mu), ctx);
+      const r = Math.random();
+      let pool;
+      if (hasStance && r < 0.4) pool = ENEMY_STANCE_HIT[ene.stance];
+      else if (eneFam && r < 0.75) pool = famPool(ENEMY_WEAPON, eneFam);
+      else pool = arch.atk;
+      return fill(pick("ehit", pool || arch.atk), ctx);
     },
 
-    // Il nemico schiva l'attacco dell'eroe
+    // Il nemico schiva/para l'attacco dell'eroe
     enemyDodge() {
-      const extra = [];
-      if (eneShield) extra.push(`${E} solleva ${strong(eneShield)} e blocca il tuo attacco!`);
-      if (eneWeapon) extra.push(`${E} devia il tuo colpo con ${strong(eneWeapon)}!`);
-      return pick("edodge", [...arch.dodge.map(s => fill(s, { E })), ...extra]);
+      const pool = arch.dodge.map(s => fill(s, { E }));
+      if (ene.stance !== "natural") {
+        const stanceLines = (ENEMY_STANCE_PARRY[ene.stance] || []).map(s => fill(s, eneCtx));
+        pool.push(...stanceLines, ...stanceLines); // peso doppio alle parate di stile
+      }
+      return pick("edodge", pool);
     },
 
-    // L'eroe schiva l'attacco del nemico
+    // L'eroe schiva/para l'attacco del nemico
     heroDodge() {
-      const extra = [];
-      if (eneWeapon) extra.push(`${strong(eneWeapon)} di ${E} fende l'aria: eviti il colpo all'ultimo istante!`);
-      return pick("hdodge", [...arch.whiff.map(s => fill(s, { E })), ...extra]);
+      const pool = arch.whiff.map(s => fill(s, { E }));
+      const stanceLines = (HERO_STANCE_PARRY[hero.stance] || []).map(s => fill(s, heroCtx));
+      pool.push(...stanceLines, ...stanceLines);
+      if (eneWeapon) pool.push(`${strong(eneWeapon)} di ${E} fende l'aria: eviti il colpo all'ultimo istante!`);
+      return pick("hdodge", pool);
     },
 
     // Danno assorbito dall'equipaggiamento nemico
     enemyDeflect(turn) {
       const n = turn.deflected;
       if (eneShield) return `🛡️ ${eneShield} di ${enemy.name} para -${n}`;
+      if (ene.stance === "dual") return `⚔️ ${enemy.name} intercetta con ${ene.off.name} -${n}`;
       if (eneArmor)  return `🛡️ ${eneArmor} di ${enemy.name} assorbe -${n}`;
       return `🛡️ -${n} parati dall'armatura nemica`;
     },
@@ -531,19 +815,32 @@ export function createCombatNarrator({ enemy, enemyEquip, heroWeapon, heroArmor 
     // Danno assorbito dall'equipaggiamento dell'eroe
     heroDeflect(turn) {
       const n = turn.deflected;
-      if (heroArmor) return `🛡️ ${heroArmor} assorbe -${n}`;
+      if (hero.shield) return `🛡️ ${hero.shield.name} para -${n}`;
+      if (hero.stance === "dual") return `⚔️ ${hero.off.name} intercetta -${n}`;
+      if (heroArmorName) return `🛡️ ${heroArmorName} assorbe -${n}`;
       return `🛡️ -${n} assorbiti dalla tua difesa`;
     },
 
     victory() {
       let txt = fill(pick("win", arch.win), { E });
-      if (heroWeapon && Math.random() < 0.5) txt += ` Pulisci ${strong(heroWeapon)} e riprendi fiato.`;
+      if (chance(0.5)) {
+        const tail = {
+          dual:       ` Rinfoderi ${heroCtx.W} e ${heroCtx.O}, ancora gocciolanti.`,
+          shield:     ` Abbassi ${heroCtx.S}, ammaccato ma integro, e pulisci ${heroCtx.W}.`,
+          twohand:    ` Pianti ${heroCtx.W} nel terreno e ti appoggi per riprendere fiato.`,
+          single:     ` Pulisci ${heroCtx.W} e riprendi fiato.`,
+          shieldOnly: ` Abbassi ${heroCtx.S}, ammaccato ma integro.`,
+          unarmed:    ` Ti massaggi le nocche sbucciate: hai vinto a mani nude.`,
+        }[hero.stance];
+        if (tail) txt += tail;
+      }
       return txt;
     },
 
     defeat() {
       let txt = fill(pick("lose", arch.lose), { E });
       if (eneWeapon) txt += ` ${strong(eneWeapon)} è l'ultima cosa che vedi.`;
+      else if (ene.stance === "unarmed") txt += ` ${E} ti ha battuto a mani nude.`;
       return txt;
     },
   };
