@@ -780,27 +780,53 @@ export function renderShop() {
     const hasDen = w.denari >= price;
     const recipe = Array.isArray(e.recipe) ? e.recipe : [];
     let hasAllMats = true;
-    const matChips = recipe.map(r => {
+    const matParts = recipe.map(r => {
       const m = MATERIALS.find(x => x.id === r.id);
       const owned = matCount(r.id);
       const ok = owned >= r.qty;
       if (!ok) hasAllMats = false;
-      return `<span class="mk-chip ${ok ? "mk-chip--ok" : "mk-chip--lack"}" style="margin:0;">${owned}/${r.qty} ${m ? m.name : r.id}</span>`;
-    }).join("");
+      const matColor = ok ? "#4ecca3" : "#d4746a";
+      return `<span class="eq-forgia-mat" style="color:${matColor}">${m ? m.name : r.id} ${owned}/${r.qty}</span>`;
+    }).join(`<span class="eq-forgia-sep">·</span>`);
 
     const can = hasDen && hasAllMats;
     const meta = getPrimaryMeta(e);
+    const theme = getEquipIconTheme(e);
     const inBag = bagCount(e.id);
     const statusTag = equippedIds.has(e.id)
-      ? ` · <span style="color:#4ecca3">Indossato</span>`
-      : (inBag ? ` · <span style="color:#c4b59d">Zaino ×${inBag}</span>` : "");
-    const missingText = !hasAllMats ? "materiali insufficienti" : (!hasDen ? `mancano ${fmtDen(price - w.denari)}` : "");
+      ? ` <small style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#4ecca3;letter-spacing:1px;text-transform:uppercase;">· Indossato</small>`
+      : (inBag ? ` <small style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#c4b59d;letter-spacing:1px;text-transform:uppercase;">· Zaino ×${inBag}</small>` : "");
+
+    const fullPriceHTML = (e.prezzo && e.prezzo !== price)
+      ? `<s class="eq-forgia-fullprice">${fmtDen(e.prezzo)}</s>`
+      : "";
+    const priceColor = hasDen ? "#f0e6d2" : "#d4746a";
 
     return `
-    <div class="mk-tile eq-card ${can ? "" : "is-off"}" style="--acc:${meta.acc}">
-      ${renderEquipCardMainHTML({ piece: e, dur: 100, coatMat: null, slotKey: e.slot, extraRightTag: statusTag })}
-      ${matChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px 57px;">${matChips}</div>` : ""}
-      ${mkPriceBtn({ price, base: e.prezzo, can, label: "Costruisci", onclick: `window.__kaizen.buyEquipment('${e.id}')`, missing: missingText })}
+    <div class="mk-tile eq-card" style="--acc:${meta.acc}">
+      <div class="eq-card-main">
+        <div class="eq-icon-box" style="--icon-color:${theme.color};--icon-bg:${theme.bg};--icon-border:${theme.border};--icon-glow:${theme.glow}">
+          ${getEquipCategorySVG(e)}
+        </div>
+        <div class="eq-body">
+          <div class="eq-row-1">
+            <span class="eq-name">${e.name}${statusTag}</span>
+            <span class="eq-grade">GRADO ${roman(e.tier)}</span>
+          </div>
+          <div class="eq-row-2">
+            ${bonusBadgesHTML(e.bonus, 100, true)}
+          </div>
+          <div class="eq-fabbro-desc">${e.desc}</div>
+        </div>
+      </div>
+      <button class="eq-forgia-btn" ${can ? `onclick="window.__kaizen.buyEquipment('${e.id}')"` : "disabled"}>
+        <div class="eq-forgia-row">
+          <span class="eq-forgia-lbl">Forgia</span>
+          ${fullPriceHTML}
+          <span style="display:inline-flex;align-items:center;gap:4px;color:${priceColor};">${COIN}<b>${fmtDen(price)}</b></span>
+          ${matParts ? `<span class="eq-forgia-sep">·</span>${matParts}` : ""}
+        </div>
+      </button>
     </div>`;
   }).join("");
 
