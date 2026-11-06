@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.77
+ KAIZEN v6.78
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -426,76 +426,35 @@ function getEquipIconTheme(piece) {
   };
 }
 
-/* ── Icona SVG per categoria / tipo impugnatura ── */
-function getEquipCategorySVG(piece) {
-  if (piece.handType === "1h") {
-    // Spada a una mano
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M14.5 17.5L3 6V3h3l11.5 11.5"/>
-      <path d="M13 19l6-6"/>
-      <path d="M16 16l4 4"/>
-      <path d="M19 21l2-2"/>
-    </svg>`;
-  }
-  if (piece.handType === "2h") {
-    // Lancia / Arma ad asta a due mani
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 21L17 7"/>
-      <path d="M15 4l6-1-1 6-4 2-3-3 2-4z" fill="currentColor" fill-opacity="0.22"/>
-      <path d="M11 11l2 2"/>
-    </svg>`;
-  }
-  if (piece.handType === "shield" || piece.slot === "mano_sx") {
-    // Scudo
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fill-opacity="0.16"/>
-      <path d="M12 6v12"/>
-      <path d="M8 11h8"/>
-    </svg>`;
-  }
-  if (piece.slot === "testa") {
-    // Elmo
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 13a8 8 0 0 1 16 0v6l-4-2-4 2-4-2-4 2v-6z" fill="currentColor" fill-opacity="0.16"/>
-      <path d="M8 13h8"/>
-      <path d="M12 10v7"/>
-      <path d="M12 2v3"/>
-    </svg>`;
-  }
-  if (piece.slot === "torace") {
-    // Corazza / Pettorale
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M6 4l3 2h6l3-2 3 4-3 3v9H6v-9L3 8l3-4z" fill="currentColor" fill-opacity="0.16"/>
-      <path d="M12 6v14"/>
-      <path d="M8 11h8"/>
-    </svg>`;
-  }
-  if (piece.slot === "braccia") {
-    // Bracciali / Guanto d'arme
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M7 11V6a2 2 0 0 1 4 0v3h2V5a2 2 0 0 1 4 0v6l-2 9H8l-3-6 2-3z" fill="currentColor" fill-opacity="0.16"/>
-      <path d="M7 15h9"/>
-      <path d="M8 18h7"/>
-    </svg>`;
-  }
-  // Gambe (Gambali / Stivali corazzati)
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M8 3h7l-1 11 5 3v3H6v-4l2-13z" fill="currentColor" fill-opacity="0.16"/>
-    <path d="M8 8h6"/>
-    <path d="M7 13h7"/>
-  </svg>`;
+/* ── Maschera PNG per categoria / tipo impugnatura ── */
+function getEquipMaskPath(piece) {
+  if (piece.handType === "1h") return "img/equip/arma_1h.png";
+  if (piece.handType === "2h") return "img/equip/arma_2h.png";
+  if (piece.handType === "shield" || piece.slot === "mano_sx") return "img/equip/scudo.png";
+  if (piece.slot === "testa") return "img/equip/testa.png";
+  if (piece.slot === "torace") return "img/equip/torace.png";
+  if (piece.slot === "braccia") return "img/equip/braccia.png";
+  if (piece.slot === "gambe") return "img/equip/gambe.png";
+  return "img/equip/arma_1h.png";
+}
+
+/* ── Renderizza l'icona dell'equipaggiamento colorata senza alcun riquadro ── */
+function renderEquipIconHTML(piece, titleAttr = "") {
+  const theme = getEquipIconTheme(piece);
+  const maskPath = getEquipMaskPath(piece);
+  const title = titleAttr ? ` title="${titleAttr}"` : "";
+  return `<div class="eq-icon" style="--icon-mask:url('${maskPath}');--icon-color:${theme.color};--icon-glow:${theme.glow};"${title}></div>`;
 }
 
 /* ── Costruisce il corpo a 2 colonne della scheda equipaggiamento ──
-   - A sinistra: icona colorata per rarità/tier
+   - A sinistra: icona colorata per rarità/tier (senza alcun riquadro)
    - A destra:
-     1) Nome oggetto (+ etichetta slot/tipo)
+     1) Nome oggetto
      2) Grado evidente + bonus/malus nominali (100% integrità, senza rivestimento)
      3) Barra di usura con percentuale sulla destra
      4) Eventuale rivestimento e relativi bonus su attributi e resistenza all'usura
 ── */
 function renderEquipCardMainHTML({ piece, dur = 100, coatMat = null, slotKey = null, extraRightTag = "" }) {
-  const theme = getEquipIconTheme(piece);
   const durColor = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
   const typeLabel = piece.handType ? HAND_LABELS[piece.handType] : (SLOT_NAMES[piece.slot] || piece.slot);
   const rar = RARITY_META[piece.rarita] || RARITY_META.comune;
@@ -509,9 +468,7 @@ function renderEquipCardMainHTML({ piece, dur = 100, coatMat = null, slotKey = n
 
   return `
   <div class="eq-card-main">
-    <div class="eq-icon-box" style="--icon-color:${theme.color};--icon-bg:${theme.bg};--icon-border:${theme.border};--icon-glow:${theme.glow}" title="${typeLabel} · ${rar.lbl} (Grado ${roman(piece.tier)})">
-      ${getEquipCategorySVG(piece)}
-    </div>
+    ${renderEquipIconHTML(piece, `${typeLabel} · ${rar.lbl} (Grado ${roman(piece.tier)})`)}
     <div class="eq-body">
       <div class="eq-row-1">
         <span class="eq-name">${piece.name}</span>
@@ -804,9 +761,7 @@ export function renderShop() {
     return `
     <div class="mk-tile eq-card" style="--acc:${meta.acc}">
       <div class="eq-card-main">
-        <div class="eq-icon-box" style="--icon-color:${theme.color};--icon-bg:${theme.bg};--icon-border:${theme.border};--icon-glow:${theme.glow}">
-          ${getEquipCategorySVG(e)}
-        </div>
+        ${renderEquipIconHTML(e, `${e.name} · Grado ${roman(e.tier)}`)}
         <div class="eq-body">
           <div class="eq-row-1">
             <span class="eq-name">${e.name}${statusTag}</span>
