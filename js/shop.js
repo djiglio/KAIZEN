@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.78
+ KAIZEN v6.79
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -994,14 +994,28 @@ export function renderEquipment() {
       }
     });
 
-    // Ordina SEMPRE prima per slot e poi per grado (e infine per nome)
-    const SLOT_ORDER = ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"];
+    // Ordina prima di tutto per categoria, poi per rango (tier) e infine per nome
+    const CATEGORY_ORDER = ["testa", "torace", "braccia", "armi", "scudi", "gambe"];
+    const getPieceCategory = (p) => {
+      if (p.handType === "shield") return "scudi";
+      if (p.handType === "1h" || p.handType === "2h" || p.slot === "mano_dx") return "armi";
+      if (p.slot === "testa") return "testa";
+      if (p.slot === "torace") return "torace";
+      if (p.slot === "braccia") return "braccia";
+      if (p.slot === "gambe") return "gambe";
+      if (p.slot === "mano_sx") return "scudi";
+      return p.slot || "altro";
+    };
+
     equipEntries.sort((a, b) => {
-      const slotA = SLOT_ORDER.indexOf(a.piece.slot);
-      const slotB = SLOT_ORDER.indexOf(b.piece.slot);
-      const slotDiff = (slotA === -1 ? 99 : slotA) - (slotB === -1 ? 99 : slotB);
-      if (slotDiff !== 0) return slotDiff;
+      const catA = CATEGORY_ORDER.indexOf(getPieceCategory(a.piece));
+      const catB = CATEGORY_ORDER.indexOf(getPieceCategory(b.piece));
+      const catDiff = (catA === -1 ? 99 : catA) - (catB === -1 ? 99 : catB);
+      if (catDiff !== 0) return catDiff;
       if (a.piece.tier !== b.piece.tier) return a.piece.tier - b.piece.tier;
+      const handA = a.piece.handType === "2h" ? 2 : (a.piece.handType === "1h" ? 1 : 0);
+      const handB = b.piece.handType === "2h" ? 2 : (b.piece.handType === "1h" ? 1 : 0);
+      if (handA !== handB) return handA - handB;
       return a.piece.name.localeCompare(b.piece.name);
     });
 
