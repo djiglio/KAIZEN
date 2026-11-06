@@ -6,10 +6,10 @@
    ============================================================ */
 
 export function rankImgPath(title) {
-  return `/img/ranks/${title.toLowerCase()}.png`;
+  return `img/ranks/${title.toLowerCase()}.png`;
 }
 export function enemyImgPath(enemy) {
-  return `/img/enemies/${enemy.id}.png`;
+  return `img/enemies/${enemy.id}.png`;
 }
 
 const _cache = {};
