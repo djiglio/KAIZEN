@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.79
+ KAIZEN v6.80
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -507,8 +507,22 @@ const SLOT_NAMES = {
   gambe: "Gambe",
 };
 
+export const CATEGORY_ORDER = ["testa", "torace", "braccia", "armi", "scudi", "gambe"];
+
+export function getPieceCategory(p) {
+  if (!p) return "altro";
+  if (p.handType === "shield") return "scudi";
+  if (p.handType === "1h" || p.handType === "2h" || p.slot === "mano_dx") return "armi";
+  if (p.slot === "testa") return "testa";
+  if (p.slot === "torace") return "torace";
+  if (p.slot === "braccia") return "braccia";
+  if (p.slot === "gambe") return "gambe";
+  if (p.slot === "mano_sx") return "scudi";
+  return p.slot || "altro";
+}
+
 // Tab attiva della Bottega Costruzione (persiste tra i render)
-let armaioloSlot = "mano_dx";
+let armaioloSlot = "armi";
 
 function mkShopHTML(key, num, name, tagline, body) {
   return `
@@ -717,19 +731,27 @@ export function renderShop() {
     ["testa",   "Testa"],
     ["torace",  "Torace"],
     ["braccia", "Braccia"],
-    ["mano_dx", "Armi"],
-    ["mano_sx", "Scudi"],
+    ["armi",    "Armi"],
+    ["scudi",   "Scudi"],
     ["gambe",   "Gambe"],
-  ].filter(([s]) => shopEquip.some(e => e.slot === s));
-  if (!tabDefs.some(([s]) => s === armaioloSlot) && tabDefs.length) armaioloSlot = tabDefs[0][0];
+  ].filter(([cat]) => shopEquip.some(e => getPieceCategory(e) === cat));
+  if (armaioloSlot === "mano_dx") armaioloSlot = "armi";
+  if (armaioloSlot === "mano_sx") armaioloSlot = "scudi";
+  if (!tabDefs.some(([cat]) => cat === armaioloSlot) && tabDefs.length) armaioloSlot = tabDefs[0][0];
 
   const equippedIds = new Set(Object.values(eq.equipped || {}).filter(Boolean).map(o => typeof o === "string" ? o : o.id));
   const bagCount = id => eq.zaino.filter(z => z.type === "equip" && z.id === id).length;
   const matCount = id => eq.zaino.filter(z => z.type === "material" && z.id === id).length;
 
   const slotEquipList = shopEquip
-    .filter(e => e.slot === armaioloSlot)
-    .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name));
+    .filter(e => getPieceCategory(e) === armaioloSlot)
+    .sort((a, b) => {
+      if (a.tier !== b.tier) return a.tier - b.tier;
+      const handA = a.handType === "2h" ? 2 : (a.handType === "1h" ? 1 : 0);
+      const handB = b.handType === "2h" ? 2 : (b.handType === "1h" ? 1 : 0);
+      if (handA !== handB) return handA - handB;
+      return a.name.localeCompare(b.name);
+    });
 
   const equipTiles = slotEquipList.map(e => {
     const price = discountedPrice(e.prezzo, disc);
@@ -786,7 +808,7 @@ export function renderShop() {
 
   const armaioloHTML = `
   <div class="mk-tabs">
-    ${tabDefs.map(([s, lbl]) => `<button class="mk-tab ${s === armaioloSlot ? "is-on" : ""}" data-armslot="${s}">${lbl}<b>${shopEquip.filter(e => e.slot === s).length}</b></button>`).join("")}
+    ${tabDefs.map(([cat, lbl]) => `<button class="mk-tab ${cat === armaioloSlot ? "is-on" : ""}" data-armslot="${cat}">${lbl}<b>${shopEquip.filter(e => getPieceCategory(e) === cat).length}</b></button>`).join("")}
   </div>
   <div class="mk-grid mk-grid--1">${equipTiles}</div>`;
 
@@ -995,18 +1017,6 @@ export function renderEquipment() {
     });
 
     // Ordina prima di tutto per categoria, poi per rango (tier) e infine per nome
-    const CATEGORY_ORDER = ["testa", "torace", "braccia", "armi", "scudi", "gambe"];
-    const getPieceCategory = (p) => {
-      if (p.handType === "shield") return "scudi";
-      if (p.handType === "1h" || p.handType === "2h" || p.slot === "mano_dx") return "armi";
-      if (p.slot === "testa") return "testa";
-      if (p.slot === "torace") return "torace";
-      if (p.slot === "braccia") return "braccia";
-      if (p.slot === "gambe") return "gambe";
-      if (p.slot === "mano_sx") return "scudi";
-      return p.slot || "altro";
-    };
-
     equipEntries.sort((a, b) => {
       const catA = CATEGORY_ORDER.indexOf(getPieceCategory(a.piece));
       const catB = CATEGORY_ORDER.indexOf(getPieceCategory(b.piece));
