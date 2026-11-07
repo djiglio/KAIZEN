@@ -10,7 +10,7 @@ import {
   store,
   save
 } from "./state.js";
-import { updateXP, checkEndOfDay, refreshQuests } from "./engine.js";
+import { updateXP, failDisciplina, checkEndOfDay, refreshQuests } from "./engine.js";
 import { toggleSidebar, showPage, showRankPage, switchTab } from "./navigation.js";
 import {
   render,
@@ -98,6 +98,7 @@ window.__kaizen = {
   restoreDefaultFirebaseConfig,
   // Game
   updateXP,
+  failDisciplina,
   runMission,
   // Shop
   buyPotion,

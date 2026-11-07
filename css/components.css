@@ -1003,6 +1003,26 @@
   font-weight: 800;
   letter-spacing: 1px;
 }
+.mk-grid--habits .mk-tile.mk-tile--disciplina {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 0 14px;
+  min-height: 44px;
+}
+.mk-grid--habits .mk-tile.mk-tile--disciplina .mk-tile-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  padding: 10px 0;
+}
+.mk-grid--habits .mk-tile.mk-tile--disciplina .mk-disciplina-btn {
+  flex: 0 0 50%;
+  align-self: stretch;
+  min-height: 44px;
+  border-left: 1px dashed rgba(85, 74, 62, .42);
+  padding: 8px 12px;
+}
 
 /* Varianti specifiche per cartellini Missioni Settimanali (colonna singola) */
 .mk-grid--quests { gap: 8px; }

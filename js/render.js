@@ -14,7 +14,7 @@ import { HABITS, STAT_DEFS, rankTitles,
          WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS } from "./data.js";
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
-         habitXpInLevel } from "./engine.js";
+         habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
 import { formatDate } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
@@ -92,9 +92,19 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
     </div>`;
   }).join("");
 
+  const discFailed = isDisciplinaFailedToday();
+  const discAcc = discFailed ? "#e0533d" : "#d4a017";
+  const disciplinaHTML = `
+    <div class="mk-tile mk-tile--disciplina ${discFailed ? "is-off is-marked" : ""}" style="--acc:${discAcc}">
+      <span class="mk-tile-name">DISCIPLINA</span>
+      <button class="mk-act mk-act--no mk-disciplina-btn" ${discFailed ? "disabled" : `onclick="window.__kaizen.failDisciplina()"`}>
+        ${discFailed ? "✕ Mancata oggi" : "✕ Mancata"}
+      </button>
+    </div>`;
+
   el.innerHTML = `
   <div class="mk">
-    <div class="mk-grid mk-grid--1 mk-grid--habits">${tilesHTML}</div>
+    <div class="mk-grid mk-grid--1 mk-grid--habits">${disciplinaHTML}${tilesHTML}</div>
   </div>`;
 }
 

@@ -91,6 +91,7 @@ const defaultWorld = () => ({
 
 export const defaultState = () => ({
   habits: defaultHabits(),
+  disciplina: { streak: 0, failedDate: null, sinceDate: new Date().toDateString() },
   equipment: defaultEquipment(),
   world: defaultWorld(),
   activeQuestsEvo: [],
@@ -119,6 +120,12 @@ export function hasStateProgress(st) {
 /* ── Migrazione da vecchie versioni ── */
 export function migrate(p) {
   if (!p.habits) p.habits = defaultHabits();
+  if (!p.disciplina || typeof p.disciplina !== "object") {
+    p.disciplina = { streak: 0, failedDate: null, sinceDate: new Date().toDateString() };
+  } else {
+    if (typeof p.disciplina.streak !== "number") p.disciplina.streak = 0;
+    if (p.disciplina.failedDate === undefined) p.disciplina.failedDate = null;
+  }
   if (!p.equipment) p.equipment = defaultEquipment();
   if (!p.world) p.world = defaultWorld();
   else {

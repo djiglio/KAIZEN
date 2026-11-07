@@ -130,18 +130,54 @@ export function getRankTitle(rank) {
  return title;
 }
 
+/* ── Disciplina (streak giornaliera che modifica XP e malus dal giorno successivo) ── */
+export function getDisciplinaModifier() {
+ const s = store.state.disciplina?.streak || 0;
+ return Math.max(-5, Math.min(5, s));
+}
+
+export function isDisciplinaFailedToday() {
+ const today = new Date().toDateString();
+ return store.state.disciplina?.failedDate === today;
+}
+
+export function failDisciplina() {
+ checkEndOfDay();
+ const state = store.state;
+ if (!state.disciplina) {
+   state.disciplina = { streak: 0, failedDate: null, sinceDate: new Date().toDateString() };
+ }
+ const today = new Date().toDateString();
+ if (state.disciplina.failedDate === today) return;
+ state.disciplina.failedDate = today;
+
+ showToast("✕ Disciplina mancata — effetto attivo da domani");
+ addHistory("✕ DISCIPLINA mancata oggi (effetto attivo da domani)", "habit");
+ if (state.history.length > 200) state.history = state.history.slice(0, 200);
+ save();
+
+ if (typeof window.__kaizen?.onAfterUpdate === "function") {
+   window.__kaizen.onAfterUpdate();
+ }
+}
+
 /* ── Reset fine giornata ── */
 export function checkEndOfDay() {
  const state = store.state;
+ if (!state.disciplina || typeof state.disciplina !== "object") {
+   state.disciplina = { streak: 0, failedDate: null, sinceDate: new Date().toDateString() };
+ }
  const today = new Date().toDateString();
  if (state.lastDayCheck && state.lastDayCheck !== today) {
+ const discModYesterday = getDisciplinaModifier();
+ const oblioLoss = Math.max(0, 5 - discModYesterday);
  let missed = 0;
  for (const hd of HABITS) {
  const h = state.habits[hd.id];
  if (!h) continue;
  const lastDay = h.last ? new Date(h.last).toDateString() : null;
  if (lastDay !== state.lastDayCheck) {
- h.xp = Math.max(0, h.xp - 5);
+ h.xp = Math.max(0, h.xp - oblioLoss);
  h.streak = 0;
  h.result = null;
  missed++;
@@ -150,7 +186,21 @@ export function checkEndOfDay() {
  }
  }
  if (missed > 0) {
- addHistory(` OBLIO: ${missed} abitudini dimenticate. -${missed*5}XP totali`, "system");
+ addHistory(` OBLIO: ${missed} abitudini dimenticate. -${missed * oblioLoss}XP totali`, "system");
+ }
+
+ // Valuta l'esito di DISCIPLINA del giorno appena concluso: l'effetto vale da oggi
+ if (state.disciplina.sinceDate !== today) {
+   const prevStreak = state.disciplina.streak || 0;
+   const failedYesterday = state.disciplina.failedDate === state.lastDayCheck;
+   if (failedYesterday) {
+     state.disciplina.streak = prevStreak < 0 ? prevStreak - 1 : -1;
+   } else {
+     state.disciplina.streak = prevStreak > 0 ? prevStreak + 1 : 1;
+   }
+ }
+ if (state.disciplina.failedDate && state.disciplina.failedDate !== today) {
+   state.disciplina.failedDate = null;
  }
  }
  state.lastDayCheck = today;
@@ -467,10 +517,12 @@ export function updateWorldQuests(type, payload = {}) {
 
 /* ── updateXP: click abitudine ── */
 export function updateXP(habitId, isPos) {
+ checkEndOfDay();
  const state = store.state;
  const h = state.habits[habitId];
  if (!h) return;
  const now = new Date();
+ const discMod = getDisciplinaModifier();
  let xpGain = 10;
 
  if (isPos && h.last) {
@@ -483,6 +535,8 @@ export function updateXP(habitId, isPos) {
  h.streak = 1;
  }
  }
+
+ xpGain = Math.max(0, xpGain + discMod);
 
  if (isPos) {
  const lvlBefore = habitLevel(habitId);
@@ -506,7 +560,7 @@ export function updateXP(habitId, isPos) {
  // TUTTE le abitudini devono essere completate oggi con result="done"
  // Se anche solo una è "failed" oggi, il trofeo non si vince
  const allMarkedToday = HABITS.every(hd => isDone(state.habits[hd.id]?.last));
- const anyFailed = HABITS.some(hd => {
+ const anyFailed = isDisciplinaFailedToday() || HABITS.some(hd => {
  const hx = state.habits[hd.id];
  return isDone(hx?.last) && hx?.result === "failed";
  });
@@ -527,12 +581,13 @@ export function updateXP(habitId, isPos) {
 
  addHistory(`+${xpGain}XP: ${HABITS.find(x=>x.id===habitId)?.label}`, "habit");
  } else {
- h.xp = Math.max(0, h.xp - 5);
+ const xpLoss = Math.max(0, 5 - discMod);
+ h.xp = Math.max(0, h.xp - xpLoss);
  h.last = now.getTime();
  h.result = "failed";
  h.streak = 0;
- showToast(`-5 XP — ${HABITS.find(x=>x.id===habitId)?.label}`);
- addHistory(`-5XP: ${HABITS.find(x=>x.id===habitId)?.label}`, "habit");
+ showToast(`-${xpLoss} XP — ${HABITS.find(x=>x.id===habitId)?.label}`);
+ addHistory(`-${xpLoss}XP: ${HABITS.find(x=>x.id===habitId)?.label}`, "habit");
  }
 
  if (state.history.length > 200) state.history = state.history.slice(0, 200);
