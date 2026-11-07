@@ -794,13 +794,14 @@ export function showRankDetail(title) {
   if (!box) return;
 
   document.getElementById("detail-modal").classList.add("show");
+  box.classList.add("modal-box--rank");
   box.innerHTML = `
   <div class="mk mk-modal">
     <div class="mk-modal-cap">Albo dei Ranghi · Rango ${rt.r}</div>
     <div class="mk-modal-title" style="color:${isCurrent ? "var(--gold-light)" : metalCol};margin:2px 0 4px;">${rt.t}</div>
     <div class="mk-chip ${chipCls}" style="margin:2px auto 10px;">${statusTxt}</div>
 
-    <div style="margin:6px auto 12px;display:flex;justify-content:center;align-items:center;width:100%;max-width:220px;min-height:180px;">
+    <div style="margin:8px auto 16px;display:flex;justify-content:center;align-items:center;width:100%;max-width:320px;min-height:280px;">
       ${heroAvatarHTML(rt.t, "100%", "auto")}
     </div>
 
@@ -822,6 +823,7 @@ export function showRankDetail(title) {
 
 export function closeDetailModal() {
   document.getElementById("detail-modal")?.classList.remove("show");
+  document.getElementById("detail-modal-box")?.classList.remove("modal-box--rank");
 }
 
 /* ══════════════════════════════════════════════════════════

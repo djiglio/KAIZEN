@@ -207,6 +207,10 @@
   box-shadow: var(--shadow-heavy);
   position: relative;
 }
+.modal-box--rank {
+  max-width: 480px;
+  padding: 22px 18px 20px;
+}
 .modal-title {
   font-family: "Cinzel", serif;
   font-size: 14px;
