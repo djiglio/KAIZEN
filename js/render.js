@@ -396,6 +396,12 @@ export function renderWorld() {
 
 const bachecaOpenCats = new Set();
 
+function getTreasureCountMeta(count) {
+  if (count <= 5) return { cls: "mk-count-bronze", color: "#d48459", label: "Bronzo" };
+  if (count <= 10) return { cls: "mk-count-silver", color: "#d0d7de", label: "Argento" };
+  return { cls: "mk-count-gold", color: "#ffd700", label: "Oro" };
+}
+
 function renderBacheca(state, w) {
   // ── Trofei ──
   const trophyEl = document.getElementById("trophy-list");
@@ -562,12 +568,13 @@ function renderBacheca(state, w) {
     const genCards = TREASURES.map(t => {
       const count = (w.tesoriScoperti || {})[t.id] || 0;
       const locked = count === 0;
+      const meta = getTreasureCountMeta(count);
       return `
       <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:#df784b;padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
            onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
         <div class="mk-tile-cap">Grado ${roman(t.tier)}</div>
         <div class="mk-tile-name">${locked ? "Tesoro Ignoto" : t.name}</div>
-        ${!locked ? `<div class="mk-tile-big" style="font-size:20px;">×${count}</div>` : ""}
+        ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
         <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `${t.minV}–${t.maxV} denari`}</div>
       </div>`;
     }).join("");
@@ -584,12 +591,13 @@ function renderBacheca(state, w) {
       const areaCards = pool.map(m => {
         const count = (w.tesoriScoperti || {})[m.id] || 0;
         const locked = count === 0;
+        const meta = getTreasureCountMeta(count);
         return `
         <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:#df784b;padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
              onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
           <div class="mk-tile-cap">Rarità ${roman(m.rarity)}</div>
           <div class="mk-tile-name">${locked ? "Reperto Ignoto" : m.name}</div>
-          ${!locked ? `<div class="mk-tile-big" style="font-size:20px;">×${count}</div>` : ""}
+          ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
           <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `valore ${m.value} denari`}</div>
         </div>`;
       }).join("");
@@ -726,6 +734,18 @@ export function showTreasureDetail(treasureId) {
     ? `${areaName} · Rarità ${roman(t.rarity)}`
     : `Tesoro Generico · Grado ${roman(t.tier)}`;
   const valText = isArea ? `${t.value}` : `${t.minV}–${t.maxV}`;
+  const meta = getTreasureCountMeta(count);
+  const rarity = isArea ? (t.rarity || 1) : (t.tier || 1);
+  let milestoneNote = "";
+  if (count < 5) {
+    milestoneNote = `Collezione: ${count}/5 pezzi per il traguardo Bronzo (+${rarity} XP a tutte le abitudini)`;
+  } else if (count < 10) {
+    milestoneNote = `Traguardo Bronzo raggiunto (+${rarity} XP). Prossimo: ${count}/10 per Argento (+${rarity} XP)`;
+  } else if (count < 15) {
+    milestoneNote = `Traguardo Argento raggiunto (+${rarity * 2} XP tot). Prossimo: ${count}/15 per Oro (+${rarity} XP)`;
+  } else {
+    milestoneNote = `Traguardo Oro completato (+${rarity * 3} XP tot a tutte le abitudini)! Collezione al massimo`;
+  }
 
   box.innerHTML = `
   <div class="mk mk-modal">
@@ -738,11 +758,12 @@ export function showTreasureDetail(treasureId) {
         <div class="mk-vital-cap">Valore Stimato</div>
         <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:6px;">${COIN}${valText}</div>
       </div>
-      <div class="mk-vital" style="--acc:#4ecca3">
-        <div class="mk-vital-cap">Ritrovamenti</div>
-        <div class="mk-vital-val" style="color:#4ecca3">×${count}</div>
+      <div class="mk-vital" style="--acc:${meta.color}">
+        <div class="mk-vital-cap">Ritrovamenti (${meta.label})</div>
+        <div class="mk-vital-val ${meta.cls}" style="color:${meta.color}">×${count}</div>
       </div>
     </div>
+    <div class="mk-note" style="margin-top:6px;color:${meta.color};font-weight:600;">${milestoneNote}</div>
 
     <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
   </div>`;

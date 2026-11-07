@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.89";
+export const APP_VERSION = "6.90";
 export const APP_RELEASE = "07/11/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -1745,3 +1745,13 @@ export function calculateCoatingCost(piece, mat) {
 }
 
 
+
+export function getTreasureDef(id) {
+  const t = TREASURES.find(x => x.id === id);
+  if (t) return { ...t, rarity: t.tier || 1 };
+  for (const pool of Object.values(AREA_LOOT_POOL)) {
+    const m = pool.find(x => x.id === id);
+    if (m) return { ...m, rarity: m.rarity || 1 };
+  }
+  return null;
+}

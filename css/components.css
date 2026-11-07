@@ -1398,3 +1398,8 @@
 .detail-stat-box { background: var(--ink); border: 1px solid rgba(85, 74, 62, 0.4); border-radius: 3px; padding: 4px 6px; text-align: center; }
 .detail-stat-val { font-family: "Cinzel", serif; font-size: 14px; font-weight: 900; line-height: 1.15; }
 .detail-stat-lbl { font-family: "JetBrains Mono", monospace; font-size: 6.5px; color: var(--cap); letter-spacing: 1.8px; margin-top: 1px; line-height: 1.1; }
+
+/* Colori rarità collezionismo pezzi bacheca tesori */
+.mk-count-bronze { color: #d48459 !important; text-shadow: 0 0 8px rgba(212, 132, 89, .35); }
+.mk-count-silver { color: #d0d7de !important; text-shadow: 0 0 8px rgba(208, 215, 222, .4); }
+.mk-count-gold   { color: #ffd700 !important; text-shadow: 0 0 10px rgba(255, 215, 0, .45); }

@@ -5,7 +5,7 @@
  ============================================================ */
 
 import { store, save, saveLocalOnly } from "./state.js";
-import { BESTIARY, TREASURES, RELICS,
+import { HABITS, BESTIARY, TREASURES, RELICS,
          EQUIPMENT_POOL, AREA_LOOT_POOL, MATERIALS, getCoatingWearReduction,
          WORLD_AREAS, EMPIREO_GODS, EMPIREO_LOOT,
          getEnemiesForArea } from "./data.js";
@@ -696,6 +696,37 @@ function executeFlee(enemy, fleeChance) {
 }
 
 
+/* ── Avanzamento collezione e traguardi XP (5, 10, 15 pezzi) ── */
+function onTreasureFound(state, item) {
+  const id = item.id;
+  const w = state.world;
+  if (!w.tesoriScoperti) w.tesoriScoperti = {};
+  if (!w.tesoriMilestones) w.tesoriMilestones = {};
+
+  const count = (w.tesoriScoperti[id] || 0) + 1;
+  w.tesoriScoperti[id] = count;
+
+  let lastM = w.tesoriMilestones[id] || 0;
+  const rarity = item.rarity || item.tier || 1;
+  const name = item.name || "Tesoro";
+
+  for (const m of [5, 10, 15]) {
+    if (count >= m && lastM < m) {
+      for (const hd of HABITS) {
+        if (state.habits[hd.id]) {
+          state.habits[hd.id].xp += rarity;
+        }
+      }
+      lastM = m;
+      w.tesoriMilestones[id] = m;
+      const tierName = m === 5 ? "Bronzo" : m === 10 ? "Argento" : "Oro";
+      addHistory(`🏆 Collezione ${tierName} (${m}× ${name}): +${rarity} XP a tutte le abitudini`, "world");
+      showToast(`🏆 Traguardo ${tierName} (${m}× ${name})! +${rarity} XP`);
+    }
+  }
+  return count;
+}
+
 /* ── Pick area-specific loot (from AREA_LOOT_POOL) ── */
 function pickAreaLoot(areaId, fortunaStat) {
   const pool = AREA_LOOT_POOL[areaId];
@@ -800,7 +831,7 @@ function executeCombat(enemy, enemyEquip) {
       w.deniariTotaliGuadagnati += val;
       _areaLootDenari += val;
       _areaLootItemsCount++;
-      store.state.world.tesoriScoperti[areaLootObj.id] = (store.state.world.tesoriScoperti[areaLootObj.id] || 0) + 1;
+      onTreasureFound(store.state, areaLootObj);
       updateWorldQuests("loot", { value: val });
       updateWorldQuests("denari", { value: val });
       if ((areaLootObj.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
@@ -897,7 +928,7 @@ function executeDiscovery() {
       const val = aLoot.value;
       w.denari += val;
       w.deniariTotaliGuadagnati += val;
-      w.tesoriScoperti[aLoot.id] = (w.tesoriScoperti[aLoot.id] || 0) + 1;
+      onTreasureFound(state, aLoot);
       updateWorldQuests("loot", { value: val });
       updateWorldQuests("denari", { value: val });
       if ((aLoot.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
@@ -952,7 +983,7 @@ function pickTreasureReward() {
   const v = Math.round(rnd(t.minV, t.maxV) * fortunaBonus);
   w.denari += v;
   w.deniariTotaliGuadagnati += v;
-  w.tesoriScoperti[t.id] = (w.tesoriScoperti[t.id] || 0) + 1;
+  onTreasureFound(state, t);
 
   updateWorldQuests("loot", { value: v });
   updateWorldQuests("denari", { value: v });

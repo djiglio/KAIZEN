@@ -4,7 +4,7 @@
  ============================================================ */
 
 import { showToast } from "./ui.js";
-import { AREA_LOOT_POOL, APP_VERSION, EQUIPMENT_POOL } from "./data.js";
+import { AREA_LOOT_POOL, APP_VERSION, EQUIPMENT_POOL, HABITS, getTreasureDef } from "./data.js";
 
 export const STORAGE_KEY = "kaizenV6_0";
 
@@ -49,6 +49,7 @@ const defaultWorld = () => ({
   nemiciAbbattuti: {},
   nemiciIncontrati: {},
   tesoriScoperti: {},
+  tesoriMilestones: {},
   deniariTotaliGuadagnati: 0,
   regenBoostExpiry: null,
   // progressione aree mondo esterno
@@ -136,6 +137,38 @@ export function migrate(p) {
       p.world.wq = { ...dw.wq, ...p.world.wq };
       if (!Array.isArray(p.world.wq.unique_enemies)) p.world.wq.unique_enemies = [];
       if (!Array.isArray(p.world.wq.unique_finds)) p.world.wq.unique_finds = [];
+    }
+    if (!p.world.tesoriMilestones) p.world.tesoriMilestones = {};
+    if (p.world.tesoriScoperti && p.habits) {
+      let retroXP = 0;
+      let retroCount = 0;
+      for (const [id, count] of Object.entries(p.world.tesoriScoperti)) {
+        const c = Number(count) || 0;
+        let lastM = p.world.tesoriMilestones[id] || 0;
+        const def = getTreasureDef(id);
+        const rarity = def?.rarity || 1;
+        for (const m of [5, 10, 15]) {
+          if (c >= m && lastM < m) {
+            for (const hd of HABITS) {
+              if (p.habits[hd.id]) {
+                p.habits[hd.id].xp += rarity;
+              }
+            }
+            lastM = m;
+            p.world.tesoriMilestones[id] = m;
+            retroXP += rarity;
+            retroCount++;
+          }
+        }
+      }
+      if (retroXP > 0) {
+        if (!Array.isArray(p.history)) p.history = [];
+        p.history.unshift({
+          t: Date.now(),
+          msg: `🏆 Collezionismo: accreditati +${retroXP} XP a tutte le abitudini per ${retroCount} traguardi tesori già raggiunti (5, 10, 15 pezzi)`,
+          cat: "system"
+        });
+      }
     }
     if (!Array.isArray(p.world.reliquieAttive)) {
       p.world.reliquieAttive = [];
