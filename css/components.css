@@ -878,7 +878,7 @@
 .mk-empty { text-align: center; font-family: var(--serif-it); font-style: italic; font-size: 14px; color: #6f6656; padding: 14px 10px; border: 1px dashed rgba(85, 74, 62, .38); border-radius: 3px; }
 .mk-vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
 .mk-vital { text-align: center; padding: 10px 10px 11px; background: rgba(0,0,0,.35); border: 1px solid rgba(85, 74, 62, .38); border-radius: 3px; }
-.mk-vital-cap { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--cap); }
+.mk-vital-cap { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 2px; text-indent: 2px; text-align: center; text-transform: uppercase; color: var(--cap); }
 .mk-vital-val { font-family: "Cinzel", serif; font-size: 17px; font-weight: 700; color: #ece3cf; margin-top: 2px; font-variant-numeric: tabular-nums; }
 .mk-vital-val small { font-size: 10px; color: #6f6656; margin-left: 4px; font-weight: 400; }
 .mk-vital-bar { height: 3px; background: rgba(255,255,255,.07); margin-top: 7px; overflow: hidden; }

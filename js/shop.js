@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.80
+ KAIZEN v6.83
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -1155,23 +1155,23 @@ export function renderEquipment() {
   <div class="mk">
     <div class="mk-vitals" style="grid-template-columns:repeat(5,1fr);margin-top:0;margin-bottom:14px;">
       <div class="mk-vital" style="--acc:#e0533d">
-        <div class="mk-vital-cap">Forza</div>
+        <div class="mk-vital-cap" title="Forza">FOR</div>
         <div class="mk-vital-val" style="color:${atkTotal < 0 ? '#ef4444' : '#e0533d'}">${fmtBonusTotal(atkTotal)}</div>
       </div>
       <div class="mk-vital" style="--acc:#3fb0c4">
-        <div class="mk-vital-cap">Difesa</div>
+        <div class="mk-vital-cap" title="Difesa">DIF</div>
         <div class="mk-vital-val" style="color:${defTotal < 0 ? '#ef4444' : '#3fb0c4'}">${fmtBonusTotal(defTotal)}</div>
       </div>
       <div class="mk-vital" style="--acc:#5fb8ec">
-        <div class="mk-vital-cap">Velocità</div>
+        <div class="mk-vital-cap" title="Velocità">VEL</div>
         <div class="mk-vital-val" style="color:${velTotal < 0 ? '#ef4444' : '#5fb8ec'}">${fmtBonusTotal(velTotal)}</div>
       </div>
       <div class="mk-vital" style="--acc:#3fbf8a">
-        <div class="mk-vital-cap">Destrezza</div>
+        <div class="mk-vital-cap" title="Destrezza">DES</div>
         <div class="mk-vital-val" style="color:${desTotal < 0 ? '#ef4444' : '#3fbf8a'}">${fmtBonusTotal(desTotal)}</div>
       </div>
       <div class="mk-vital" style="--acc:#f0903f">
-        <div class="mk-vital-cap">Critico</div>
+        <div class="mk-vital-cap" title="Critico">CRI</div>
         <div class="mk-vital-val" style="color:${criTotal < 0 ? '#ef4444' : '#f0903f'}">${fmtBonusTotal(criTotal)}</div>
       </div>
     </div>
