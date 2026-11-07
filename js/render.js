@@ -243,16 +243,11 @@ export function renderWorld() {
   /* ── Selettore aree (mostra unicamente le zone sbloccate) ── */
   const unlockedAreas = WORLD_AREAS.filter(a => areaSbloccate.includes(a.id));
   const areaTabs = unlockedAreas.map((a, uIdx) => {
-    const origIdx   = WORLD_AREAS.findIndex(x => x.id === a.id);
     const attiva    = a.id === areaId;
-    const poolQ     = AREA_QUESTS[a.id] || [];
-    const tracker   = wpSafe.missioniPerArea?.[a.id] || {};
-    const done      = poolQ.filter(q => tracker[q.id]?.completed).length;
-    const total     = poolQ.length;
     const spanFull  = (uIdx === unlockedAreas.length - 1 && unlockedAreas.length % 2 === 1) ? "grid-column:1/-1;" : "";
     return `<button class="mk-tab ${attiva ? "is-on" : ""}" style="${spanFull}${attiva ? `;border-color:${a.color}aa;background:${a.color}18;box-shadow:0 0 10px ${a.color}25;` : ''}"
               onclick="window.__kaizen.setArea('${a.id}')">
-      <span style="opacity:0.7;">${roman(origIdx + 1)} ·</span> <span class="mk-tab-zone" style="color:${a.color};font-weight:700;">${a.name}</span> <b>${done}/${total}</b>
+      <span class="mk-tab-zone" style="color:${a.color};font-weight:700;">${a.name}</span>
     </button>`;
   }).join("");
 

@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.90";
+export const APP_VERSION = "6.91";
 export const APP_RELEASE = "07/11/2026";
 export const APP_DEV = "djiglio.ai";
 
