@@ -699,22 +699,36 @@ function executeCombat(enemy, enemyEquip) {
   w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
   w.pvAttuali = result.heroHPFinal;
 
-  // Usura equipaggiamento sui 6 slot
-  const degradeRates = [0, 10, 9, 8, 7, 6, 5, 4, 4, 3, 2]; // Indice = Tier
+  // Usura equipaggiamento proporzionale ai colpi:
+  // - Armi: in proporzione ai colpi dell'eroe andati a segno (esclusi quelli schivati dal nemico; normali = critici)
+  // - Armature/Scudi: in proporzione ai colpi subiti dall'eroe (esclusi quelli schivati dall'eroe)
+  const heroHits = result.turns.filter(t => t.who === "hero" && !t.dodged).length;
+  const enemyHits = result.turns.filter(t => t.who === "enemy" && !t.dodged).length;
+  const wearPerHitByTier = [0, 2.0, 1.8, 1.6, 1.4, 1.2, 1.0, 0.8, 0.8, 0.6, 0.4]; // Indice = Tier (1..10)
+
   for (const slot of ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"]) {
-    const eqObj = state.equipment.equipped[slot];
+    let eqObj = state.equipment.equipped[slot];
     if (!eqObj) continue;
+    if (typeof eqObj === "string") {
+      eqObj = { id: eqObj, dur: 100 };
+      state.equipment.equipped[slot] = eqObj;
+    }
     const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
     if (!piece) continue;
-    let rate = degradeRates[piece.tier] || 1;
-    if (eqObj.rivestimento) {
-      const res = getCoatingWearReduction(eqObj.rivestimento);
-      const effRate = rate * (1 - res);
-      let intRate = Math.floor(effRate);
-      if (Math.random() < (effRate - intRate)) intRate++;
-      rate = intRate;
+
+    const isWeapon = slot === "mano_dx" || piece.handType === "1h" || piece.handType === "2h";
+    const hits = isWeapon ? heroHits : enemyHits;
+    if (hits <= 0) continue;
+
+    const basePerHit = wearPerHitByTier[piece.tier] || 0.4;
+    const res = eqObj.rivestimento ? getCoatingWearReduction(eqObj.rivestimento) : 0;
+    const effWear = hits * basePerHit * (1 - res);
+    let wearLoss = Math.floor(effWear);
+    if (Math.random() < (effWear - wearLoss)) wearLoss++;
+
+    if (wearLoss > 0) {
+      eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - wearLoss);
     }
-    eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - rate);
   }
 
   let reward = 0, loot = null, areaLootObj = null;
