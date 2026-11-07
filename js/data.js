@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "6.83";
+export const APP_VERSION = "6.84";
 export const APP_RELEASE = "07/11/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -707,29 +707,29 @@ for (const e of EQUIPMENT_POOL) {
 }
 
 /* ══════════════════════════════════════════════════════════
- RELIQUIE — bonus su statistiche per 24h (vanno in zaino)
+ RELIQUIE — bonus su statistiche per 5 missioni (vanno in zaino)
 ══════════════════════════════════════════════════════════ */
 export const RELICS = [
- {id:"r01",name:"Artiglio del Lupo", icon:"🔮",stat:"forza", bonus:0.30,desc:"+30% FORZA per 24h"},
- {id:"r02",name:"Costola dell'Orso Sacro", icon:"🔮",stat:"difesa", bonus:0.35,desc:"+35% DIFESA per 24h"},
- {id:"r03",name:"Cuore di Pietra", icon:"🔮",stat:"costituzione",bonus:0.30,desc:"+30% PV MAX per 24h"},
- {id:"r04",name:"Lama del Mercenario", icon:"🔮",stat:"forza", bonus:0.25,desc:"+25% FORZA per 24h"},
- {id:"r05",name:"Piuma dell'Arpìa", icon:"🔮",stat:"velocita", bonus:0.20,desc:"+20% VELOCITÀ per 24h"},
- {id:"r06",name:"Scaglia del Drago", icon:"🔮",stat:"costituzione",bonus:0.20,desc:"+20% PV MAX per 24h"},
- {id:"r07",name:"Dente del Vampiro", icon:"🔮",stat:"forza", bonus:0.15,desc:"+15% FORZA per 24h"},
- {id:"r08",name:"Piuma della Fenice", icon:"🔮",stat:"velocita", bonus:0.25,desc:"+25% VELOCITÀ per 24h"},
- {id:"r09",name:"Osso del Titano", icon:"🔮",stat:"costituzione",bonus:0.25,desc:"+25% PV MAX per 24h"},
- {id:"r10",name:"Frammento dell'Asceso",icon:"🔮",stat:"forza", bonus:0.20,desc:"+20% FORZA per 24h"},
- {id:"r11",name:"Cristallo della Mente",icon:"🔮",stat:"furtivita", bonus:0.30,desc:"+30% FURTIVITÀ per 24h"},
- {id:"r12",name:"Rosa Spinosa", icon:"🔮",stat:"critico", bonus:0.30,desc:"+30% CRITICO per 24h"},
- {id:"r13",name:"Erba della Vita", icon:"🔮",stat:"guarigione", bonus:0.60,desc:"+60% GUARIGIONE per 24h"},
- {id:"r14",name:"Medaglione della Sorte",icon:"🔮",stat:"fortuna", bonus:0.20,desc:"+20% FORTUNA per 24h"},
- {id:"r15",name:"Amuleto della Velocità",icon:"🔮",stat:"velocita", bonus:0.35,desc:"+35% VELOCITÀ per 24h"},
- {id:"r16",name:"Ciondolo di Ossidiana",icon:"🔮",stat:"fortuna", bonus:0.10,desc:"+10% FORTUNA per 24h"},
- {id:"r17",name:"Sangue di Strega", icon:"🔮",stat:"guarigione", bonus:0.30,desc:"+30% GUARIGIONE per 24h"},
- {id:"r18",name:"Teschio del Basilisco", icon:"🔮",stat:"difesa", bonus:0.25,desc:"+25% DIFESA per 24h"},
- {id:"r19",name:"Vertebra del Leone", icon:"🔮",stat:"critico", bonus:0.20,desc:"+20% CRITICO per 24h"},
- {id:"r20",name:"Anima del Non-Morto", icon:"🔮",stat:"difesa", bonus:0.15,desc:"+15% DIFESA per 24h"},
+ {id:"r01",name:"Artiglio del Lupo", icon:"🔮",stat:"forza", bonus:0.30,desc:"+30% FORZA per 5 missioni"},
+ {id:"r02",name:"Costola dell'Orso Sacro", icon:"🔮",stat:"difesa", bonus:0.35,desc:"+35% DIFESA per 5 missioni"},
+ {id:"r03",name:"Cuore di Pietra", icon:"🔮",stat:"costituzione",bonus:0.30,desc:"+30% PV MAX per 5 missioni"},
+ {id:"r04",name:"Lama del Mercenario", icon:"🔮",stat:"forza", bonus:0.25,desc:"+25% FORZA per 5 missioni"},
+ {id:"r05",name:"Piuma dell'Arpìa", icon:"🔮",stat:"velocita", bonus:0.20,desc:"+20% VELOCITÀ per 5 missioni"},
+ {id:"r06",name:"Scaglia del Drago", icon:"🔮",stat:"costituzione",bonus:0.20,desc:"+20% PV MAX per 5 missioni"},
+ {id:"r07",name:"Dente del Vampiro", icon:"🔮",stat:"forza", bonus:0.15,desc:"+15% FORZA per 5 missioni"},
+ {id:"r08",name:"Piuma della Fenice", icon:"🔮",stat:"velocita", bonus:0.25,desc:"+25% VELOCITÀ per 5 missioni"},
+ {id:"r09",name:"Osso del Titano", icon:"🔮",stat:"costituzione",bonus:0.25,desc:"+25% PV MAX per 5 missioni"},
+ {id:"r10",name:"Frammento dell'Asceso",icon:"🔮",stat:"forza", bonus:0.20,desc:"+20% FORZA per 5 missioni"},
+ {id:"r11",name:"Cristallo della Mente",icon:"🔮",stat:"furtivita", bonus:0.30,desc:"+30% FURTIVITÀ per 5 missioni"},
+ {id:"r12",name:"Rosa Spinosa", icon:"🔮",stat:"critico", bonus:0.30,desc:"+30% CRITICO per 5 missioni"},
+ {id:"r13",name:"Occhio del Falco", icon:"🔮",stat:"destrezza", bonus:0.30,desc:"+30% DESTREZZA per 5 missioni"},
+ {id:"r14",name:"Medaglione della Sorte",icon:"🔮",stat:"fortuna", bonus:0.20,desc:"+20% FORTUNA per 5 missioni"},
+ {id:"r15",name:"Amuleto della Velocità",icon:"🔮",stat:"velocita", bonus:0.35,desc:"+35% VELOCITÀ per 5 missioni"},
+ {id:"r16",name:"Ciondolo di Ossidiana",icon:"🔮",stat:"fortuna", bonus:0.10,desc:"+10% FORTUNA per 5 missioni"},
+ {id:"r17",name:"Riflesso della Pantera", icon:"🔮",stat:"destrezza", bonus:0.20,desc:"+20% DESTREZZA per 5 missioni"},
+ {id:"r18",name:"Teschio del Basilisco", icon:"🔮",stat:"difesa", bonus:0.25,desc:"+25% DIFESA per 5 missioni"},
+ {id:"r19",name:"Vertebra del Leone", icon:"🔮",stat:"critico", bonus:0.20,desc:"+20% CRITICO per 5 missioni"},
+ {id:"r20",name:"Anima del Non-Morto", icon:"🔮",stat:"difesa", bonus:0.15,desc:"+15% DIFESA per 5 missioni"},
 ];
 
 /* ══════════════════════════════════════════════════════════

@@ -33,6 +33,7 @@ import {
   unequipItem,
   discardItem,
   useRelic,
+  abandonRelic,
   repairItem,
   openCoatingModal,
   applyCoating
@@ -105,6 +106,7 @@ window.__kaizen = {
   unequipItem,
   discardItem,
   useRelic,
+  abandonRelic,
   repairItem,
   openCoatingModal,
   applyCoating,

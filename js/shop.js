@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.83
+ KAIZEN v6.84
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -253,7 +253,18 @@ export function discardItem(target) {
 }
 
 /* ── Usa reliquia dallo zaino ── */
+function getActiveRelics(w) {
+  const now = Date.now();
+  return (w.reliquieAttive || []).filter(ra =>
+    ra && (typeof ra.remaining === "number" ? ra.remaining > 0 : (ra.expiry && now < ra.expiry))
+  );
+}
+
 export function useRelic(target) {
+  if (getActiveRelics(store.state.world).length > 0) {
+    showToast("⚠️ Puoi usare solo una reliquia alla volta! Abbandona quella in uso prima di attivarne un'altra.");
+    return;
+  }
   const state = store.state;
   const w = state.world;
   let idx = -1;
@@ -270,10 +281,7 @@ export function useRelic(target) {
   if (!rel) return;
 
   state.equipment.zaino.splice(idx, 1);
-  w.reliquieAttive = (w.reliquieAttive||[]).filter(ra =>
-    Date.now() < ra.expiry && ra.id !== zItem.id
-  );
-  w.reliquieAttive.push({ id: zItem.id, expiry: Date.now() + 24 * 3600 * 1000 });
+  w.reliquieAttive = [{ id: zItem.id, remaining: 5 }];
   save();
   showToast(`${rel.icon} ${rel.name} attivata! ${rel.desc}`);
   if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
@@ -282,6 +290,21 @@ export function useRelic(target) {
 /* ══════════════════════════════════════════════════════════
  TENDINE (condivise da Zaino e Mercato)
 ══════════════════════════════════════════════════════════ */
+export function abandonRelic(id) {
+  const state = store.state;
+  const w = state.world;
+  const active = getActiveRelics(w);
+  if (!active.length) return;
+  const targetRelic = id ? (active.find(ra => ra.id === id) || active[0]) : active[0];
+  const rel = RELICS.find(r => r.id === targetRelic.id);
+  w.reliquieAttive = [];
+  const heroS = getHeroStats();
+  if (w.pvAttuali > heroS.pvMax) w.pvAttuali = heroS.pvMax;
+  save();
+  showToast(rel ? `${rel.icon} ${rel.name} abbandonata e perduta per sempre.` : "Reliquia abbandonata.");
+  if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+}
+
 const zainoOpenCats = new Set();
 const mercatoOpenCats = new Set();
 
@@ -966,25 +989,28 @@ export function renderEquipment() {
 
   // Reliquie attive
   const now = Date.now();
-  const relAttive = (store.state.world.reliquieAttive || []).filter(ra => now < ra.expiry);
+  const relAttive = getActiveRelics(store.state.world).slice(0, 1);
 
   let relHTML = "";
   if (relAttive.length > 0) {
     const activeRelTiles = relAttive.map(ra => {
       const rel = RELICS.find(r => r.id === ra.id);
       if (!rel) return "";
-      const remaining = Math.ceil((ra.expiry - now) / 3600000);
+      const remaining = typeof ra.remaining === "number" ? ra.remaining : 5;
       return `
-      <div class="mk-tile mk-tile--relic is-active" style="--acc:#4ecca3;padding-bottom:7px;">
-        <div class="mk-tile-cap">Reliquia Attiva · ${remaining}h rimanenti</div>
+      <div class="mk-tile mk-tile--relic is-active" style="--acc:#4ecca3;">
+        <div class="mk-tile-cap">Reliquia Attiva · ${remaining} ${remaining === 1 ? "missione rimanente" : "missioni rimanenti"}</div>
         <div class="mk-tile-row-head">
           <span class="mk-tile-name">${rel.name}</span>
         </div>
-        <div class="mk-tile-desc" style="margin-bottom:0;">${rel.desc}</div>
+        <div class="mk-tile-desc">${rel.desc}</div>
+        <button class="mk-price mk-price--danger" onclick="window.__kaizen.abandonRelic('${rel.id}')">
+          <span class="mk-price-row"><span class="mk-price-lbl">Abbandona</span></span>
+        </button>
       </div>`;
     }).join("");
     relHTML = `
-    <div class="mk-group">Reliquie Attive</div>
+    <div class="mk-group">Reliquia in Uso</div>
     <div class="mk-grid mk-grid--1" style="margin-bottom:16px;">${activeRelTiles}</div>`;
   }
 
@@ -1095,7 +1121,7 @@ export function renderEquipment() {
         </div>
         <div class="mk-tile-desc">${rel.desc}</div>
         <div class="mk-split-actions">
-          <button class="mk-act mk-act--gold" onclick="window.__kaizen.useRelic('${rel.id}')">Usa</button>
+          <button class="mk-act mk-act--gold" style="${relAttive.length > 0 ? 'opacity:.45;' : ''}" onclick="window.__kaizen.useRelic('${rel.id}')">Usa</button>
           <button class="mk-act mk-act--no" onclick="window.__kaizen.discardItem('${rel.id}')">Vendi ${COIN}<b>${refund}</b></button>
         </div>
       </div>`;

@@ -75,21 +75,21 @@ export function getHeroStats() {
  // Bonus reliquie attive
  const relBonus = {};
  for (const ra of (w.reliquieAttive || [])) {
- if (now > ra.expiry) continue;
+ if (!(typeof ra.remaining === "number" ? ra.remaining > 0 : (ra.expiry && now < ra.expiry))) continue;
  const rel = RELICS.find(r => r.id === ra.id);
  if (!rel) continue;
- relBonus[rel.stat] = (relBonus[rel.stat] || 0) + rel.bonus;
+ relBonus[rel.stat] = (relBonus[rel.stat] || 0) + rel.bonus; break;
  }
 
  // Applica bonus equipaggiamento
  stats.forza = Math.max(1, stats.forza + (eqBonus.attacco || 0));
  stats.velocita = Math.max(1, stats.velocita + (eqBonus.velocita || 0)); stats.destrezza = Math.max(0, Math.min(75, stats.destrezza + (eqBonus.destrezza || 0)));
  stats.critico = Math.max(0, Math.min(80, stats.critico + (eqBonus.critico || 0)));
- const bonusDifesa = Math.max(0, eqBonus.difesa || 0);
+ let bonusDifesa = Math.max(0, eqBonus.difesa || 0);
 
   // Applica bonus reliquie
   for (const [stat, mult] of Object.entries(relBonus)) {
-    if (stats[stat] !== undefined) {
+    if (stat === "difesa") { bonusDifesa = Math.floor(bonusDifesa * (1 + mult)); } else if (stats[stat] !== undefined) {
       const newVal = stats[stat] * (1 + mult);
       if (stat === "destrezza" || stat === "critico") {
         stats[stat] = newVal; // I decimali verranno arrotondati dopo

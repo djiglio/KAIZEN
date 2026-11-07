@@ -551,6 +551,31 @@ function pickEnemy() { return BESTIARY[rnd(0, BESTIARY.length - 1)]; }
 function pickTreasure() { return TREASURES[rnd(0, TREASURES.length - 1)]; }
 function pickRelic() { return RELICS[rnd(0, RELICS.length - 1)]; }
 
+function consumeRelicMissionCharge() {
+  const w = store.state.world;
+  const now = Date.now();
+  const active = (w.reliquieAttive || []).filter(ra =>
+    ra && (typeof ra.remaining === "number" ? ra.remaining > 0 : (ra.expiry && now < ra.expiry))
+  );
+  if (!active.length) {
+    w.reliquieAttive = [];
+    return;
+  }
+  const ra = active[0];
+  const rem = (typeof ra.remaining === "number" ? ra.remaining : 5) - 1;
+  if (rem > 0) {
+    w.reliquieAttive = [{ id: ra.id, remaining: rem }];
+  } else {
+    w.reliquieAttive = [];
+    const rel = RELICS.find(r => r.id === ra.id);
+    const heroS = getHeroStats();
+    if (w.pvAttuali > heroS.pvMax) w.pvAttuali = heroS.pvMax;
+    if (rel) {
+      addHistory(`🔮 L'effetto di ${rel.name} si è esaurito`, "world");
+    }
+  }
+}
+
 /* ══════════════════════════════════════════════════════════
  ESEGUI MISSIONE (entry point)
 ══════════════════════════════════════════════════════════ */
@@ -622,6 +647,7 @@ export function runMission() {
     updateWorldQuests("no_damage", {});
     w.missioniLog.unshift({ tipo:"empty", nome:"Zona deserta", denari:0, t:Date.now() });
     addHistory(" Zona deserta, risorse sprecate.", "world");
+    consumeRelicMissionCharge();
     if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
     save();
     showToast(" Zona deserta...");
@@ -650,6 +676,7 @@ function executeFlee(enemy, fleeChance) {
     resolveImgs(inner);
     w.missioniLog.unshift({ tipo:"fled", nome:enemy.name, denari:0, t:Date.now() });
     addHistory(` Fuggito da ${enemy.name}`, "combat");
+    consumeRelicMissionCharge();
   } else {
     inner.innerHTML = `
     <div class="combat-header"> FUGA FALLITA</div>
@@ -829,6 +856,7 @@ function executeCombat(enemy, enemyEquip) {
     addHistory(` Sconfitto da ${enemy.name}`, "combat");
   }
 
+  consumeRelicMissionCharge();
   if (state.history.length > 200) state.history = state.history.slice(0,200);
   if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
   save();
@@ -908,6 +936,7 @@ function executeDiscovery() {
     }
   }
 
+  consumeRelicMissionCharge();
   if (state.history.length > 200) state.history = state.history.slice(0,200);
   if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
   save();

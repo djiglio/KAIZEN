@@ -44,7 +44,7 @@ const defaultWorld = () => ({
   paAttuali: 5,
   ultimaSessionePV: null,
   ultimaSessionePA: null,
-  reliquieAttive: [], // [{ id, expiry }]
+  reliquieAttive: [], // [{ id, remaining }]
   missioniLog: [],
   nemiciAbbattuti: {},
   nemiciIncontrati: {},
@@ -130,7 +130,15 @@ export function migrate(p) {
       if (!Array.isArray(p.world.wq.unique_enemies)) p.world.wq.unique_enemies = [];
       if (!Array.isArray(p.world.wq.unique_finds)) p.world.wq.unique_finds = [];
     }
-    if (!p.world.reliquieAttive) p.world.reliquieAttive = [];
+    if (!Array.isArray(p.world.reliquieAttive)) {
+      p.world.reliquieAttive = [];
+    } else {
+      const now = Date.now();
+      p.world.reliquieAttive = p.world.reliquieAttive
+        .filter(ra => ra && ra.id && (typeof ra.remaining === "number" ? ra.remaining > 0 : (ra.expiry && ra.expiry > now)))
+        .map(ra => ({ id: ra.id, remaining: typeof ra.remaining === "number" ? ra.remaining : 5 }))
+        .slice(0, 1);
+    }
     if (!p.world.worldProgress) {
       p.world.worldProgress = defaultWorld().worldProgress;
     } else {
