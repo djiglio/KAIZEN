@@ -1040,9 +1040,9 @@ body::before {
    SISTEMA EDITORIALE "GRIMOIRE / BOTTEGA" (v6.37)
 ══════════════════════════════════════ */
 .mk { --ink: #0f0d0a; --line: rgba(85, 74, 62, .38); --cap: #8b7b5c; --serif-it: "Cormorant Garamond", Georgia, serif; }
-.mk-coin { display: inline-block; width: .78em; height: .78em; border-radius: 50%; flex-shrink: 0;
-  background: radial-gradient(circle at 34% 30%, #fff1b8 0%, #e9b937 38%, #a67a10 78%, #6d4f08 100%);
-  box-shadow: inset 0 0 0 1px rgba(60,40,0,.45), 0 0 0 1px rgba(245,200,66,.15); }
+.mk-coin { display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -0.15em; flex-shrink: 0;
+  background: url("img/coin.png") center/contain no-repeat;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
 .mk-mono { font-family: "JetBrains Mono", monospace; font-style: normal; font-size: 9px; letter-spacing: .5px; color: #6cc4ef; }
 
 /* Borsa / Banner Centrale */
@@ -1054,7 +1054,7 @@ body::before {
 .mk-purse::after  { bottom: -3.5px; }
 .mk-purse-cap { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 4px; text-transform: uppercase; color: var(--cap); }
 .mk-purse-val { display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; font-family: "Cinzel", serif; font-size: 30px; font-weight: 900; line-height: 1.1; color: var(--gold-light); font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0,0,0,.6); }
-.mk-purse-val .mk-coin { width: 22px; height: 22px; }
+.mk-purse-val .mk-coin { width: 30px; height: 30px; vertical-align: middle; }
 .mk-purse-sub { font-family: var(--serif-it); font-style: italic; font-size: 14px; color: #9a8a68; margin-top: 2px; }
 .mk-stamp { position: absolute; right: 8px; top: 50%; transform: translateY(-50%) rotate(-9deg); display: flex; flex-direction: column; align-items: center;
   padding: 4px 7px 5px; border: 1.5px solid rgba(78,204,163,.55); border-radius: 2px; color: #4ecca3; font-family: "JetBrains Mono", monospace; font-size: 7px; letter-spacing: 2px; text-transform: uppercase; opacity: .9; }
@@ -2104,7 +2104,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.86</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.87</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -2141,6 +2141,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.86"></script>
+<script type="module" src="js/main.js?v=6.87"></script>
 </body>
 </html>
