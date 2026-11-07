@@ -576,7 +576,7 @@ function renderBacheca(state, w) {
 
     const areasWithLoot = WORLD_AREAS.filter(area => AREA_LOOT_POOL[area.id] && AREA_LOOT_POOL[area.id].length > 0);
     areasWithLoot.forEach((area, idx) => {
-      const pool = AREA_LOOT_POOL[area.id];
+      const pool = [...(AREA_LOOT_POOL[area.id] || [])].sort((a, b) => (a.rarity - b.rarity) || (a.value - b.value));
       let areaFound = 0;
       pool.forEach(m => {
         if ((w.tesoriScoperti || {})[m.id]) areaFound++;
