@@ -1,7 +1,7 @@
 /* ============================================================
  shop.js — Negozio: pozioni, fabbro (costruzione, forgia, riparazioni),
  equipaggiamento a 6 slot e zaino
- KAIZEN v6.84
+ KAIZEN v6.85
  ============================================================ */
 
 import { store, save } from "./state.js";
@@ -319,8 +319,11 @@ export function repairItem(slot) {
   const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
   if (!piece) return;
 
+
+  const heroS = getHeroStats();
   const missing = 100 - dur;
-  const cost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
+  const baseCost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
+  const cost = discountedPrice(baseCost, heroS.shopDiscount);
 
   if (state.world.denari < cost) { showToast(`🪙 Denari insufficienti! Costo: ${cost}`); return; }
 
@@ -592,7 +595,8 @@ export function openCoatingModal(slot) {
     const cfg = MATERIAL_COATING_CONFIG[m.id];
     if (!cfg) return "";
     const owned = eq.zaino.filter(z => z.type === "material" && z.id === m.id).length;
-    const cost = discountedPrice(calculateCoatingCost(piece, m), heroS.shopDiscount);
+    const baseCost = calculateCoatingCost(piece, m);
+    const cost = discountedPrice(baseCost, heroS.shopDiscount);
     const hasMat = owned >= cfg.reqQty;
     const hasDen = w.denari >= cost;
     const isCurrent = eqObj.rivestimento === m.id;
@@ -610,7 +614,7 @@ export function openCoatingModal(slot) {
       <div class="mk-chip ${hasMat ? "mk-chip--ok" : "mk-chip--lack"}">${owned} / ${cfg.reqQty} pezzi</div>
       ${isCurrent
         ? mkPriceBtn({ disabledLabel: "in uso", variant: "mk-price--blue" })
-        : mkPriceBtn({ price: cost, can: hasMat && hasDen, onclick: `window.__kaizen.applyCoating('${slot}', '${m.id}')`, missing, variant: "mk-price--blue" })}
+        : mkPriceBtn({ price: cost, base: baseCost, can: hasMat && hasDen, onclick: `window.__kaizen.applyCoating('${slot}', '${m.id}')`, missing, variant: "mk-price--blue" })}
     </div>`;
   }).join("");
 
@@ -865,7 +869,8 @@ export function renderShop() {
   }).join("");
 
   const repairTiles = worn.filter(x => x.dur < 100).map(({ slot, piece, dur }) => {
-    const cost = Math.max(1, Math.floor(piece.prezzo * ((100 - dur) / 100) * 0.3));
+    const baseCost = Math.max(1, Math.floor(piece.prezzo * ((100 - dur) / 100) * 0.3));
+    const cost = discountedPrice(baseCost, disc);
     const can = w.denari >= cost;
     const acc = dur > 50 ? "#3fbf8a" : (dur > 20 ? "#e3a32b" : "#e0533d");
     return `
@@ -874,7 +879,7 @@ export function renderShop() {
       <div class="mk-tile-name">${piece.name}</div>
       <div class="mk-tile-big">${dur}<small>%</small></div>
       <div class="mk-vital-bar mk-dur"><i style="width:${dur}%"></i></div>
-      ${mkPriceBtn({ price: cost, can, label: "Ripara", onclick: `window.__kaizen.repairItem('${slot}')`, missing: `mancano ${fmtDen(cost - w.denari)}` })}
+      ${mkPriceBtn({ price: cost, base: baseCost, can, label: "Ripara", onclick: `window.__kaizen.repairItem('${slot}')`, missing: `mancano ${fmtDen(cost - w.denari)}` })}
     </div>`;
   }).join("");
 
