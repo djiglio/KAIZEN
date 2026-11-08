@@ -11,7 +11,7 @@ import {
   calculateCoatingCost, getCoatingBonus, getCoatingWearReduction
 } from "./data.js";
 import { showToast } from "./ui.js";
-import { resolveImgs } from "./img.js";
+import { equipImgWrap, resolveImgs } from "./img.js";
 import { getHeroStats } from "./engine.js";
 import { getMinsPerPV, getMinsPerPA } from "./world.js";
 
@@ -469,7 +469,8 @@ function renderEquipIconHTML(piece, titleAttr = "") {
   const theme = getEquipIconTheme(piece);
   const maskPath = getEquipMaskPath(piece);
   const title = titleAttr ? ` title="${titleAttr}"` : "";
-  return `<div class="eq-icon" style="--icon-mask:url('${maskPath}');--icon-color:${theme.color};--icon-glow:${theme.glow};"${title}></div>`;
+  const fallback = `<div class="eq-icon" style="--icon-mask:url('${maskPath}');--icon-color:${theme.color};--icon-glow:${theme.glow};"${title}></div>`;
+  return equipImgWrap(piece, 44, fallback);
 }
 
 /* ── Costruisce il corpo a 2 colonne della scheda equipaggiamento ──
@@ -914,6 +915,7 @@ export function renderShop() {
       renderShop();
     });
   });
+  resolveImgs(el);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1222,4 +1224,5 @@ export function renderEquipment() {
       else zainoOpenCats.delete(d.dataset.cat);
     });
   });
+  resolveImgs(el);
 }

@@ -19,7 +19,7 @@ import { formatDate } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
 import { renderShop, renderEquipment } from "./shop.js";
-import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, resolveImgs } from "./img.js";
+import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, treasureImgCard, treasureImgHTML, resolveImgs } from "./img.js";
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"];
 const roman = n => ROMAN[n] || String(n);
@@ -569,6 +569,7 @@ function renderBacheca(state, w) {
            onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
         <div class="mk-tile-cap">Grado ${roman(t.tier)}</div>
         <div class="mk-tile-name">${locked ? "Tesoro Ignoto" : t.name}</div>
+        ${!locked ? treasureImgCard(t, 58) : ""}
         ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
         <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `${t.minV}–${t.maxV} denari`}</div>
       </div>`;
@@ -592,6 +593,7 @@ function renderBacheca(state, w) {
              onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
           <div class="mk-tile-cap">Rarità ${roman(m.rarity)}</div>
           <div class="mk-tile-name">${locked ? "Reperto Ignoto" : m.name}</div>
+          ${!locked ? treasureImgCard(m, 58) : ""}
           ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
           <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `valore ${m.value} denari`}</div>
         </div>`;
@@ -614,6 +616,7 @@ function renderBacheca(state, w) {
         else bachecaOpenCats.delete(d.dataset.cat);
       });
     });
+    resolveImgs(tlistEl);
   }
 }
 
@@ -747,6 +750,9 @@ export function showTreasureDetail(treasureId) {
     <div class="mk-modal-cap">${badgeText}</div>
     <div class="mk-modal-title">${t.name}</div>
     ${t.desc ? `<div class="mk-note">${t.desc}</div>` : ""}
+    <div style="margin:4px auto 8px;display:flex;justify-content:center;width:100%;max-width:220px;">
+      ${treasureImgHTML(t, "100%", "auto")}
+    </div>
 
     <div class="mk-vitals" style="margin:12px 0;">
       <div class="mk-vital" style="--acc:var(--gold)">

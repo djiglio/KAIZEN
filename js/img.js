@@ -1,5 +1,5 @@
 /* ============================================================
-   img.js — KAIZEN v6.1
+   img.js — KAIZEN v6.92
    Approccio diretto: nessun MutationObserver.
    Le funzioni restituiscono un ID univoco; dopo ogni innerHTML
    chiamare resolveImgs() per caricare tutto il visibile.
@@ -9,7 +9,13 @@ export function rankImgPath(title) {
   return `img/ranks/${title.toLowerCase()}.png`;
 }
 export function enemyImgPath(enemy) {
-  return `img/enemies/${enemy.id}.png`;
+  return enemy?.img || `img/enemies/${enemy.id}.png`;
+}
+export function equipImgPath(piece) {
+  return piece?.img || `img/equip/${piece.id}.png`;
+}
+export function treasureImgPath(item) {
+  return item?.img || `img/treasures/${item.id}.png`;
 }
 
 const _cache = {};
@@ -40,8 +46,17 @@ async function injectInto(el) {
   el.dataset.kiDone = '1';
 
   const f = await fetchFile(path);
-  if (!f) { const ph = el.querySelector('.img-ph'); if (ph) ph.style.display='flex'; return; }
+  if (!f) {
+    if (el.dataset.kiHideEmpty === '1') {
+      el.style.display = 'none';
+      return;
+    }
+    const ph = el.querySelector('.img-ph');
+    if (ph) ph.style.display = 'flex';
+    return;
+  }
 
+  el.style.display = '';
   if (f.type === 'png') {
     const img = document.createElement('img');
     img.src = f.url;
@@ -64,12 +79,15 @@ export function resolveImgs(root = document) {
   root.querySelectorAll('[data-ki]:not([data-ki-done="1"])').forEach(injectInto);
 }
 
-function wrap(path, w, h, phHTML, extra = '') {
+function wrap(path, w, h, phHTML, extra = '', opts = {}) {
   const wStr = typeof w === 'string' && (w.includes('%') || w === 'auto') ? w : w + 'px';
   const hStr = typeof h === 'string' && (h.includes('%') || h === 'auto') ? h : h + 'px';
-  return `<div data-ki="${path}" data-kiw="${w}" data-kih="${h}"
-    style="width:${wStr};height:${hStr};position:relative;flex-shrink:0;${extra}">
-    <div class="img-ph" style="display:none;position:absolute;inset:0;
+  const phDisplay = opts.showPhImmediately ? 'flex' : 'none';
+  const hideEmptyAttr = opts.hideIfMissing ? ' data-ki-hide-empty="1"' : '';
+  const initDisplay = opts.hideIfMissing ? 'display:none;' : '';
+  return `<div data-ki="${path}" data-kiw="${w}" data-kih="${h}"${hideEmptyAttr}
+    style="width:${wStr};height:${hStr};position:relative;flex-shrink:0;${initDisplay}${extra}">
+    <div class="img-ph" style="display:${phDisplay};position:absolute;inset:0;
          flex-direction:column;align-items:center;justify-content:center;">${phHTML}</div>
   </div>`;
 }
@@ -104,4 +122,16 @@ export function enemyImgSmall(enemy, px = 48) {
 export function enemyImgCard(enemy, px = 56) {
   const ph = `<span style="font-size:${Math.round(px*0.45)}px;opacity:0.4">${enemy.icon||'?'}</span>`;
   return wrap(enemyImgPath(enemy), px, px, ph, 'margin:0 auto 6px;');
+}
+export function equipImgWrap(piece, px = 44, fallbackHTML = '') {
+  return wrap(equipImgPath(piece), px, px, fallbackHTML, '', { showPhImmediately: true });
+}
+export function equipImgHTML(piece, w = 160, h = w, fallbackHTML = '') {
+  return wrap(equipImgPath(piece), w, h, fallbackHTML, 'margin:0 auto;', { hideIfMissing: !fallbackHTML, showPhImmediately: !!fallbackHTML });
+}
+export function treasureImgCard(item, px = 58) {
+  return wrap(treasureImgPath(item), px, px, '', 'margin:4px auto 6px;', { hideIfMissing: true });
+}
+export function treasureImgHTML(item, w = 200, h = w) {
+  return wrap(treasureImgPath(item), w, h, '', 'margin:4px auto 8px;', { hideIfMissing: true });
 }
