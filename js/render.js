@@ -695,22 +695,13 @@ function renderBacheca(state, w) {
       if (e.bonus?.critico) bonusParts.push(`+${e.bonus.critico}% CRT`);
       const bonusStr = bonusParts.length ? bonusParts.slice(0, 2).join(" · ") : `Valore ${fmtDen(e.prezzo)} den`;
 
-      const isEquipped = Object.values(state.equipment?.equipped || {}).some(x => x?.id === e.id);
-      const isInZaino = (state.equipment?.zaino || []).some(z => z.type === "equip" && z.id === e.id);
-      const statusBadge = isEquipped
-        ? `<span style="color:#4ecca3;font-size:10px;font-weight:700;">⚔️ Equipaggiato</span>`
-        : isInZaino
-        ? `<span style="color:#6cc4ef;font-size:10px;font-weight:700;">🎒 Nello Zaino</span>`
-        : `<span style="color:#8f8268;font-size:10px;">📜 Registrato</span>`;
-
       return `
       <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;"
            onclick="window.__kaizen.showArmoryDetail('${e.id}')">
         <div class="mk-tile-cap">Grado ${roman(e.tier)} · ${typeLabel}</div>
         <div class="mk-tile-name" style="min-height:2.2em;color:${e.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'}">${e.name}</div>
         <div style="margin:4px auto 6px;">${renderEquipIconHTML(e, "", 58)}</div>
-        <div class="mk-tile-desc" style="margin-bottom:4px;font-size:11px;color:#d0c4b2;">${bonusStr}</div>
-        <div style="margin-top:2px;">${statusBadge}</div>
+        <div class="mk-tile-desc" style="margin-bottom:0;font-size:11px;color:#d0c4b2;">${bonusStr}</div>
       </div>`;
     };
 
@@ -789,21 +780,24 @@ export function showArmoryDetail(equipId) {
   else if (piece.slot === "braccia") typeLabel = "Bracciali";
   else if (piece.slot === "gambe") typeLabel = "Gambali";
 
-  const isEquipped = Object.values(state.equipment?.equipped || {}).some(x => x?.id === piece.id);
-  const isInZaino = (state.equipment?.zaino || []).some(z => z.type === "equip" && z.id === piece.id);
+  // Formattazione delle 5 categorie bonus/malus in un'unica riga
+  const formatStat = (val, isPct = false, posColor = "#ece3cf") => {
+    if (val === undefined || val === null || val === 0) {
+      return { str: "—", color: "#64748b" };
+    }
+    const sign = val > 0 ? "+" : "";
+    const color = val > 0 ? posColor : "#e0533d";
+    return { str: `${sign}${val}${isPct ? "%" : ""}`, color };
+  };
 
-  const possessionStatus = isEquipped
-    ? `<div class="mk-note" style="border-left:3px solid #4ecca3;color:#4ecca3;">⚔️ Attualmente equipaggiato sul tuo eroe</div>`
-    : isInZaino
-    ? `<div class="mk-note" style="border-left:3px solid #6cc4ef;color:#6cc4ef;">🎒 Attualmente custodito nel tuo zaino</div>`
-    : `<div class="mk-note" style="border-left:3px solid #8f8268;color:#a89b87;">📜 Oggetto scoperto e inciso nell'armeria (non posseduto al momento)</div>`;
+  const sAtk = formatStat(piece.bonus?.attacco, false, "#e0533d");
+  const sDef = formatStat(piece.bonus?.difesa, false, "#4ecca3");
+  const sVel = formatStat(piece.bonus?.velocita, false, "#5fb8ec");
+  const sDes = formatStat(piece.bonus?.destrezza, true, "#d4a017");
+  const sCrt = formatStat(piece.bonus?.critico, true, "#f0903f");
 
-  const vitals = [];
-  if (piece.bonus?.attacco) vitals.push(`<div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Attacco</div><div class="mk-vital-val" style="color:#e0533d">+${piece.bonus.attacco}</div></div>`);
-  if (piece.bonus?.difesa) vitals.push(`<div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Difesa</div><div class="mk-vital-val" style="color:#4ecca3">+${piece.bonus.difesa}</div></div>`);
-  if (piece.bonus?.velocita) vitals.push(`<div class="mk-vital" style="--acc:#5fb8ec"><div class="mk-vital-cap">Velocità</div><div class="mk-vital-val" style="color:#5fb8ec">${piece.bonus.velocita > 0 ? "+" : ""}${piece.bonus.velocita}</div></div>`);
-  if (piece.bonus?.destrezza) vitals.push(`<div class="mk-vital" style="--acc:#d4a017"><div class="mk-vital-cap">Destrezza</div><div class="mk-vital-val" style="color:#d4a017">+${piece.bonus.destrezza}%</div></div>`);
-  if (piece.bonus?.critico) vitals.push(`<div class="mk-vital" style="--acc:#f0903f"><div class="mk-vital-cap">Critico</div><div class="mk-vital-val" style="color:#f0903f">+${piece.bonus.critico}%</div></div>`);
+  const rarityColors = { comune: "#8b7b5c", magico: "#4a70b0", leggendario: "var(--gold-light)" };
+  const rAcc = rarityColors[piece.rarita] || "#8b7b5c";
 
   box.innerHTML = `
   <div class="mk mk-modal">
@@ -815,22 +809,47 @@ export function showArmoryDetail(equipId) {
       ${equipImgHTML(piece, "100%", "auto", renderEquipIconHTML(piece, "", 96))}
     </div>
 
-    ${vitals.length ? `<div class="mk-vitals mk-vitals--compact" style="margin:10px 0;">${vitals.join("")}</div>` : ""}
-
-    <div class="mk-vitals" style="margin:10px 0;">
-      <div class="mk-vital" style="--acc:var(--gold)">
-        <div class="mk-vital-cap">Valore Forgia</div>
-        <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:6px;">${COIN} ${fmtDen(piece.prezzo)}</div>
+    <!-- Tutte le categorie bonus/malus in un'unica riga a 5 colonne -->
+    <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:4px;margin:8px 0 6px;">
+      <div class="mk-vital" style="--acc:#e0533d;padding:5px 2px 6px;">
+        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">ATTACCO</div>
+        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sAtk.color}">${sAtk.str}</div>
       </div>
-      <div class="mk-vital" style="--acc:#8b7b5c">
-        <div class="mk-vital-cap">Rarità</div>
-        <div class="mk-vital-val" style="color:#e6ded1;text-transform:capitalize;">${piece.rarita}</div>
+      <div class="mk-vital" style="--acc:#4ecca3;padding:5px 2px 6px;">
+        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DIFESA</div>
+        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDef.color}">${sDef.str}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#5fb8ec;padding:5px 2px 6px;">
+        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">VELOCITÀ</div>
+        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sVel.color}">${sVel.str}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#d4a017;padding:5px 2px 6px;">
+        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DESTREZZA</div>
+        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDes.color}">${sDes.str}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#f0903f;padding:5px 2px 6px;">
+        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">CRITICO</div>
+        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sCrt.color}">${sCrt.str}</div>
       </div>
     </div>
 
-    <div style="margin-top:8px;">${possessionStatus}</div>
+    <!-- Sotto: Valore Forgia e Rarità -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 12px;">
+      <div class="mk-vital" style="--acc:var(--gold);padding:7px 8px 8px;">
+        <div class="mk-vital-cap" style="font-size:7px;letter-spacing:1.5px;">VALORE FORGIA</div>
+        <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:6px;font-size:15px;margin-top:2px;">
+          ${COIN} ${fmtDen(piece.prezzo)}
+        </div>
+      </div>
+      <div class="mk-vital" style="--acc:${rAcc};padding:7px 8px 8px;">
+        <div class="mk-vital-cap" style="font-size:7px;letter-spacing:1.5px;">RARITÀ</div>
+        <div class="mk-vital-val" style="color:${rAcc};text-transform:uppercase;font-size:15px;margin-top:2px;">
+          ${piece.rarita}
+        </div>
+      </div>
+    </div>
 
-    <button class="modal-close-btn" style="margin-top:12px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+    <button class="modal-close-btn" style="margin-top:4px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
   </div>`;
   resolveImgs();
 }
