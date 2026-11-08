@@ -21,6 +21,7 @@ import { createCombatNarrator } from "./combatText.js";
 
 /* ── Utility ── */
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const COIN = '<span class="mk-coin"></span>';
 
 /* ── Regen PV ── */
 export function regenPV() {
@@ -456,13 +457,13 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  if (result.victory) {
  let lootLine = "";
  if (loot) lootLine += `<br>Loot: <strong>${loot.name}</strong>`;
- if (areaLootObj) lootLine += `<br>Scoperto: <strong>${areaLootObj.icon || "📦"} ${areaLootObj.name} (+${areaLootObj.value} 🪙)</strong>`;
+ if (areaLootObj) lootLine += `<br>Scoperto: <strong>${areaLootObj.icon || "📦"} ${areaLootObj.name} (+${areaLootObj.value} ${COIN})</strong>`;
  if (enemyEquip) {
  const razzia = Object.values(enemyEquip).map(p=>p.name).join(", ");
  lootLine += `<br>Razziato: <strong>${razzia}</strong>`;
  }
  logEl.innerHTML += `<div class="combat-line result-win">
- ✦ VITTORIA<br><span class="combat-result-text">${narrator.victory()}</span><br>+${reward} 🪙${lootLine}
+ ✦ VITTORIA<br><span class="combat-result-text">${narrator.victory()}</span><br>+${reward} ${COIN}${lootLine}
  </div>`;
  } else {
  logEl.innerHTML += `<div class="combat-line result-lose">

@@ -393,9 +393,8 @@ function grantQuestReward(q, type) {
   // +50 denari
   state.world.denari += 50;
 
-  const bonusMsg = trophyXpBonus > 0 ? ` (+${trophyXpBonus} bonus trofeo ×${newCount})` : "";
-  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP${bonusMsg} +50 denari`, "quest");
-  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP${bonusMsg} +50 🪙`);
+  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP +50 denari`, "quest");
+  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP +50 🪙`);
 }
 
 /* ── Aggiorna progresso quest mondo esterno ── */

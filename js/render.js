@@ -1015,13 +1015,6 @@ export function showTrophyDetail(questId) {
       </div>
     </div>
 
-    ${questId !== "day_perfect" ? `
-    <div class="mk-note" style="border-left:3px solid var(--gold);color:var(--gold-light);margin-top:6px;margin-bottom:10px;text-align:left;">
-      ✦ <b>Bonus Trofeo:</b> ogni conquista conferisce a tutte le abitudini tanti XP quante le volte conquistato.
-      <br>Ultima vittoria: <b>+${count} XP</b> (totale accumulato: <b>+${Math.floor(count * (count + 1) / 2)} XP</b> per abitudine).
-      <br>Prossima conquista: <b>+${count + 1} XP</b>.
-    </div>` : ""}
-
     <button class="modal-close-btn" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
   </div>`;
   resolveImgs();
