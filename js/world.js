@@ -4,7 +4,7 @@
  fuga basata su furtività, bottini, nemici umanoidi con equip a 6 slot
  ============================================================ */
 
-import { store, save, saveLocalOnly } from "./state.js";
+import { store, save, saveLocalOnly, unlockDiscoveredEquipment } from "./state.js";
 import { HABITS, BESTIARY, TREASURES, RELICS,
          EQUIPMENT_POOL, AREA_LOOT_POOL, MATERIALS, getCoatingWearReduction,
          WORLD_AREAS, EMPIREO_GODS, EMPIREO_LOOT,
@@ -29,11 +29,10 @@ export function regenPV() {
   const { pvMax } = getHeroStats();
   const now = Date.now();
   if (w.pvAttuali >= pvMax) {
-    if (w.pvAttuali !== pvMax || !w.ultimaSessionePV) {
-      w.pvAttuali = pvMax;
-      w.ultimaSessionePV = now;
-      saveLocalOnly();
-    }
+    const shouldSave = w.pvAttuali !== pvMax || !w.ultimaSessionePV || (now - w.ultimaSessionePV > 30000);
+    w.pvAttuali = pvMax;
+    w.ultimaSessionePV = now;
+    if (shouldSave) saveLocalOnly();
     return;
   }
   let changed = false;
@@ -45,7 +44,7 @@ export function regenPV() {
     const gained = Math.floor(mins / minsPerPV);
     if (gained > 0) {
       w.pvAttuali = Math.min(pvMax, w.pvAttuali + gained);
-      w.ultimaSessionePV = now;
+      w.ultimaSessionePV = w.pvAttuali >= pvMax ? now : (w.ultimaSessionePV + gained * minsPerPV * 60000);
       changed = true;
     }
   } else {
@@ -63,11 +62,10 @@ export function regenPA() {
   const { paMax, pianificazione } = getHeroStats();
   const now = Date.now();
   if (w.paAttuali >= paMax) {
-    if (w.paAttuali !== paMax || !w.ultimaSessionePA) {
-      w.paAttuali = paMax;
-      w.ultimaSessionePA = now;
-      saveLocalOnly();
-    }
+    const shouldSave = w.paAttuali !== paMax || !w.ultimaSessionePA || (now - w.ultimaSessionePA > 30000);
+    w.paAttuali = paMax;
+    w.ultimaSessionePA = now;
+    if (shouldSave) saveLocalOnly();
     return;
   }
   let changed = false;
@@ -77,7 +75,7 @@ export function regenPA() {
     const gained = Math.floor(mins / minsPerPA);
     if (gained > 0) {
       w.paAttuali = Math.min(paMax, w.paAttuali + gained);
-      w.ultimaSessionePA = now;
+      w.ultimaSessionePA = w.paAttuali >= paMax ? now : (w.ultimaSessionePA + gained * minsPerPA * 60000);
       changed = true;
     }
   } else {
@@ -334,13 +332,14 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
 /* ══════════════════════════════════════════════════════════
  MODAL COMBATTIMENTO ANIMATO
 ══════════════════════════════════════════════════════════ */
-function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
+function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, hpBefore) {
  const overlay = document.getElementById("combat-overlay");
  const inner = document.getElementById("combat-inner");
 
  const hs = result.heroStats;
  const es = result.eneStats;
  const pvMax = hs.pvMax;
+ const initialHeroHP = hpBefore !== undefined ? hpBefore : store.state.world.pvAttuali;
  const heroTitle = getRankTitle(getHeroRank());
 
  let enemyEquipStr = "";
@@ -376,13 +375,13 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj) {
  <div style="flex:1;min-width:0">
  <div class="combat-hp-label">
  <span style="color:var(--primary)">EROE</span>
- <span class="combat-hp-nums" id="hero-hp-nums">${store.state.world.pvAttuali}/${pvMax}</span>
+ <span class="combat-hp-nums" id="hero-hp-nums">${initialHeroHP}/${pvMax}</span>
  </div>
  </div>
  </div>
  <div class="combat-hp-bar-bg">
  <div class="combat-hp-bar hero-hp-bar" id="hero-hp-bar"
- style="width:${Math.max(0,store.state.world.pvAttuali/pvMax*100)}%"></div>
+ style="width:${Math.max(0,initialHeroHP/pvMax*100)}%"></div>
  </div>
  <div class="combat-hp-stats">ATK:${hs.forza} VEL:${hs.velocita} DES:${hs.destrezza}% CRI:${hs.critico}%</div>
  </div>
@@ -581,6 +580,8 @@ function consumeRelicMissionCharge() {
  ESEGUI MISSIONE (entry point)
 ══════════════════════════════════════════════════════════ */
 export function runMission() {
+  regenPV();
+  regenPA();
   const state = store.state;
   const w = state.world;
   const wp = w.worldProgress || {};
@@ -608,8 +609,12 @@ export function runMission() {
     if (!deiRimasti.length) { showToast("✨ Tutti gli dei sono stati sconfitti!"); return; }
   }
 
+  const wasFullPA = w.paAttuali >= heroS.paMax;
   w.denari    -= costoOro;
   w.paAttuali -= costoPA;
+  if (wasFullPA || !w.ultimaSessionePA) {
+    w.ultimaSessionePA = Date.now();
+  }
 
   updateAreaQuests([{ type: "spedizione", areaId }]);
   updateWorldQuests("mission", {});
@@ -746,6 +751,7 @@ function pickAreaLoot(areaId, fortunaStat) {
 
 /* ── Combattimento ── */
 function executeCombat(enemy, enemyEquip) {
+  regenPV();
   const state = store.state;
   const w = state.world;
   const heroS = getHeroStats();
@@ -757,6 +763,11 @@ function executeCombat(enemy, enemyEquip) {
 
   w.nemiciIncontrati[enemy.id] = (w.nemiciIncontrati[enemy.id] || 0);
   w.pvAttuali = result.heroHPFinal;
+  if (result.heroHPFinal < hpBefore) {
+    if (hpBefore >= heroS.pvMax || result.heroHPFinal <= 0 || !w.ultimaSessionePV) {
+      w.ultimaSessionePV = Date.now();
+    }
+  }
 
   // Usura equipaggiamento proporzionale ai colpi:
   // - Armi: in proporzione ai colpi dell'eroe andati a segno (esclusi quelli schivati dal nemico; normali = critici)
@@ -894,7 +905,7 @@ function executeCombat(enemy, enemyEquip) {
   if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
   save();
 
-  showCombatModal(enemy, result, reward, loot, result.victory ? enemyEquip : null, areaLootObj);
+  showCombatModal(enemy, result, reward, loot, result.victory ? enemyEquip : null, areaLootObj, hpBefore);
 }
 
 /* ── Scoperta ── */

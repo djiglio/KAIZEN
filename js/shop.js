@@ -36,6 +36,7 @@ export function buyPotion(potId) {
   if (potion.effect.tipo === "heal") {
     const prima = w.pvAttuali;
     w.pvAttuali = Math.min(heroS.pvMax, w.pvAttuali + potion.effect.val);
+    if (w.pvAttuali >= heroS.pvMax) w.ultimaSessionePV = Date.now();
     const gained = w.pvAttuali - prima;
     showToast(`${potion.icon} +${gained} PV ripristinati! (${w.pvAttuali}/${heroS.pvMax})`);
     state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: +${gained} PV (tot. ${w.pvAttuali}/${heroS.pvMax})`, cat:"shop" });
@@ -47,6 +48,7 @@ export function buyPotion(potId) {
     const { paMax } = getHeroStats();
     const prima = w.paAttuali;
     w.paAttuali = Math.min(paMax, w.paAttuali + potion.effect.val);
+    if (w.paAttuali >= paMax) w.ultimaSessionePA = Date.now();
     const gained = w.paAttuali - prima;
     showToast(`${potion.icon} +${gained} Punti Azione! (${w.paAttuali}/${paMax})`);
     state.history.unshift({ t:Date.now(), msg:`${potion.icon} ${potion.name}: +${gained} PA`, cat:"shop" });
