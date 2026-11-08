@@ -377,15 +377,25 @@ export function checkAllWorldComplete() {
 
 function grantQuestReward(q, type) {
   const state = store.state;
-  // +15 XP a tutte le abitudini
+  // Incrementa contatore trofeo
+  const newCount = (state.trophies[q.id] || 0) + 1;
+  state.trophies[q.id] = newCount;
+
+  // Bonus trofeo: ogni volta che si conquista un trofeo (eccetto day_perfect)
+  // si guadagnano XP a tutte le abitudini pari al numero di volte conquistato (1 XP alla 1ª, 13 XP alla 13ª, ecc.)
+  const trophyXpBonus = (q.id !== "day_perfect") ? newCount : 0;
+  const totalXpPerHabit = 15 + trophyXpBonus;
+
+  // +15 XP base + bonus trofeo a tutte le abitudini
   for (const hd of HABITS) {
-    if (state.habits[hd.id]) state.habits[hd.id].xp += 15;
+    if (state.habits[hd.id]) state.habits[hd.id].xp += totalXpPerHabit;
   }
   // +50 denari
   state.world.denari += 50;
-  state.trophies[q.id] = (state.trophies[q.id] || 0) + 1;
-  addHistory(` Quest completata: ${q.text} — +15 XP +50 denari`, "quest");
-  showToast(` ${q.text}! +15 XP +50 🪙`);
+
+  const bonusMsg = trophyXpBonus > 0 ? ` (+${trophyXpBonus} bonus trofeo ×${newCount})` : "";
+  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP${bonusMsg} +50 denari`, "quest");
+  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP${bonusMsg} +50 🪙`);
 }
 
 /* ── Aggiorna progresso quest mondo esterno ── */
