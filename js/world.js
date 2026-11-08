@@ -809,6 +809,7 @@ function executeCombat(enemy, enemyEquip) {
     if (enemyEquipPieces.length > 0 && result.victory) {
       for (const piece of enemyEquipPieces) {
         state.equipment.zaino.push({ id: piece.id, type: "equip", dur: 100 });
+        unlockDiscoveredEquipment(piece.id, state);
         _areaLootItemsCount++;
         if (piece.prezzo) updateWorldQuests("loot", { value: piece.prezzo });
         if ((piece.tier || 0) >= 4 || piece.rarita !== "comune") updateWorldQuests("rare_find", {});

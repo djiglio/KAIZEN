@@ -18,8 +18,8 @@ import { isDone, getHeroStats, getHeroRank,
 import { formatDate } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
-import { renderShop, renderEquipment } from "./shop.js";
-import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, treasureImgCard, treasureImgHTML, resolveImgs } from "./img.js";
+import { renderShop, renderEquipment, renderEquipIconHTML, SLOT_NAMES } from "./shop.js";
+import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, treasureImgCard, treasureImgHTML, equipImgHTML, equipImgWrap, resolveImgs } from "./img.js";
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"];
 const roman = n => ROMAN[n] || String(n);
@@ -390,6 +390,7 @@ export function renderWorld() {
 }
 
 const bachecaOpenCats = new Set();
+const bachecaArmoryOpenCats = new Set();
 
 function getTreasureCountMeta(count) {
   if (count <= 5) return { cls: "mk-count-bronze", color: "#d48459", label: "Bronzo" };
@@ -618,6 +619,222 @@ function renderBacheca(state, w) {
     });
     resolveImgs(tlistEl);
   }
+
+  // ── Armeria (Tutte le Armi e Armature) ──
+  const astatEl = document.getElementById("armory-stats");
+  const alistEl = document.getElementById("armory-list");
+  if (astatEl && alistEl) {
+    const scopertiMap = state.equipment?.scoperti || {};
+
+    // 1. Armi: tutte le armi a prescindere che siano primarie o secondarie (mano_dx oppure mano_sx senza scudo)
+    const weaponsList = EQUIPMENT_POOL.filter(e => e.slot === "mano_dx" || (e.slot === "mano_sx" && e.handType !== "shield"))
+      .sort((a, b) => (a.tier - b.tier) || a.id.localeCompare(b.id));
+    // 2. Scudi: tutti gli scudi (mano_sx con handType === 'shield')
+    const shieldsList = EQUIPMENT_POOL.filter(e => e.slot === "mano_sx" && e.handType === "shield")
+      .sort((a, b) => (a.tier - b.tier) || a.id.localeCompare(b.id));
+    // 3. Elmi
+    const headsList = EQUIPMENT_POOL.filter(e => e.slot === "testa")
+      .sort((a, b) => (a.tier - b.tier) || a.id.localeCompare(b.id));
+    // 4. Corazze
+    const chestsList = EQUIPMENT_POOL.filter(e => e.slot === "torace")
+      .sort((a, b) => (a.tier - b.tier) || a.id.localeCompare(b.id));
+    // 5. Bracciali
+    const armsList = EQUIPMENT_POOL.filter(e => e.slot === "braccia")
+      .sort((a, b) => (a.tier - b.tier) || a.id.localeCompare(b.id));
+    // 6. Gambali
+    const legsList = EQUIPMENT_POOL.filter(e => e.slot === "gambe")
+      .sort((a, b) => (a.tier - b.tier) || a.id.localeCompare(b.id));
+
+    let totalUnlocked = 0;
+    EQUIPMENT_POOL.forEach(e => {
+      if (scopertiMap[e.id]) totalUnlocked++;
+    });
+
+    const countFound = list => list.filter(e => scopertiMap[e.id]).length;
+    const wFound = countFound(weaponsList);
+    const sFound = countFound(shieldsList);
+    const hFound = countFound(headsList);
+    const cFound = countFound(chestsList);
+    const aFound = countFound(armsList);
+    const lFound = countFound(legsList);
+    const armorFound = hFound + cFound + aFound + lFound;
+
+    astatEl.innerHTML = `
+      <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Sbloccati</div><div class="mk-vital-val">${totalUnlocked}<small>/300</small></div></div>
+      <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Armi</div><div class="mk-vital-val">${wFound}<small>/68</small></div></div>
+      <div class="mk-vital" style="--acc:#4a70b0"><div class="mk-vital-cap">Scudi</div><div class="mk-vital-val">${sFound}<small>/32</small></div></div>
+      <div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Armature</div><div class="mk-vital-val">${armorFound}<small>/200</small></div></div>
+      <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${300 - totalUnlocked}</div></div>`;
+
+    const makeArmoryCard = (e) => {
+      const unlocked = !!scopertiMap[e.id];
+      if (!unlocked) {
+        return `
+        <div class="mk-tile is-off" style="--acc:rgba(255,255,255,.08);padding-bottom:12px;cursor:default;">
+          <div class="mk-tile-cap">Grado ${roman(e.tier)} · Ignoto</div>
+          <div class="mk-tile-name" style="min-height:2.2em;color:#7a7062;">Slot Ignoto</div>
+          <div class="mk-unknown-portrait" style="margin:4px auto 6px;">?</div>
+          <div class="mk-tile-desc" style="margin-bottom:0">non ancora ottenuto</div>
+        </div>`;
+      }
+
+      const rarityColors = { comune: "#8b7b5c", magico: "#4a70b0", leggendario: "var(--gold-light)" };
+      const acc = rarityColors[e.rarita] || "#8b7b5c";
+
+      let typeLabel = "";
+      if (e.slot === "mano_dx") typeLabel = e.handType === "2h" ? "Arma 2 Mani" : "Arma 1 Mano";
+      else if (e.slot === "mano_sx") typeLabel = e.handType === "shield" ? "Scudo" : "Arma Sec.";
+      else if (e.slot === "testa") typeLabel = "Elmo";
+      else if (e.slot === "torace") typeLabel = "Corazza";
+      else if (e.slot === "braccia") typeLabel = "Bracciali";
+      else if (e.slot === "gambe") typeLabel = "Gambali";
+
+      const bonusParts = [];
+      if (e.bonus?.attacco) bonusParts.push(`+${e.bonus.attacco} ATK`);
+      if (e.bonus?.difesa) bonusParts.push(`+${e.bonus.difesa} DEF`);
+      if (e.bonus?.velocita) bonusParts.push(`${e.bonus.velocita > 0 ? "+" : ""}${e.bonus.velocita} VEL`);
+      if (e.bonus?.destrezza) bonusParts.push(`+${e.bonus.destrezza}% DES`);
+      if (e.bonus?.critico) bonusParts.push(`+${e.bonus.critico}% CRT`);
+      const bonusStr = bonusParts.length ? bonusParts.slice(0, 2).join(" · ") : `Valore ${fmtDen(e.prezzo)} den`;
+
+      const isEquipped = Object.values(state.equipment?.equipped || {}).some(x => x?.id === e.id);
+      const isInZaino = (state.equipment?.zaino || []).some(z => z.type === "equip" && z.id === e.id);
+      const statusBadge = isEquipped
+        ? `<span style="color:#4ecca3;font-size:10px;font-weight:700;">⚔️ Equipaggiato</span>`
+        : isInZaino
+        ? `<span style="color:#6cc4ef;font-size:10px;font-weight:700;">🎒 Nello Zaino</span>`
+        : `<span style="color:#8f8268;font-size:10px;">📜 Registrato</span>`;
+
+      return `
+      <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;"
+           onclick="window.__kaizen.showArmoryDetail('${e.id}')">
+        <div class="mk-tile-cap">Grado ${roman(e.tier)} · ${typeLabel}</div>
+        <div class="mk-tile-name" style="min-height:2.2em;color:${e.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'}">${e.name}</div>
+        <div style="margin:4px auto 6px;">${renderEquipIconHTML(e, "", 58)}</div>
+        <div class="mk-tile-desc" style="margin-bottom:4px;font-size:11px;color:#d0c4b2;">${bonusStr}</div>
+        <div style="margin-top:2px;">${statusBadge}</div>
+      </div>`;
+    };
+
+    const makeArmoryTendina = (key, num, title, subtitle, countBadge, list) => {
+      const isOpen = bachecaArmoryOpenCats.has(key);
+      const contentHTML = list.map(makeArmoryCard).join("");
+      return `
+      <details class="mk-shop zaino-details" data-cat="${key}" ${isOpen ? "open" : ""}>
+        <summary>
+          <span class="mk-shop-num">Catalogo ${num} · ${countBadge} sbloccati</span>
+          <span class="mk-shop-name">${title}</span>
+          <span class="mk-shop-tag">${subtitle}</span>
+          <span class="mk-shop-toggle"></span>
+        </summary>
+        <div class="mk-shop-body">
+          <div class="mk-grid" style="margin-top:12px;">${contentHTML}</div>
+        </div>
+      </details>`;
+    };
+
+    const sections = [
+      makeArmoryTendina("armi", "I", "Armi da Guerra", "lame, asce, lance, martelli, archi e pugnali (primarie e secondarie)", `${wFound}/68`, weaponsList),
+      makeArmoryTendina("scudi", "II", "Scudi e Brocchieri", "targhe, rotelle, scudi rotondi e scudi a torre", `${sFound}/32`, shieldsList),
+      makeArmoryTendina("elmi", "III", "Elmi e Copricapi", "cappucci, coppi d'acciaio, bacineti e corone da battaglia", `${hFound}/50`, headsList),
+      makeArmoryTendina("corazze", "IV", "Corazze e Vesti", "giachi di cuoio, usberghi, piastre e corazze cerimoniali", `${cFound}/50`, chestsList),
+      makeArmoryTendina("braccia", "V", "Bracciali e Guanti", "fasce d'arme, bracciali d'ottone e manopole a piastre", `${aFound}/50`, armsList),
+      makeArmoryTendina("gambe", "VI", "Gambali e Schinieri", "schinieri di ferro, cosciali articolati e stivali rinforzati", `${lFound}/50`, legsList),
+    ].join("");
+
+    const toggleButtonsHTML = `
+    <div class="mk-tabs mk-tabs--2" style="margin-top:0;margin-bottom:12px;">
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(true)">Apri tutti i cataloghi</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(false)">Chiudi tutti i cataloghi</button>
+    </div>`;
+
+    alistEl.innerHTML = `<div class="mk">${toggleButtonsHTML}${sections}</div>`;
+
+    alistEl.querySelectorAll(".zaino-details").forEach(d => {
+      d.addEventListener("toggle", () => {
+        if (d.open) bachecaArmoryOpenCats.add(d.dataset.cat);
+        else bachecaArmoryOpenCats.delete(d.dataset.cat);
+      });
+    });
+    resolveImgs(alistEl);
+  }
+}
+
+
+
+export function toggleAllArmory(open) {
+  const container = document.getElementById("armory-list");
+  if (!container) return;
+  container.querySelectorAll(".zaino-details").forEach(d => {
+    d.open = open;
+    if (open) bachecaArmoryOpenCats.add(d.dataset.cat);
+    else bachecaArmoryOpenCats.delete(d.dataset.cat);
+  });
+}
+
+export function showArmoryDetail(equipId) {
+  const piece = EQUIPMENT_POOL.find(e => e.id === equipId);
+  if (!piece) return;
+  const state = store.state;
+  const unlocked = !!(state.equipment?.scoperti?.[equipId]);
+  if (!unlocked) return;
+
+  const box = document.getElementById("detail-modal-box");
+  if (!box) return;
+  document.getElementById("detail-modal").classList.add("show");
+
+  let typeLabel = "";
+  if (piece.slot === "mano_dx") typeLabel = piece.handType === "2h" ? "Arma a 2 Mani" : "Arma a 1 Mano";
+  else if (piece.slot === "mano_sx") typeLabel = piece.handType === "shield" ? "Scudo" : "Arma Secondaria";
+  else if (piece.slot === "testa") typeLabel = "Elmo";
+  else if (piece.slot === "torace") typeLabel = "Corazza";
+  else if (piece.slot === "braccia") typeLabel = "Bracciali";
+  else if (piece.slot === "gambe") typeLabel = "Gambali";
+
+  const isEquipped = Object.values(state.equipment?.equipped || {}).some(x => x?.id === piece.id);
+  const isInZaino = (state.equipment?.zaino || []).some(z => z.type === "equip" && z.id === piece.id);
+
+  const possessionStatus = isEquipped
+    ? `<div class="mk-note" style="border-left:3px solid #4ecca3;color:#4ecca3;">⚔️ Attualmente equipaggiato sul tuo eroe</div>`
+    : isInZaino
+    ? `<div class="mk-note" style="border-left:3px solid #6cc4ef;color:#6cc4ef;">🎒 Attualmente custodito nel tuo zaino</div>`
+    : `<div class="mk-note" style="border-left:3px solid #8f8268;color:#a89b87;">📜 Oggetto scoperto e inciso nell'armeria (non posseduto al momento)</div>`;
+
+  const vitals = [];
+  if (piece.bonus?.attacco) vitals.push(`<div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Attacco</div><div class="mk-vital-val" style="color:#e0533d">+${piece.bonus.attacco}</div></div>`);
+  if (piece.bonus?.difesa) vitals.push(`<div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Difesa</div><div class="mk-vital-val" style="color:#4ecca3">+${piece.bonus.difesa}</div></div>`);
+  if (piece.bonus?.velocita) vitals.push(`<div class="mk-vital" style="--acc:#5fb8ec"><div class="mk-vital-cap">Velocità</div><div class="mk-vital-val" style="color:#5fb8ec">${piece.bonus.velocita > 0 ? "+" : ""}${piece.bonus.velocita}</div></div>`);
+  if (piece.bonus?.destrezza) vitals.push(`<div class="mk-vital" style="--acc:#d4a017"><div class="mk-vital-cap">Destrezza</div><div class="mk-vital-val" style="color:#d4a017">+${piece.bonus.destrezza}%</div></div>`);
+  if (piece.bonus?.critico) vitals.push(`<div class="mk-vital" style="--acc:#f0903f"><div class="mk-vital-cap">Critico</div><div class="mk-vital-val" style="color:#f0903f">+${piece.bonus.critico}%</div></div>`);
+
+  box.innerHTML = `
+  <div class="mk mk-modal">
+    <div class="mk-modal-cap">Armeria · Grado ${roman(piece.tier)} · ${typeLabel}</div>
+    <div class="mk-modal-title" style="color:${piece.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'}">${piece.name}</div>
+    ${piece.desc ? `<div class="mk-note" style="margin-bottom:8px;">${piece.desc}</div>` : ""}
+
+    <div style="margin:6px auto 10px;display:flex;justify-content:center;width:100%;max-width:220px;">
+      ${equipImgHTML(piece, "100%", "auto", renderEquipIconHTML(piece, "", 96))}
+    </div>
+
+    ${vitals.length ? `<div class="mk-vitals mk-vitals--compact" style="margin:10px 0;">${vitals.join("")}</div>` : ""}
+
+    <div class="mk-vitals" style="margin:10px 0;">
+      <div class="mk-vital" style="--acc:var(--gold)">
+        <div class="mk-vital-cap">Valore Forgia</div>
+        <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:6px;">${COIN} ${fmtDen(piece.prezzo)}</div>
+      </div>
+      <div class="mk-vital" style="--acc:#8b7b5c">
+        <div class="mk-vital-cap">Rarità</div>
+        <div class="mk-vital-val" style="color:#e6ded1;text-transform:capitalize;">${piece.rarita}</div>
+      </div>
+    </div>
+
+    <div style="margin-top:8px;">${possessionStatus}</div>
+
+    <button class="modal-close-btn" style="margin-top:12px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+  </div>`;
+  resolveImgs();
 }
 
 export function toggleAllTreasures(open) {

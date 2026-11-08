@@ -21,6 +21,8 @@ import {
   showTrophyDetail,
   showRankDetail,
   toggleAllTreasures,
+  toggleAllArmory,
+  showArmoryDetail,
   closeDetailModal,
   showAllAreaQuests
 } from "./render.js";
@@ -115,9 +117,11 @@ window.__kaizen = {
   showBestiaryDetail,
   showAllAreaQuests,
   showTreasureDetail,
+  showArmoryDetail,
   showTrophyDetail,
   showRankDetail,
   toggleAllTreasures,
+  toggleAllArmory,
   closeDetailModal,
   // Render callback
   onAfterUpdate: render,

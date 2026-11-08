@@ -709,22 +709,22 @@ body::before {
 }
 
 /* ══════════════════════════════════════
-   BACHECA — 3 TAB
+   BACHECA — 4 TAB (Trofei, Bestiario, Tesori, Armeria)
 ══════════════════════════════════════ */
 .tab-bar {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 5px;
   margin-bottom: 16px;
 }
 .tab-btn {
-  padding: 10px 4px;
+  padding: 10px 2px;
   border: 1px solid rgba(80, 70, 60, 0.4);
   border-radius: 2px;
   font-family: "Cinzel", serif;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s;
@@ -1969,6 +1969,7 @@ body::before {
     <button class="tab-btn active" onclick="window.__kaizen.switchTab('tab-trophies',this)">Trofei</button>
     <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-bestiary',this)">Bestiario</button>
     <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-treasures',this)">Tesori</button>
+    <button class="tab-btn"        onclick="window.__kaizen.switchTab('tab-armory',this)">Armeria</button>
   </div>
   <div id="tab-trophies" class="tab-panel active">
     <div id="trophy-list" class="trophy-grid"></div>
@@ -1980,6 +1981,10 @@ body::before {
   <div id="tab-treasures" class="tab-panel">
     <div id="treasure-stats" class="bacheca-stats"></div>
     <div id="treasure-list"></div>
+  </div>
+  <div id="tab-armory" class="tab-panel">
+    <div id="armory-stats" class="bacheca-stats"></div>
+    <div id="armory-list"></div>
   </div>
 </div>
 
@@ -2129,7 +2134,7 @@ body::before {
     <div class="mk-vitals" style="margin-top:8px">
       <div class="mk-vital">
         <span class="mk-vital-cap">Versione</span>
-        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.93</div>
+        <div id="app-version" class="mk-vital-val" style="color:var(--gold-light)">6.94</div>
       </div>
       <div class="mk-vital">
         <span class="mk-vital-cap">Rilascio</span>
@@ -2166,6 +2171,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=6.93"></script>
+<script type="module" src="js/main.js?v=6.94"></script>
 </body>
 </html>

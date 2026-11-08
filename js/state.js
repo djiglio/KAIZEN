@@ -36,6 +36,7 @@ const defaultHabits = () => ({
 const defaultEquipment = () => ({
   equipped: { testa: null, torace: null, braccia: null, mano_dx: null, mano_sx: null, gambe: null },
   zaino: [], // array di { id, type } dove type = "equip"|"relic"|"material"
+  scoperti: {}, // { [id]: true } tracciamento slot scoperti nell'armeria
 });
 
 const defaultWorld = () => ({
@@ -198,6 +199,25 @@ export function migrate(p) {
   }
   if (!p.equipment.equipped) p.equipment.equipped = defaultEquipment().equipped;
   if (!p.equipment.zaino) p.equipment.zaino = [];
+  if (!p.equipment.scoperti || typeof p.equipment.scoperti !== "object") p.equipment.scoperti = {};
+  // Backfill: qualsiasi pezzo posseduto (equipaggiato o nello zaino) o razziato viene segnato come scoperto
+  if (p.equipment.equipped) {
+    Object.values(p.equipment.equipped).forEach(eq => {
+      if (eq && eq.id) p.equipment.scoperti[eq.id] = true;
+    });
+  }
+  if (Array.isArray(p.equipment.zaino)) {
+    p.equipment.zaino.forEach(z => {
+      if (z && z.type === "equip" && z.id) p.equipment.scoperti[z.id] = true;
+    });
+  }
+  if (Array.isArray(p.world?.wq?.unique_finds)) {
+    p.world.wq.unique_finds.forEach(id => {
+      if (id && EQUIPMENT_POOL.some(e => e.id === id)) {
+        p.equipment.scoperti[id] = true;
+      }
+    });
+  }
 
   // Migrazione vecchi slot (v6.70 -> v6.71)
   const legacyMap = {
@@ -427,4 +447,11 @@ export function uploadSigilloFile() {
     reader.readAsText(file);
   };
   input.click();
+}
+
+export function unlockDiscoveredEquipment(id, state = store.state) {
+  if (!id || !state) return;
+  if (!state.equipment) state.equipment = defaultEquipment();
+  if (!state.equipment.scoperti) state.equipment.scoperti = {};
+  state.equipment.scoperti[id] = true;
 }

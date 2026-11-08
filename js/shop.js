@@ -4,7 +4,7 @@
  KAIZEN v6.85
  ============================================================ */
 
-import { store, save } from "./state.js";
+import { store, save, unlockDiscoveredEquipment } from "./state.js";
 import {
   POTIONS, EQUIPMENT_POOL,
   RELICS, AREA_LOOT_POOL, MATERIALS, MATERIAL_COATING_CONFIG,
@@ -96,6 +96,7 @@ export function buyEquipment(equipId) {
   }
 
   eq.zaino.push({ id: piece.id, type: "equip", dur: 100 });
+  unlockDiscoveredEquipment(piece.id, state);
   const matSummary = recipe.map(r => {
     const m = MATERIALS.find(x => x.id === r.id);
     return `${r.qty} ${m ? m.name : r.id}`;
@@ -465,12 +466,12 @@ function getEquipMaskPath(piece) {
 }
 
 /* ── Renderizza l'icona dell'equipaggiamento colorata senza alcun riquadro ── */
-function renderEquipIconHTML(piece, titleAttr = "") {
+export function renderEquipIconHTML(piece, titleAttr = "", px = 44) {
   const theme = getEquipIconTheme(piece);
   const maskPath = getEquipMaskPath(piece);
   const title = titleAttr ? ` title="${titleAttr}"` : "";
-  const fallback = `<div class="eq-icon" style="--icon-mask:url('${maskPath}');--icon-color:${theme.color};--icon-glow:${theme.glow};"${title}></div>`;
-  return equipImgWrap(piece, 44, fallback);
+  const fallback = `<div class="eq-icon" style="--icon-mask:url('${maskPath}');--icon-color:${theme.color};--icon-glow:${theme.glow};width:${px}px;height:${px}px;"${title}></div>`;
+  return equipImgWrap(piece, px, fallback);
 }
 
 /* ── Costruisce il corpo a 2 colonne della scheda equipaggiamento ──
@@ -525,7 +526,7 @@ function getPrimaryMeta(piece) {
 }
 
 const COIN = `<span class="mk-coin"></span>`;
-const SLOT_NAMES = {
+export const SLOT_NAMES = {
   testa: "Testa",
   torace: "Torace",
   braccia: "Braccia",
