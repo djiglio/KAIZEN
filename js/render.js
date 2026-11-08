@@ -716,13 +716,13 @@ function renderBacheca(state, w) {
       </div>`;
     };
 
-    const makeArmoryTendina = (key, num, title, subtitle, countBadge, list) => {
+    const makeArmoryTendina = (key, title, subtitle, countBadge, list) => {
       const isOpen = bachecaArmoryOpenCats.has(key);
       const contentHTML = list.map(makeArmoryCard).join("");
       return `
       <details class="mk-shop zaino-details" data-cat="${key}" ${isOpen ? "open" : ""}>
         <summary>
-          <span class="mk-shop-num">Catalogo ${num} · ${countBadge} sbloccati</span>
+          <span class="mk-shop-num">${countBadge} sbloccati</span>
           <span class="mk-shop-name">${title}</span>
           <span class="mk-shop-tag">${subtitle}</span>
           <span class="mk-shop-toggle"></span>
@@ -734,18 +734,18 @@ function renderBacheca(state, w) {
     };
 
     const sections = [
-      makeArmoryTendina("armi", "I", "Armi da Guerra", "lame, asce, lance, martelli, archi e pugnali (primarie e secondarie)", `${wFound}/68`, weaponsList),
-      makeArmoryTendina("scudi", "II", "Scudi e Brocchieri", "targhe, rotelle, scudi rotondi e scudi a torre", `${sFound}/32`, shieldsList),
-      makeArmoryTendina("elmi", "III", "Elmi e Copricapi", "cappucci, coppi d'acciaio, bacineti e corone da battaglia", `${hFound}/50`, headsList),
-      makeArmoryTendina("corazze", "IV", "Corazze e Vesti", "giachi di cuoio, usberghi, piastre e corazze cerimoniali", `${cFound}/50`, chestsList),
-      makeArmoryTendina("braccia", "V", "Bracciali e Guanti", "fasce d'arme, bracciali d'ottone e manopole a piastre", `${aFound}/50`, armsList),
-      makeArmoryTendina("gambe", "VI", "Gambali e Schinieri", "schinieri di ferro, cosciali articolati e stivali rinforzati", `${lFound}/50`, legsList),
+      makeArmoryTendina("armi", "Armi", "armi primarie e secondarie ad una o due mani", `${wFound}/68`, weaponsList),
+      makeArmoryTendina("scudi", "Scudi", "brocchieri, scudi rotondi, targhe e scudi a torre", `${sFound}/32`, shieldsList),
+      makeArmoryTendina("elmi", "Elmi", "elmi, copricapi, cappucci e corone da guerra", `${hFound}/50`, headsList),
+      makeArmoryTendina("corazze", "Corazze", "corazze a piastre, cotte di maglia, giachi e vesti", `${cFound}/50`, chestsList),
+      makeArmoryTendina("braccia", "Bracciali", "bracciali, guanti e manopole da battaglia", `${aFound}/50`, armsList),
+      makeArmoryTendina("gambe", "Gambali", "gambali, schinieri, cosciali e stivali rinforzati", `${lFound}/50`, legsList),
     ].join("");
 
     const toggleButtonsHTML = `
     <div class="mk-tabs mk-tabs--2" style="margin-top:0;margin-bottom:12px;">
-      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(true)">Apri tutti i cataloghi</button>
-      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(false)">Chiudi tutti i cataloghi</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(true)">Apri tutte le sezioni</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(false)">Chiudi tutte le sezioni</button>
     </div>`;
 
     alistEl.innerHTML = `<div class="mk">${toggleButtonsHTML}${sections}</div>`;
