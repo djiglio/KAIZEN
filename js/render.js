@@ -660,11 +660,9 @@ function renderBacheca(state, w) {
     const armorFound = hFound + cFound + aFound + lFound;
 
     astatEl.innerHTML = `
-      <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Sbloccati</div><div class="mk-vital-val">${totalUnlocked}<small>/300</small></div></div>
       <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Armi</div><div class="mk-vital-val">${wFound}<small>/68</small></div></div>
       <div class="mk-vital" style="--acc:#4a70b0"><div class="mk-vital-cap">Scudi</div><div class="mk-vital-val">${sFound}<small>/32</small></div></div>
-      <div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Armature</div><div class="mk-vital-val">${armorFound}<small>/200</small></div></div>
-      <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${300 - totalUnlocked}</div></div>`;
+      <div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Armature</div><div class="mk-vital-val">${armorFound}<small>/200</small></div></div>`;
 
     const makeArmoryCard = (e) => {
       const unlocked = !!scopertiMap[e.id];
