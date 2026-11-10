@@ -138,10 +138,14 @@ function generateEnemyEquip(enemy) {
   // Livello dell'equipaggiamento proporzionale al livello del nemico (Tier 1 a 10)
   const eqTier = Math.max(1, Math.min(10, Math.ceil(lvl / 15)));
 
-  // Rarità proporzionale al livello del nemico:
-  // Nemici deboli hanno quasi solo comune, salendo di livello crescono magico e leggendario
-  const pLeg = Math.min(0.55, Math.max(0.01, 0.01 + ((lvl - 1) / 150) * 0.54));
-  const pMag = Math.min(0.45, Math.max(0.05, 0.05 + ((lvl - 1) / 150) * 0.40));
+  // Rarità proporzionale al livello del nemico (con concreta possibilità di pezzi leggendari anche a basso livello):
+  // A Lvl 1: 20% leggendario, 30% magico, 50% comune (rende i pezzi leggendari di Grado I-II trovabili in avvio)
+  // A Lvl 150: 55% leggendario, 35% magico, 10% comune (+ eventuale bonus Fortuna dell'eroe)
+  const heroFortuna = (typeof getHeroStats === "function" ? getHeroStats()?.fortuna || 0 : 0);
+  const fortunaBonus = Math.min(0.08, heroFortuna * 0.002);
+
+  const pLeg = Math.min(0.60, 0.20 + ((lvl - 1) / 150) * 0.35 + fortunaBonus);
+  const pMag = Math.min(0.40, 0.30 + ((lvl - 1) / 150) * 0.05);
 
   const equip = {};
   for (const slot of slots) {
