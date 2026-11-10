@@ -370,7 +370,7 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
  <div class="flee-title" style="margin-bottom:4px">[!] Nemico in vista!</div>
  <div class="flee-text" style="margin-bottom:10px;font-size:13px;line-height:1.3">
  Furtività: <strong style="color:var(--primary)">${heroS.furtivita}%</strong> probabilità di fuga riuscita.<br>
- Se combatti e vinci, ottieni bottino e denari.
+ Se combatti e vinci, ottieni bottino e ${COIN}.
  </div>
  <div class="flee-btns">
  <button class="flee-btn fight" id="btn-fight" style="padding:9px;min-height:38px">COMBATTI</button>
@@ -655,7 +655,7 @@ export function runMission() {
   const costoOro = areaCfg.costoOro;
   const costoPA  = areaCfg.costoPA;
 
-  if (w.denari < costoOro) { showToast(`🪙 Denari insufficienti (${costoOro})!`); return; }
+  if (w.denari < costoOro) { showToast(`${COIN} insufficienti (${costoOro} ${COIN})!`); return; }
   if (w.pvAttuali < heroS.pvMax * 0.5) { showToast("⚠️ Recupera le forze! (50% HP)"); return; }
   if (w.paAttuali < costoPA) { showToast(`⚡ Punti Azione insufficienti (${costoPA})!`); return; }
 
@@ -907,7 +907,7 @@ function executeCombat(enemy, enemyEquip) {
         state.world.wq.unique_finds.push(areaLootObj.id);
       }
       updateWorldQuests("unique_find", { id: areaLootObj.id });
-      addHistory(` Trovato: ${areaLootObj.icon} ${areaLootObj.name} +${val} 🪙`, "world");
+      addHistory(` Trovato: ${areaLootObj.icon} ${areaLootObj.name} +${val} ${COIN}`, "world");
     }
 
     // Tracker streak vittorie
@@ -947,7 +947,7 @@ function executeCombat(enemy, enemyEquip) {
     updateAreaQuests(_killEvts);
 
     w.missioniLog.unshift({ tipo:"win", nome:enemy.name, denari:reward, t:Date.now() });
-    addHistory(` Sconfitto ${enemy.name} +${reward} denari`, "combat");
+    addHistory(` Sconfitto ${enemy.name} +${reward} ${COIN}`, "combat");
   } else {
     w.wq.current_streak = 0;
     updateWorldQuests("win_streak", { count: 0, reset: true });
@@ -1006,8 +1006,8 @@ function executeDiscovery() {
       }
       updateWorldQuests("unique_find", { id: aLoot.id });
       w.missioniLog.unshift({ tipo: "treasure", nome: aLoot.name, denari: val, t: Date.now() });
-      addHistory(`Trovato: ${aLoot.name} +${val} denari`, "world");
-      showToast(`${aLoot.name} +${val} denari!`);
+      addHistory(`Trovato: ${aLoot.name} +${val} ${COIN}`, "world");
+      showToast(`${aLoot.name} +${val} ${COIN}!`);
     } else {
       pickTreasureReward();
     }
@@ -1028,7 +1028,7 @@ function executeDiscovery() {
       updateWorldQuests("unique_find", { id: mat.id });
       updateAreaQuests([{ type: "loot", areaId: currentArea, lootCount: 1, denari: 0 }]);
       w.missioniLog.unshift({ tipo: "material", nome: mat.name, denari: 0, t: Date.now() });
-      addHistory(`Materiale trovato: ${mat.name} (${mat.value} denari) → zaino`, "world");
+      addHistory(`Materiale trovato: ${mat.name} (${mat.value} ${COIN}) → zaino`, "world");
       showToast(`Materiale trovato: ${mat.name} → zaino!`);
     } else {
       pickTreasureReward();
@@ -1065,6 +1065,6 @@ function pickTreasureReward() {
   updateWorldQuests("unique_find", { id: t.id });
 
   w.missioniLog.unshift({ tipo:"treasure", nome:t.name, denari:v, t:Date.now() });
-  addHistory(` ${t.name} +${v} denari`, "world");
-  showToast(`${t.icon} ${t.name} +${v} denari!`);
+  addHistory(` ${t.name} +${v} ${COIN}`, "world");
+  showToast(`${t.icon} ${t.name} +${v} ${COIN}!`);
 }

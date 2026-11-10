@@ -10,7 +10,7 @@ import { HABITS, STAT_DEFS, rankTitles,
  EQUIPMENT_POOL, RELICS,
  WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS, EMPIREO_LOOT,
  getEnemiesForArea, getCoatingBonus } from "./data.js";
-import { showToast } from "./ui.js";
+import { showToast, COIN } from "./ui.js";
 
 /* ── Utility ── */
 export function isDone(last) {
@@ -393,8 +393,8 @@ function grantQuestReward(q, type) {
   // +50 denari
   state.world.denari += 50;
 
-  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP +50 denari`, "quest");
-  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP +50 🪙`);
+  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP +50 ${COIN}`, "quest");
+  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP +50 ${COIN}`);
 }
 
 /* ── Aggiorna progresso quest mondo esterno ── */
@@ -582,7 +582,7 @@ export function updateXP(habitId, isPos) {
  state.lastPerfectDate = Date.now();
  for (const hd of HABITS) state.habits[hd.id].xp += 5;
  state.world.denari += 8;
- addHistory("GIORNATA PERFETTA! +5 XP +8 🪙", "habit");
+ addHistory(`GIORNATA PERFETTA! +5 XP +8 ${COIN}`, "habit");
  showToast("Giornata Perfetta! +5 XP!");
  completePerfectDayQuests();
  }
@@ -665,7 +665,7 @@ function grantAreaQuestReward(q, areaId) {
   state.world.denari += goldBonus;
   if (q.trophy) {
     state.world.worldProgress.trofeiEmpirei.push(q.id);
-    addHistory(`🏆 TROFEO: ${q.title}! +${xpBonus} XP +${goldBonus} 🪙`, "quest");
+    addHistory(`🏆 TROFEO: ${q.title}! +${xpBonus} XP +${goldBonus} ${COIN}`, "quest");
     showToast(`🏆 ${q.title}!`);
     if (q.final) {
       state.world.worldProgress.gameCompleted = true;
@@ -673,7 +673,7 @@ function grantAreaQuestReward(q, areaId) {
       showToast("⚜️ KAIZEN COMPLETATO!");
     }
   } else {
-    addHistory(`✅ Missione: ${q.title} — +${xpBonus} XP +${goldBonus} 🪙`, "quest");
+    addHistory(`✅ Missione: ${q.title} — +${xpBonus} XP +${goldBonus} ${COIN}`, "quest");
     showToast(`✅ ${q.title}! +${xpBonus} XP`);
   }
 }

@@ -29,7 +29,7 @@ export function buyPotion(potId) {
   const heroS = getHeroStats();
   const finalPrice = discountedPrice(potion.prezzo, heroS.shopDiscount);
 
-  if (w.denari < finalPrice) { showToast("🪙 Denari insufficienti!"); return; }
+  if (w.denari < finalPrice) { showToast(`${COIN} insufficienti!`); return; }
 
   w.denari -= finalPrice;
 
@@ -69,7 +69,7 @@ export function buyEquipment(equipId) {
   const finalPrice = discountedPrice(piece.prezzo, heroS.shopDiscount);
 
   if (state.world.denari < finalPrice) {
-    showToast("🪙 Denari insufficienti!");
+    showToast(`${COIN} insufficienti!`);
     return;
   }
 
@@ -105,7 +105,7 @@ export function buyEquipment(equipId) {
   }).join(", ");
   state.history.unshift({
     t: Date.now(),
-    msg: `⚒️ Forgiato: ${piece.name} (-${finalPrice} den${matSummary ? `, -${matSummary}` : ""}) → zaino`,
+    msg: `⚒️ Forgiato: ${piece.name} (-${finalPrice} ${COIN}${matSummary ? `, -${matSummary}` : ""}) → zaino`,
     cat: "shop"
   });
   if (state.history.length > 200) state.history = state.history.slice(0,200);
@@ -250,7 +250,7 @@ export function discardItem(target) {
 
   if (refund > 0) state.world.denari += refund;
   save();
-  const toastMsg = icon ? `${icon} ${name} venduto${refund > 0 ? ` +${refund} 🪙` : ""}` : `${name} venduto (+${refund} denari)`;
+  const toastMsg = icon ? `${icon} ${name} venduto${refund > 0 ? ` +${refund} ${COIN}` : ""}` : `${name} venduto (+${refund} ${COIN})`;
   showToast(toastMsg);
   if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
@@ -328,13 +328,13 @@ export function repairItem(slot) {
   const baseCost = Math.max(1, Math.floor(piece.prezzo * (missing / 100) * 0.3));
   const cost = discountedPrice(baseCost, heroS.shopDiscount);
 
-  if (state.world.denari < cost) { showToast(`🪙 Denari insufficienti! Costo: ${cost}`); return; }
+  if (state.world.denari < cost) { showToast(`${COIN} insufficienti! Costo: ${cost} ${COIN}`); return; }
 
   state.world.denari -= cost;
   eqObj.dur = 100;
 
   save();
-  showToast(`🛠️ ${piece.name} riparato per ${cost} 🪙!`);
+  showToast(`🛠️ ${piece.name} riparato per ${cost} ${COIN}!`);
   if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
@@ -652,7 +652,7 @@ export function applyCoating(slot, matId) {
   if (!cfg) return;
 
   const cost = discountedPrice(calculateCoatingCost(piece, mat), heroS.shopDiscount);
-  if (state.world.denari < cost) { showToast(`Denari insufficienti! Servono ${cost} denari`); return; }
+  if (state.world.denari < cost) { showToast(`${COIN} insufficienti! Servono ${cost} ${COIN}`); return; }
 
   const matchingIndices = [];
   for (let i = 0; i < eq.zaino.length; i++) {
@@ -679,7 +679,7 @@ export function applyCoating(slot, matId) {
 
   state.history.unshift({
     t: Date.now(),
-    msg: `Forgiato: ${piece.name} rivestito con ${mat.name} (-${cost} den, -${cfg.reqQty} ${mat.name})`,
+    msg: `Forgiato: ${piece.name} rivestito con ${mat.name} (-${cost} ${COIN}, -${cfg.reqQty} ${mat.name})`,
     cat: "shop"
   });
   if (state.history.length > 200) state.history = state.history.slice(0, 200);
@@ -708,7 +708,7 @@ export function renderShop() {
   <div class="mk-purse">
     <div class="mk-purse-cap">La tua borsa</div>
     <div class="mk-purse-val">${COIN}${fmtDen(w.denari)}</div>
-    <div class="mk-purse-sub">denari sonanti</div>
+    <div class="mk-purse-sub">${COIN} sonanti</div>
     ${disc > 0 ? `<div class="mk-stamp">Carisma<b>−${Math.round(disc * 100) / 100}%</b></div>` : ""}
   </div>`;
 

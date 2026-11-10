@@ -15,7 +15,7 @@ import { HABITS, STAT_DEFS, rankTitles,
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
-import { formatDate } from "./ui.js";
+import { formatDate, formatCoinHTML } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
 import { renderShop, renderEquipment, renderEquipIconHTML, SLOT_NAMES } from "./shop.js";
@@ -168,7 +168,7 @@ function renderQuests(state) {
           <span class="mk-tile-big">${q.progress}<small>/ ${q.target}</small></span>
         </div>
         <div class="mk-vital-bar mk-dur"><i style="width:${perc}%;background:${acc}"></i></div>
-        <div class="mk-tile-desc" style="margin-bottom:${q.completed ? "6px" : "0"}">${q.desc}</div>
+        <div class="mk-tile-desc" style="margin-bottom:${q.completed ? "6px" : "0"}">${formatCoinHTML(q.desc)}</div>
         ${q.completed ? `<div class="mk-chip mk-chip--ok" style="margin-bottom:0">✦ Impresa Compiuta</div>` : ""}
       </div>`;
     }).join("");
@@ -270,7 +270,7 @@ export function renderWorld() {
         <span class="mk-tile-big">${done ? "✦" : `${t.progress}<small>/ ${q.target}</small>`}</span>
       </div>
       <div class="mk-vital-bar mk-dur"><i style="width:${pct}%;background:${acc}"></i></div>
-      <div class="mk-tile-desc">${q.desc}</div>
+      <div class="mk-tile-desc">${formatCoinHTML(q.desc)}</div>
       ${done ? `<div class="mk-chip mk-chip--ok" style="margin:2px 0 0;">✦ Incarico Compiuto</div>` : ""}
     </div>`;
   }).join("") || `<div class="mk-empty" style="color:#4ecca3;border-color:rgba(78,204,163,.35);">✦ Tutti gli incarichi di questa regione sono stati compiuti.</div>`;
@@ -339,7 +339,7 @@ export function renderWorld() {
         style="background:${zoneExpStyle.bg};border-color:${zoneExpStyle.border};box-shadow:${zoneExpStyle.shadow};--zone-drgb:${zoneExpStyle.drgb};--zone-rgb:${zoneExpStyle.rgb};">
         <span class="mk-expedition-cap">Esplorazione · <span style="color:${areaCfg.color};font-weight:700;">${areaCfg.name}</span></span>
         <span class="mk-expedition-title" style="text-shadow:${zoneExpStyle.titleGlow};">Invia Spedizione</span>
-        <span class="mk-expedition-sub">Costo: ${COIN} <b>${areaCfg.costoOro}</b> denari · <b>${areaCfg.costoPA} PA</b></span>
+        <span class="mk-expedition-sub">Costo: ${COIN} <b>${areaCfg.costoOro}</b> · <b>${areaCfg.costoPA} PA</b></span>
       </button>
     </div>
 
@@ -375,7 +375,7 @@ export function renderWorld() {
             <div class="mk-tile-cap" style="color:${meta.acc}">${meta.lbl}</div>
             <div class="mk-tile-row-head">
               <span class="mk-tile-name">${m.nome}</span>
-              ${m.denari ? `<span class="mk-chip mk-chip--gold">+${fmtDen(m.denari)} denari</span>` : `<span class="mk-log-tag">registro di viaggio</span>`}
+              ${m.denari ? `<span class="mk-chip mk-chip--gold" style="display:inline-flex;align-items:center;gap:4px;">+${fmtDen(m.denari)} ${COIN}</span>` : `<span class="mk-log-tag">registro di viaggio</span>`}
             </div>
           </div>`;
         }).join("")}</div>`
@@ -538,7 +538,7 @@ function renderBacheca(state, w) {
 
     tstatEl.innerHTML = `
     <div class="mk-vital" style="--acc:#df784b"><div class="mk-vital-cap">Scoperti</div><div class="mk-vital-val">${totalFound}</div></div>
-    <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Denari Totali</div><div class="mk-vital-val">${fmtDen(w.deniariTotaliGuadagnati)}</div></div>
+    <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">${COIN} Totali</div><div class="mk-vital-val" style="display:inline-flex;align-items:center;gap:5px;">${COIN}${fmtDen(w.deniariTotaliGuadagnati)}</div></div>
     <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${allCollectibles.length - totalFound}</div></div>`;
 
     const makeTendina = (key, num, title, subtitle, countBadge, contentHTML) => {
@@ -572,7 +572,7 @@ function renderBacheca(state, w) {
         <div class="mk-tile-name">${locked ? "Tesoro Ignoto" : t.name}</div>
         ${!locked ? treasureImgCard(t, 58) : ""}
         ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
-        <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `${t.minV}–${t.maxV} denari`}</div>
+        <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `${t.minV}–${t.maxV} ${COIN}`}</div>
       </div>`;
     }).join("");
 
@@ -596,7 +596,7 @@ function renderBacheca(state, w) {
           <div class="mk-tile-name">${locked ? "Reperto Ignoto" : m.name}</div>
           ${!locked ? treasureImgCard(m, 58) : ""}
           ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
-          <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `valore ${m.value} denari`}</div>
+          <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `valore ${m.value} ${COIN}`}</div>
         </div>`;
       }).join("");
 
@@ -693,7 +693,7 @@ function renderBacheca(state, w) {
       if (e.bonus?.velocita) bonusParts.push(`${e.bonus.velocita > 0 ? "+" : ""}${e.bonus.velocita} VEL`);
       if (e.bonus?.destrezza) bonusParts.push(`+${e.bonus.destrezza}% DES`);
       if (e.bonus?.critico) bonusParts.push(`+${e.bonus.critico}% CRT`);
-      const bonusStr = bonusParts.length ? bonusParts.slice(0, 2).join(" · ") : `Valore ${fmtDen(e.prezzo)} den`;
+      const bonusStr = bonusParts.length ? bonusParts.slice(0, 2).join(" · ") : `Valore ${fmtDen(e.prezzo)} ${COIN}`;
 
       return `
       <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;"
@@ -892,7 +892,7 @@ function renderLog(state) {
       return `
       <div class="mk-log-row" style="--acc:${meta.acc}">
         <div class="mk-log-cap">${meta.lbl} · ${formatDate(l.t)}</div>
-        <div class="mk-log-msg">${l.msg}</div>
+        <div class="mk-log-msg">${formatCoinHTML(l.msg)}</div>
       </div>`;
     }).join("") +
     `</div>`;
@@ -1021,7 +1021,7 @@ export function showTrophyDetail(questId) {
   <div class="mk mk-modal">
     <div class="mk-modal-cap">${cap}</div>
     <div class="mk-modal-title">${q.text}</div>
-    <div class="mk-note">${q.desc || ""}</div>
+    <div class="mk-note">${formatCoinHTML(q.desc || "")}</div>
 
     <div class="mk-vitals" style="margin:12px 0;">
       <div class="mk-vital" style="--acc:#df784b">
@@ -1119,7 +1119,7 @@ export function showAllAreaQuests() {
         <span class="mk-tile-big">${done ? "✦" : `${t.progress}<small>/ ${q.target}</small>`}</span>
       </div>
       <div class="mk-vital-bar mk-dur"><i style="width:${pct}%;background:${acc}"></i></div>
-      <div class="mk-tile-desc">${q.desc}</div>
+      <div class="mk-tile-desc">${formatCoinHTML(q.desc)}</div>
       ${done ? `<div class="mk-chip mk-chip--ok" style="margin:2px 0 0;">✦ Incarico Compiuto</div>` : ""}
     </div>`;
   }).join("");

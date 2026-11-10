@@ -3,10 +3,25 @@
  KAIZEN v6.0
  ============================================================ */
 
+export const COIN = `<span class="mk-coin"></span>`;
+
+export function formatCoinHTML(str) {
+ if (!str) return "";
+ return String(str)
+   .replace(/🪙\s*(?:denari|den)\b/gi, COIN)
+   .replace(/(?:denari|den)\s*🪙/gi, COIN)
+   .replace(/🪙/g, COIN)
+   .replace(/<span class="mk-coin"><\/span>\s*(?:denari|den)\b/gi, COIN)
+   .replace(/(?:denari|den)\s*<span class="mk-coin"><\/span>/gi, COIN)
+   .replace(/(\d[\d.,]*)\s*(?:denari|den)\b/gi, `$1 ${COIN}`)
+   .replace(/\bdenari\b/gi, COIN)
+   .replace(/(<span class="mk-coin"><\/span>\s*){2,}/g, `${COIN} `);
+}
+
 export function showToast(msg) {
  const t = document.getElementById("toast");
  if (!t) return;
- t.innerText = msg;
+ t.innerHTML = formatCoinHTML(msg);
  t.classList.add("show");
  clearTimeout(t._timer);
  t._timer = setTimeout(() => t.classList.remove("show"), 2800);
