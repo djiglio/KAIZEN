@@ -103,32 +103,83 @@ export function getMinsPerPA() {
 function generateEnemyEquip(enemy) {
   if (!enemy.human) return null;
   const lvl = enemy.lvl || 1;
-  const prob = Math.min(0.92, 0.45 + (lvl / 150) * 0.45);
+
+  // Tutte le probabilità aumentate del 10%
+  // Probabilità base di equipaggiare: aumento di +10% flat (+0.10, da 0.45-0.92 a 0.55-1.0)
+  const prob = Math.min(1.0, 0.55 + (lvl / 150) * 0.45);
   if (Math.random() > prob) return null;
 
-  const maxPieces = Math.min(4, 1 + Math.floor(lvl / 35));
-  const numPieces = rnd(1, maxPieces);
+  // Numero di pezzi equipaggiati: probabilità di pezzi multipli aumentata del 10%
+  let maxPieces = 1;
+  let multiPieceChance = 0.10; // +10% anche a livelli bassi (1-34) dove prima era 0%
+  if (lvl >= 105) {
+    maxPieces = 4;
+    multiPieceChance = 0.85; // prima ~75% -> ora 85% (+10%)
+  } else if (lvl >= 70) {
+    maxPieces = 3;
+    multiPieceChance = 0.77; // prima ~67% -> ora 77% (+10%)
+  } else if (lvl >= 35) {
+    maxPieces = 2;
+    multiPieceChance = 0.60; // prima 50% -> ora 60% (+10%)
+  } else {
+    maxPieces = 2;
+    multiPieceChance = 0.10; // prima 0% -> ora 10% (+10%)
+  }
+
+  let numPieces = 1;
+  if (maxPieces > 1 && Math.random() < multiPieceChance) {
+    numPieces = rnd(2, maxPieces);
+  }
+
   const slots = ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"]
     .sort(() => Math.random() - 0.5)
     .slice(0, numPieces);
 
+  // Livello dell'equipaggiamento proporzionale al livello del nemico (Tier 1 a 10)
   const eqTier = Math.max(1, Math.min(10, Math.ceil(lvl / 15)));
+
+  // Rarità proporzionale al livello del nemico:
+  // Nemici deboli hanno quasi solo comune, salendo di livello crescono magico e leggendario
+  const pLeg = Math.min(0.55, Math.max(0.01, 0.01 + ((lvl - 1) / 150) * 0.54));
+  const pMag = Math.min(0.45, Math.max(0.05, 0.05 + ((lvl - 1) / 150) * 0.40));
+
   const equip = {};
   for (const slot of slots) {
-    const basePool = EQUIPMENT_POOL.filter(e => {
-      const tierOk = e.tier === eqTier || e.tier === Math.max(1, eqTier - 1);
-      if (!tierOk) return false;
+    // Sceglie il tier proporzionato al livello (prevalentemente tier esatto, 20% tier precedente se > 1)
+    const selectedTier = (eqTier > 1 && Math.random() < 0.20) ? eqTier - 1 : eqTier;
+
+    let basePool = EQUIPMENT_POOL.filter(e => {
+      if (e.tier !== selectedTier) return false;
       if (slot === "mano_sx") {
-        // Nella mano sinistra gli umanoidi possono portare uno scudo o una seconda arma a 1 mano
         return e.slot === "mano_sx" || (e.slot === "mano_dx" && e.handType === "1h");
       }
       return e.slot === slot;
     });
+
+    if (!basePool.length) {
+      basePool = EQUIPMENT_POOL.filter(e => {
+        if (e.tier !== eqTier) return false;
+        if (slot === "mano_sx") {
+          return e.slot === "mano_sx" || (e.slot === "mano_dx" && e.handType === "1h");
+        }
+        return e.slot === slot;
+      });
+    }
     if (!basePool.length) continue;
 
-    // I nemici umanoidi portano spesso pezzi rari/magici/leggendari ("loot"), oltre a pezzi comuni
-    const lootPool = basePool.filter(e => e.fonte.includes("loot"));
-    const chosenPool = (lootPool.length > 0 && Math.random() < 0.65) ? lootPool : basePool;
+    // Estrazione rarità proporzionale al livello del nemico
+    const rRoll = Math.random();
+    let targetRarity = "comune";
+    if (rRoll < pLeg) {
+      targetRarity = "leggendario";
+    } else if (rRoll < pLeg + pMag) {
+      targetRarity = "magico";
+    } else {
+      targetRarity = "comune";
+    }
+
+    const rarityPool = basePool.filter(e => e.rarita === targetRarity);
+    const chosenPool = rarityPool.length > 0 ? rarityPool : basePool;
     equip[slot] = chosenPool[rnd(0, chosenPool.length - 1)];
   }
 
