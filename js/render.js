@@ -11,8 +11,7 @@ import { HABITS, STAT_DEFS, rankTitles,
          EQUIPMENT_POOL, AREA_LOOT_POOL,
          QUEST_POOL_EVO, QUEST_POOL_WORLD,
          titleMetalColors,
-         WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS,
-         MATERIALS, getCoatingBonus, getCoatingWearReduction } from "./data.js";
+         WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS } from "./data.js";
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
@@ -778,44 +777,7 @@ export function showEquipDetail(equipId) {
     else if (piece.slot === "braccia") typeLabel = "Bracciali";
     else if (piece.slot === "gambe") typeLabel = "Gambali";
 
-    // Verifica eventuale rivestimento attivo se indossato o nello zaino
-    const state = store.state;
-    let coatMat = null;
-    const matList = Array.isArray(MATERIALS) ? MATERIALS : [];
-    if (state?.equipment?.equipped) {
-      for (const [sKey, eqObj] of Object.entries(state.equipment.equipped)) {
-        if (eqObj && (eqObj.id === piece.id || eqObj === piece.id) && eqObj.rivestimento) {
-          coatMat = matList.find(m => m.id === eqObj.rivestimento);
-          break;
-        }
-      }
-    }
-    if (!coatMat && state?.equipment?.zaino) {
-      const zMatch = state.equipment.zaino.find(z => z.type === "equip" && z.id === piece.id && z.rivestimento);
-      if (zMatch) {
-        coatMat = matList.find(m => m.id === zMatch.rivestimento);
-      }
-    }
-
-    // Calcolo bonus totale (base + rivestimento)
-    const totalBonus = { ...(piece.bonus || {}) };
-    let coatingNote = "";
-    if (coatMat) {
-      const cBonus = typeof getCoatingBonus === "function" ? getCoatingBonus(coatMat.id, piece.slot, piece) : null;
-      const resPct = typeof getCoatingWearReduction === "function" ? Math.round(getCoatingWearReduction(coatMat.id) * 100) : 0;
-      if (cBonus) {
-        for (const [k, v] of Object.entries(cBonus)) {
-          totalBonus[k] = (totalBonus[k] || 0) + v;
-        }
-      }
-      const bonusParts = [];
-      if (cBonus) {
-        for (const [k, v] of Object.entries(cBonus)) {
-          bonusParts.push(`+${v} ${k}`);
-        }
-      }
-      coatingNote = `<div class="mk-chip mk-chip--blue" style="margin:0 auto 10px;display:inline-flex;align-items:center;gap:6px;">✦ Rivestito con <b>${coatMat.name}</b>${bonusParts.length ? ` (${bonusParts.join(", ")})` : ""}${resPct > 0 ? ` · usura -${resPct}%` : ""}</div>`;
-    }
+    const stats = piece.bonus || {};
 
     // Formattazione delle 5 categorie bonus/malus in un'unica riga
     const formatStat = (val, isPct = false, posColor = "#ece3cf") => {
@@ -827,11 +789,11 @@ export function showEquipDetail(equipId) {
       return { str: `${sign}${val}${isPct ? "%" : ""}`, color };
     };
 
-    const sAtk = formatStat(totalBonus.attacco, false, "#e0533d");
-    const sDef = formatStat(totalBonus.difesa, false, "#4ecca3");
-    const sVel = formatStat(totalBonus.velocita, false, "#5fb8ec");
-    const sDes = formatStat(totalBonus.destrezza, true, "#d4a017");
-    const sCrt = formatStat(totalBonus.critico, true, "#f0903f");
+    const sAtk = formatStat(stats.attacco, false, "#e0533d");
+    const sDef = formatStat(stats.difesa, false, "#4ecca3");
+    const sVel = formatStat(stats.velocita, false, "#5fb8ec");
+    const sDes = formatStat(stats.destrezza, true, "#d4a017");
+    const sCrt = formatStat(stats.critico, true, "#f0903f");
 
     const rarityColors = { comune: "#8b7b5c", magico: "#4a70b0", leggendario: "var(--gold-light)" };
     const rAcc = rarityColors[piece.rarita] || "#8b7b5c";
@@ -846,28 +808,26 @@ export function showEquipDetail(equipId) {
         ${equipImgHTML(piece, "100%", "auto", renderEquipIconHTML(piece, "", 96))}
       </div>
 
-      ${coatingNote}
-
-      <!-- In fondo: Tutte le categorie bonus/malus in un'unica riga a 5 colonne -->
+      <!-- In fondo: Tutte le categorie bonus/malus in un'unica riga a 5 colonne con abbreviazioni -->
       <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:4px;margin:8px 0 6px;">
         <div class="mk-vital" style="--acc:#e0533d;padding:5px 2px 6px;">
-          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">ATTACCO</div>
+          <div class="mk-vital-cap" style="font-size:8px;letter-spacing:1px;text-indent:0;">FOR</div>
           <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sAtk.color}">${sAtk.str}</div>
         </div>
         <div class="mk-vital" style="--acc:#4ecca3;padding:5px 2px 6px;">
-          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DIFESA</div>
+          <div class="mk-vital-cap" style="font-size:8px;letter-spacing:1px;text-indent:0;">DIF</div>
           <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDef.color}">${sDef.str}</div>
         </div>
         <div class="mk-vital" style="--acc:#5fb8ec;padding:5px 2px 6px;">
-          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">VELOCITÀ</div>
+          <div class="mk-vital-cap" style="font-size:8px;letter-spacing:1px;text-indent:0;">VEL</div>
           <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sVel.color}">${sVel.str}</div>
         </div>
         <div class="mk-vital" style="--acc:#d4a017;padding:5px 2px 6px;">
-          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DESTREZZA</div>
+          <div class="mk-vital-cap" style="font-size:8px;letter-spacing:1px;text-indent:0;">DES</div>
           <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDes.color}">${sDes.str}</div>
         </div>
         <div class="mk-vital" style="--acc:#f0903f;padding:5px 2px 6px;">
-          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">CRITICO</div>
+          <div class="mk-vital-cap" style="font-size:8px;letter-spacing:1px;text-indent:0;">CRI</div>
           <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sCrt.color}">${sCrt.str}</div>
         </div>
       </div>
