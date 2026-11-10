@@ -11,7 +11,8 @@ import { HABITS, STAT_DEFS, rankTitles,
          EQUIPMENT_POOL, AREA_LOOT_POOL,
          QUEST_POOL_EVO, QUEST_POOL_WORLD,
          titleMetalColors,
-         WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS } from "./data.js";
+         WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS,
+         MATERIALS, getCoatingBonus, getCoatingWearReduction } from "./data.js";
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
@@ -762,107 +763,139 @@ export function toggleAllArmory(open) {
 }
 
 export function showEquipDetail(equipId) {
-  const piece = EQUIPMENT_POOL.find(e => e.id === equipId);
-  if (!piece) return;
+  try {
+    const piece = typeof equipId === "string" ? EQUIPMENT_POOL.find(e => e.id === equipId) : equipId;
+    if (!piece) return;
 
-  const box = document.getElementById("detail-modal-box");
-  if (!box) return;
-  document.getElementById("detail-modal").classList.add("show");
+    const box = document.getElementById("detail-modal-box");
+    if (!box) return;
 
-  let typeLabel = "";
-  if (piece.slot === "mano_dx") typeLabel = piece.handType === "2h" ? "Arma a 2 Mani" : "Arma a 1 Mano";
-  else if (piece.slot === "mano_sx") typeLabel = piece.handType === "shield" ? "Scudo" : "Arma Secondaria";
-  else if (piece.slot === "testa") typeLabel = "Elmo";
-  else if (piece.slot === "torace") typeLabel = "Corazza";
-  else if (piece.slot === "braccia") typeLabel = "Bracciali";
-  else if (piece.slot === "gambe") typeLabel = "Gambali";
+    let typeLabel = "";
+    if (piece.slot === "mano_dx") typeLabel = piece.handType === "2h" ? "Arma a 2 Mani" : "Arma a 1 Mano";
+    else if (piece.slot === "mano_sx") typeLabel = piece.handType === "shield" ? "Scudo" : "Arma Secondaria";
+    else if (piece.slot === "testa") typeLabel = "Elmo";
+    else if (piece.slot === "torace") typeLabel = "Corazza";
+    else if (piece.slot === "braccia") typeLabel = "Bracciali";
+    else if (piece.slot === "gambe") typeLabel = "Gambali";
 
-  // Formattazione delle 5 categorie bonus/malus in un'unica riga
-  const formatStat = (val, isPct = false, posColor = "#ece3cf") => {
-    if (val === undefined || val === null || val === 0) {
-      return { str: "—", color: "#64748b" };
-    }
-    const sign = val > 0 ? "+" : "";
-    const color = val > 0 ? posColor : "#e0533d";
-    return { str: `${sign}${val}${isPct ? "%" : ""}`, color };
-  };
-
-  const sAtk = formatStat(piece.bonus?.attacco, false, "#e0533d");
-  const sDef = formatStat(piece.bonus?.difesa, false, "#4ecca3");
-  const sVel = formatStat(piece.bonus?.velocita, false, "#5fb8ec");
-  const sDes = formatStat(piece.bonus?.destrezza, true, "#d4a017");
-  const sCrt = formatStat(piece.bonus?.critico, true, "#f0903f");
-
-  const rarityColors = { comune: "#8b7b5c", magico: "#4a70b0", leggendario: "var(--gold-light)" };
-  const rAcc = rarityColors[piece.rarita] || "#8b7b5c";
-
-  // Verifica eventuale rivestimento attivo se indossato
-  const state = store.state;
-  let coatMat = null;
-  if (state?.equipment?.equipped) {
-    for (const [sKey, eqObj] of Object.entries(state.equipment.equipped)) {
-      if (eqObj && (eqObj.id === piece.id || eqObj === piece.id) && eqObj.rivestimento) {
-        coatMat = MATERIALS.find(m => m.id === eqObj.rivestimento);
-        break;
+    // Verifica eventuale rivestimento attivo se indossato o nello zaino
+    const state = store.state;
+    let coatMat = null;
+    const matList = Array.isArray(MATERIALS) ? MATERIALS : [];
+    if (state?.equipment?.equipped) {
+      for (const [sKey, eqObj] of Object.entries(state.equipment.equipped)) {
+        if (eqObj && (eqObj.id === piece.id || eqObj === piece.id) && eqObj.rivestimento) {
+          coatMat = matList.find(m => m.id === eqObj.rivestimento);
+          break;
+        }
       }
     }
+    if (!coatMat && state?.equipment?.zaino) {
+      const zMatch = state.equipment.zaino.find(z => z.type === "equip" && z.id === piece.id && z.rivestimento);
+      if (zMatch) {
+        coatMat = matList.find(m => m.id === zMatch.rivestimento);
+      }
+    }
+
+    // Calcolo bonus totale (base + rivestimento)
+    const totalBonus = { ...(piece.bonus || {}) };
+    let coatingNote = "";
+    if (coatMat) {
+      const cBonus = typeof getCoatingBonus === "function" ? getCoatingBonus(coatMat.id, piece.slot, piece) : null;
+      const resPct = typeof getCoatingWearReduction === "function" ? Math.round(getCoatingWearReduction(coatMat.id) * 100) : 0;
+      if (cBonus) {
+        for (const [k, v] of Object.entries(cBonus)) {
+          totalBonus[k] = (totalBonus[k] || 0) + v;
+        }
+      }
+      const bonusParts = [];
+      if (cBonus) {
+        for (const [k, v] of Object.entries(cBonus)) {
+          bonusParts.push(`+${v} ${k}`);
+        }
+      }
+      coatingNote = `<div class="mk-chip mk-chip--blue" style="margin:0 auto 10px;display:inline-flex;align-items:center;gap:6px;">✦ Rivestito con <b>${coatMat.name}</b>${bonusParts.length ? ` (${bonusParts.join(", ")})` : ""}${resPct > 0 ? ` · usura -${resPct}%` : ""}</div>`;
+    }
+
+    // Formattazione delle 5 categorie bonus/malus in un'unica riga
+    const formatStat = (val, isPct = false, posColor = "#ece3cf") => {
+      if (val === undefined || val === null || val === 0) {
+        return { str: "—", color: "#64748b" };
+      }
+      const sign = val > 0 ? "+" : "";
+      const color = val > 0 ? posColor : "#e0533d";
+      return { str: `${sign}${val}${isPct ? "%" : ""}`, color };
+    };
+
+    const sAtk = formatStat(totalBonus.attacco, false, "#e0533d");
+    const sDef = formatStat(totalBonus.difesa, false, "#4ecca3");
+    const sVel = formatStat(totalBonus.velocita, false, "#5fb8ec");
+    const sDes = formatStat(totalBonus.destrezza, true, "#d4a017");
+    const sCrt = formatStat(totalBonus.critico, true, "#f0903f");
+
+    const rarityColors = { comune: "#8b7b5c", magico: "#4a70b0", leggendario: "var(--gold-light)" };
+    const rAcc = rarityColors[piece.rarita] || "#8b7b5c";
+
+    box.innerHTML = `
+    <div class="mk mk-modal">
+      <div class="mk-modal-cap">Dotazione · Grado ${roman(piece.tier)} · ${typeLabel}</div>
+      <div class="mk-modal-title" style="color:${piece.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'};margin:2px 0 4px;">${piece.name}</div>
+      ${piece.desc ? `<div class="mk-note" style="margin:4px 0 10px;font-style:italic;line-height:1.45;color:#c5b8a5;">${piece.desc}</div>` : ""}
+
+      <div style="margin:8px auto 12px;display:flex;justify-content:center;align-items:center;width:100%;max-width:230px;min-height:180px;">
+        ${equipImgHTML(piece, "100%", "auto", renderEquipIconHTML(piece, "", 96))}
+      </div>
+
+      ${coatingNote}
+
+      <!-- In fondo: Tutte le categorie bonus/malus in un'unica riga a 5 colonne -->
+      <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:4px;margin:8px 0 6px;">
+        <div class="mk-vital" style="--acc:#e0533d;padding:5px 2px 6px;">
+          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">ATTACCO</div>
+          <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sAtk.color}">${sAtk.str}</div>
+        </div>
+        <div class="mk-vital" style="--acc:#4ecca3;padding:5px 2px 6px;">
+          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DIFESA</div>
+          <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDef.color}">${sDef.str}</div>
+        </div>
+        <div class="mk-vital" style="--acc:#5fb8ec;padding:5px 2px 6px;">
+          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">VELOCITÀ</div>
+          <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sVel.color}">${sVel.str}</div>
+        </div>
+        <div class="mk-vital" style="--acc:#d4a017;padding:5px 2px 6px;">
+          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DESTREZZA</div>
+          <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDes.color}">${sDes.str}</div>
+        </div>
+        <div class="mk-vital" style="--acc:#f0903f;padding:5px 2px 6px;">
+          <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">CRITICO</div>
+          <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sCrt.color}">${sCrt.str}</div>
+        </div>
+      </div>
+
+      <!-- Sotto: Valore Forgia e Rarità -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 12px;">
+        <div class="mk-vital" style="--acc:var(--gold);padding:7px 8px 8px;">
+          <div class="mk-vital-cap" style="font-size:7px;letter-spacing:1.5px;">VALORE FORGIA</div>
+          <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:6px;font-size:15px;margin-top:2px;">
+            ${COIN} ${fmtDen(piece.prezzo)}
+          </div>
+        </div>
+        <div class="mk-vital" style="--acc:${rAcc};padding:7px 8px 8px;">
+          <div class="mk-vital-cap" style="font-size:7px;letter-spacing:1.5px;">RARITÀ</div>
+          <div class="mk-vital-val" style="color:${rAcc};text-transform:uppercase;font-size:15px;margin-top:2px;">
+            ${piece.rarita}
+          </div>
+        </div>
+      </div>
+
+      <button class="modal-close-btn" style="margin-top:4px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
+    </div>`;
+
+    document.getElementById("detail-modal").classList.add("show");
+    resolveImgs();
+  } catch (err) {
+    console.error("Error in showEquipDetail:", err);
   }
-
-  box.innerHTML = `
-  <div class="mk mk-modal">
-    <div class="mk-modal-cap">Dotazione · Grado ${roman(piece.tier)} · ${typeLabel}</div>
-    <div class="mk-modal-title" style="color:${piece.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'};margin:2px 0 4px;">${piece.name}</div>
-    ${piece.desc ? `<div class="mk-note" style="margin:4px 0 10px;font-style:italic;line-height:1.45;color:#c5b8a5;">${piece.desc}</div>` : ""}
-
-    <div style="margin:8px auto 12px;display:flex;justify-content:center;align-items:center;width:100%;max-width:230px;min-height:180px;">
-      ${equipImgHTML(piece, "100%", "auto", renderEquipIconHTML(piece, "", 96))}
-    </div>
-
-    ${coatMat ? `<div class="mk-chip mk-chip--blue" style="margin:0 auto 10px;display:inline-flex;align-items:center;gap:6px;">✦ Rivestito con ${coatMat.name}</div>` : ""}
-
-    <!-- In fondo: Tutte le categorie bonus/malus in un'unica riga a 5 colonne -->
-    <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:4px;margin:8px 0 6px;">
-      <div class="mk-vital" style="--acc:#e0533d;padding:5px 2px 6px;">
-        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">ATTACCO</div>
-        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sAtk.color}">${sAtk.str}</div>
-      </div>
-      <div class="mk-vital" style="--acc:#4ecca3;padding:5px 2px 6px;">
-        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DIFESA</div>
-        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDef.color}">${sDef.str}</div>
-      </div>
-      <div class="mk-vital" style="--acc:#5fb8ec;padding:5px 2px 6px;">
-        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">VELOCITÀ</div>
-        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sVel.color}">${sVel.str}</div>
-      </div>
-      <div class="mk-vital" style="--acc:#d4a017;padding:5px 2px 6px;">
-        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">DESTREZZA</div>
-        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sDes.color}">${sDes.str}</div>
-      </div>
-      <div class="mk-vital" style="--acc:#f0903f;padding:5px 2px 6px;">
-        <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">CRITICO</div>
-        <div class="mk-vital-val" style="font-size:13.5px;margin-top:2px;color:${sCrt.color}">${sCrt.str}</div>
-      </div>
-    </div>
-
-    <!-- Sotto: Valore Forgia e Rarità -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 12px;">
-      <div class="mk-vital" style="--acc:var(--gold);padding:7px 8px 8px;">
-        <div class="mk-vital-cap" style="font-size:7px;letter-spacing:1.5px;">VALORE FORGIA</div>
-        <div class="mk-vital-val" style="color:var(--gold-light);display:inline-flex;align-items:center;gap:6px;font-size:15px;margin-top:2px;">
-          ${COIN} ${fmtDen(piece.prezzo)}
-        </div>
-      </div>
-      <div class="mk-vital" style="--acc:${rAcc};padding:7px 8px 8px;">
-        <div class="mk-vital-cap" style="font-size:7px;letter-spacing:1.5px;">RARITÀ</div>
-        <div class="mk-vital-val" style="color:${rAcc};text-transform:uppercase;font-size:15px;margin-top:2px;">
-          ${piece.rarita}
-        </div>
-      </div>
-    </div>
-
-    <button class="modal-close-btn" style="margin-top:4px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
-  </div>`;
-  resolveImgs();
 }
 
 export function showArmoryDetail(equipId) {
