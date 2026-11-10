@@ -1194,6 +1194,21 @@ body::before {
 .eq-card-main { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 8px; }
 .eq-icon { flex-shrink: 0; width: 44px; height: 44px; background-color: var(--icon-color, #cbd5e1); -webkit-mask-image: var(--icon-mask); mask-image: var(--icon-mask); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; filter: var(--icon-glow, none); display: block; }
 .eq-icon-box { display: contents; }
+.eq-icon-wrap {
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform .18s cubic-bezier(0.4, 0, 0.2, 1), filter .18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.eq-icon-wrap:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 6px rgba(212, 160, 23, 0.6));
+}
+.eq-icon-wrap:active {
+  transform: scale(0.95);
+}
 .eq-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .eq-row-1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; width: 100%; }
 .eq-name { font-family: "Cinzel", serif; font-size: 12.5px; font-weight: 700; color: #f0e6d2; line-height: 1.2; flex: 1 1 auto; min-width: 0; }

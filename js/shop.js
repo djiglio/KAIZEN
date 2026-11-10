@@ -498,7 +498,9 @@ function renderEquipCardMainHTML({ piece, dur = 100, coatMat = null, slotKey = n
 
   return `
   <div class="eq-card-main">
-    ${renderEquipIconHTML(piece, `${typeLabel} · ${rar.lbl} (Grado ${roman(piece.tier)})`)}
+    <div class="eq-icon-wrap" onclick="event.stopPropagation();window.__kaizen.showEquipDetail('${piece.id}')" title="Dettagli ${piece.name}">
+      ${renderEquipIconHTML(piece, `${typeLabel} · ${rar.lbl} (Grado ${roman(piece.tier)})`)}
+    </div>
     <div class="eq-body">
       <div class="eq-row-1">
         <span class="eq-name">${piece.name}</span>
@@ -814,7 +816,9 @@ export function renderShop() {
     return `
     <div class="mk-tile eq-card" style="--acc:${meta.acc}">
       <div class="eq-card-main">
-        ${renderEquipIconHTML(e, `${e.name} · Grado ${roman(e.tier)}`)}
+        <div class="eq-icon-wrap" onclick="event.stopPropagation();window.__kaizen.showEquipDetail('${e.id}')" title="Dettagli ${e.name}">
+          ${renderEquipIconHTML(e, `${e.name} · Grado ${roman(e.tier)}`)}
+        </div>
         <div class="eq-body">
           <div class="eq-row-1">
             <span class="eq-name">${e.name}${statusTag}</span>
@@ -864,7 +868,12 @@ export function renderShop() {
     return `
     <div class="mk-tile ${mat ? "is-coated" : ""}" style="--acc:#6cc4ef">
       <div class="mk-tile-cap">${SLOT_NAMES[slot] || slot} · Grado ${roman(piece.tier)}</div>
-      <div class="mk-tile-name">${piece.name}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin:3px 0 5px;">
+        <div class="eq-icon-wrap" onclick="event.stopPropagation();window.__kaizen.showEquipDetail('${piece.id}')" title="Dettagli ${piece.name}">
+          ${renderEquipIconHTML(piece, piece.name, 38)}
+        </div>
+        <div class="mk-tile-name" style="margin:0;">${piece.name}</div>
+      </div>
       ${coatHTML}
       <button class="mk-price mk-price--blue" onclick="window.__kaizen.openCoatingModal('${slot}')">
         <span class="mk-price-row">${mat ? "Cambia rivestimento" : "Rivesti"}</span>
@@ -880,7 +889,12 @@ export function renderShop() {
     return `
     <div class="mk-tile ${can ? "" : "is-off"}" style="--acc:${acc}">
       <div class="mk-tile-cap">${SLOT_NAMES[slot] || slot}</div>
-      <div class="mk-tile-name">${piece.name}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin:3px 0 5px;">
+        <div class="eq-icon-wrap" onclick="event.stopPropagation();window.__kaizen.showEquipDetail('${piece.id}')" title="Dettagli ${piece.name}">
+          ${renderEquipIconHTML(piece, piece.name, 38)}
+        </div>
+        <div class="mk-tile-name" style="margin:0;">${piece.name}</div>
+      </div>
       <div class="mk-tile-big">${dur}<small>%</small></div>
       <div class="mk-vital-bar mk-dur"><i style="width:${dur}%"></i></div>
       ${mkPriceBtn({ price: cost, base: baseCost, can, label: "Ripara", onclick: `window.__kaizen.repairItem('${slot}')`, missing: `mancano ${fmtDen(cost - w.denari)}` })}

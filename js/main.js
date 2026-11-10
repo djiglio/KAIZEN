@@ -23,6 +23,7 @@ import {
   toggleAllTreasures,
   toggleAllArmory,
   showArmoryDetail,
+  showEquipDetail,
   closeDetailModal,
   showAllAreaQuests
 } from "./render.js";
@@ -113,11 +114,12 @@ window.__kaizen = {
   repairItem,
   openCoatingModal,
   applyCoating,
-  // Bacheca modals
+  // Bacheca & Equip modals
   showBestiaryDetail,
   showAllAreaQuests,
   showTreasureDetail,
   showArmoryDetail,
+  showEquipDetail,
   showTrophyDetail,
   showRankDetail,
   toggleAllTreasures,

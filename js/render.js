@@ -761,12 +761,9 @@ export function toggleAllArmory(open) {
   });
 }
 
-export function showArmoryDetail(equipId) {
+export function showEquipDetail(equipId) {
   const piece = EQUIPMENT_POOL.find(e => e.id === equipId);
   if (!piece) return;
-  const state = store.state;
-  const unlocked = !!(state.equipment?.scoperti?.[equipId]);
-  if (!unlocked) return;
 
   const box = document.getElementById("detail-modal-box");
   if (!box) return;
@@ -799,17 +796,31 @@ export function showArmoryDetail(equipId) {
   const rarityColors = { comune: "#8b7b5c", magico: "#4a70b0", leggendario: "var(--gold-light)" };
   const rAcc = rarityColors[piece.rarita] || "#8b7b5c";
 
+  // Verifica eventuale rivestimento attivo se indossato
+  const state = store.state;
+  let coatMat = null;
+  if (state?.equipment?.equipped) {
+    for (const [sKey, eqObj] of Object.entries(state.equipment.equipped)) {
+      if (eqObj && (eqObj.id === piece.id || eqObj === piece.id) && eqObj.rivestimento) {
+        coatMat = MATERIALS.find(m => m.id === eqObj.rivestimento);
+        break;
+      }
+    }
+  }
+
   box.innerHTML = `
   <div class="mk mk-modal">
-    <div class="mk-modal-cap">Armeria · Grado ${roman(piece.tier)} · ${typeLabel}</div>
-    <div class="mk-modal-title" style="color:${piece.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'}">${piece.name}</div>
-    ${piece.desc ? `<div class="mk-note" style="margin-bottom:8px;">${piece.desc}</div>` : ""}
+    <div class="mk-modal-cap">Dotazione · Grado ${roman(piece.tier)} · ${typeLabel}</div>
+    <div class="mk-modal-title" style="color:${piece.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'};margin:2px 0 4px;">${piece.name}</div>
+    ${piece.desc ? `<div class="mk-note" style="margin:4px 0 10px;font-style:italic;line-height:1.45;color:#c5b8a5;">${piece.desc}</div>` : ""}
 
-    <div style="margin:6px auto 10px;display:flex;justify-content:center;width:100%;max-width:220px;">
+    <div style="margin:8px auto 12px;display:flex;justify-content:center;align-items:center;width:100%;max-width:230px;min-height:180px;">
       ${equipImgHTML(piece, "100%", "auto", renderEquipIconHTML(piece, "", 96))}
     </div>
 
-    <!-- Tutte le categorie bonus/malus in un'unica riga a 5 colonne -->
+    ${coatMat ? `<div class="mk-chip mk-chip--blue" style="margin:0 auto 10px;display:inline-flex;align-items:center;gap:6px;">✦ Rivestito con ${coatMat.name}</div>` : ""}
+
+    <!-- In fondo: Tutte le categorie bonus/malus in un'unica riga a 5 colonne -->
     <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:4px;margin:8px 0 6px;">
       <div class="mk-vital" style="--acc:#e0533d;padding:5px 2px 6px;">
         <div class="mk-vital-cap" style="font-size:6.5px;letter-spacing:.8px;text-indent:0;">ATTACCO</div>
@@ -852,6 +863,13 @@ export function showArmoryDetail(equipId) {
     <button class="modal-close-btn" style="margin-top:4px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
   </div>`;
   resolveImgs();
+}
+
+export function showArmoryDetail(equipId) {
+  const state = store.state;
+  const unlocked = !!(state.equipment?.scoperti?.[equipId]);
+  if (!unlocked) return;
+  showEquipDetail(equipId);
 }
 
 export function toggleAllTreasures(open) {
