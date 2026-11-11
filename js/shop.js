@@ -757,7 +757,7 @@ export function renderShop() {
   <div class="mk-group">Energia</div>
   <div class="mk-grid">${paPotions.map(potionTile).join("")}</div>`;
 
-  /* ── II · Fabbro: Costruzione Armi e Armature ── */
+  /* ── II · Armeria ── */
   const shopEquip = EQUIPMENT_POOL.filter(e => e.fonte.includes("fabbro") || e.fonte.includes("negozio"));
   const tabDefs = [
     ["testa",   "Testa"],
@@ -915,7 +915,7 @@ export function renderShop() {
   <div class="mk">
     ${purseHTML}
     ${mkShopHTML("erborista", "I", "Erborista", "pozioni, tinture e rimedi", erboristaHTML)}
-    ${mkShopHTML("armaiolo", "II", "Fabbro · Costruzione", "armi e armature forgiate con materiali", armaioloHTML)}
+    ${mkShopHTML("armaiolo", "II", "Armeria", "armi e armature forgiate con materiali", armaioloHTML)}
     ${mkShopHTML("fabbro", "III", "Forgia & Riparazioni", "rivestimenti e manutenzione dotazione", fabbroHTML)}
   </div>`;
 
