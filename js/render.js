@@ -315,7 +315,31 @@ export function renderWorld() {
     const rem = typeof activeRelicEntry.remaining === "number" ? activeRelicEntry.remaining : 5;
     const relName = relData ? relData.name : (activeRelicEntry.name || "Reliquia");
     hasActiveRelic = true;
-    relicBoxText = `${relName} - ${rem} ${rem === 1 ? "missione" : "missioni"}`;
+
+    // Abbreviazione statistica bonus (es: +30% ATT)
+    const statAbbrMap = {
+      forza: "ATT",
+      attacco: "ATT",
+      difesa: "DIF",
+      velocita: "VEL",
+      destrezza: "DES",
+      critico: "CRI",
+      costituzione: "COS",
+      furtivita: "FUR",
+      fortuna: "LUC",
+      guarigione: "GUA",
+      sopravvivenza: "SOP",
+      pianificazione: "PIA",
+      carisma: "CAR",
+    };
+    let bonusTag = "";
+    if (relData && typeof relData.bonus === "number") {
+      const pct = Math.round(relData.bonus * 100);
+      const sAbbr = statAbbrMap[relData.stat] || (relData.stat ? relData.stat.slice(0, 3).toUpperCase() : "");
+      bonusTag = ` (+${pct}% ${sAbbr})`;
+    }
+
+    relicBoxText = `${relName}${bonusTag} - ${rem} ${rem === 1 ? "missione" : "missioni"}`;
   }
 
   elStatus.innerHTML = `
