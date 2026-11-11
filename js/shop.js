@@ -710,7 +710,6 @@ export function renderShop() {
   <div class="mk-purse">
     <div class="mk-purse-cap">La tua borsa</div>
     <div class="mk-purse-val">${COIN}${fmtDen(w.denari)}</div>
-    <div class="mk-purse-sub">${COIN} sonanti</div>
     ${disc > 0 ? `<div class="mk-stamp">Carisma<b>−${Math.round(disc * 100) / 100}%</b></div>` : ""}
   </div>`;
 
