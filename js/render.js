@@ -303,6 +303,21 @@ export function renderWorld() {
   const paPct = Math.min(100, Math.round(w.paAttuali / heroS.paMax * 100));
   const zoneExpStyle = getZoneExpeditionStyle(areaCfg.color);
 
+  // Reliquia attiva per Mondo Esterno
+  const now = Date.now();
+  const activeRelicEntry = (w.reliquieAttive || []).find(ra =>
+    ra && (typeof ra.remaining === "number" ? ra.remaining > 0 : (ra.expiry && now < ra.expiry))
+  );
+  let relicBoxText = "nessuna reliquia attiva";
+  let hasActiveRelic = false;
+  if (activeRelicEntry) {
+    const relData = RELICS.find(r => r.id === activeRelicEntry.id);
+    const rem = typeof activeRelicEntry.remaining === "number" ? activeRelicEntry.remaining : 5;
+    const relName = relData ? relData.name : (activeRelicEntry.name || "Reliquia");
+    hasActiveRelic = true;
+    relicBoxText = `${relName} - ${rem} ${rem === 1 ? "missione" : "missioni"}`;
+  }
+
   elStatus.innerHTML = `
   <div class="mk">
     <div class="mk-group" style="margin-top:0">Atlante delle Regioni</div>
@@ -335,6 +350,9 @@ export function renderWorld() {
     ${empireoPanel}
 
     <div style="margin:14px 0 18px;">
+      <div class="mk-expedition-relic ${hasActiveRelic ? "is-active" : ""}">
+        ${relicBoxText}
+      </div>
       <button class="mk-expedition" onclick="window.__kaizen.runMission()"
         style="background:${zoneExpStyle.bg};border-color:${zoneExpStyle.border};box-shadow:${zoneExpStyle.shadow};--zone-drgb:${zoneExpStyle.drgb};--zone-rgb:${zoneExpStyle.rgb};">
         <span class="mk-expedition-cap">Esplorazione · <span style="color:${areaCfg.color};font-weight:700;">${areaCfg.name}</span></span>

@@ -1637,6 +1637,30 @@ body::before {
   font-size: 10.5px;
 }
 
+/* Riquadro reliquia attiva sopra Invia Spedizione */
+.mk-expedition-relic {
+  width: 100%;
+  text-align: center;
+  padding: 8px 12px;
+  margin-bottom: 9px;
+  border-radius: 3px;
+  background: rgba(15, 13, 10, .6);
+  border: 1px solid rgba(85, 74, 62, .45);
+  color: #8b7b68;
+  font-family: "Cinzel", serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+  transition: all .2s;
+}
+.mk-expedition-relic.is-active {
+  background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(167, 139, 250, .18), rgba(20, 16, 28, .8)), rgba(15, 13, 10, .85);
+  border: 1px solid rgba(167, 139, 250, .55);
+  color: #ede0cf;
+  box-shadow: 0 0 12px rgba(167, 139, 250, .15);
+}
+
 /* Pulsante Spedizione / Largo */
 .mk-expedition { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px;
   padding: 15px 14px; background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(var(--zone-drgb, 140, 55, 25), .32), rgba(var(--zone-drgb, 140, 55, 25), .08)), rgba(15, 13, 10, .85);
@@ -2186,6 +2210,6 @@ body::before {
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
 
-<script type="module" src="js/main.js?v=7.06"></script>
+<script type="module" src="js/main.js?v=7.15"></script>
 </body>
 </html>
