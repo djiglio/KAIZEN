@@ -770,21 +770,12 @@ function renderBacheca(state, w) {
       else if (e.slot === "braccia") typeLabel = "Bracciali";
       else if (e.slot === "gambe") typeLabel = "Gambali";
 
-      const bonusParts = [];
-      if (e.bonus?.attacco) bonusParts.push(`+${e.bonus.attacco} ATK`);
-      if (e.bonus?.difesa) bonusParts.push(`+${e.bonus.difesa} DEF`);
-      if (e.bonus?.velocita) bonusParts.push(`${e.bonus.velocita > 0 ? "+" : ""}${e.bonus.velocita} VEL`);
-      if (e.bonus?.destrezza) bonusParts.push(`+${e.bonus.destrezza}% DES`);
-      if (e.bonus?.critico) bonusParts.push(`+${e.bonus.critico}% CRT`);
-      const bonusStr = bonusParts.length ? bonusParts.slice(0, 2).join(" · ") : `Valore ${fmtDen(e.prezzo)} ${COIN}`;
-
       return `
-      <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;"
+      <div class="mk-tile" style="--acc:${acc};padding-bottom:10px;cursor:pointer;"
            onclick="window.__kaizen.showArmoryDetail('${e.id}')">
         <div class="mk-tile-cap">Grado ${roman(e.tier)} · ${typeLabel}</div>
         <div class="mk-tile-name" style="min-height:2.2em;color:${e.rarita === 'leggendario' ? 'var(--gold-light)' : '#e6ded1'}">${e.name}</div>
-        <div style="margin:4px auto 6px;">${renderEquipIconHTML(e, "", 58)}</div>
-        <div class="mk-tile-desc" style="margin-bottom:0;font-size:11px;color:#d0c4b2;">${bonusStr}</div>
+        <div style="margin:6px auto 2px;">${renderEquipIconHTML(e, "", 74)}</div>
       </div>`;
     };
 
