@@ -151,8 +151,8 @@ export function failDisciplina() {
  if (state.disciplina.failedDate === today) return;
  state.disciplina.failedDate = today;
 
- showToast("✕ Disciplina mancata — effetto attivo da domani");
- addHistory("✕ DISCIPLINA mancata oggi (effetto attivo da domani)", "habit");
+ showToast("✕ Disciplina mancata");
+ addHistory("✕ DISCIPLINA mancata", "habit");
  if (state.history.length > 200) state.history = state.history.slice(0, 200);
  save();
 
@@ -370,8 +370,8 @@ export function checkAllWorldComplete() {
     for (const hd of HABITS) {
       if (state.habits[hd.id]) state.habits[hd.id].xp += 20;
     }
-    addHistory(" TUTTE LE QUEST MONDO COMPLETATE! +20 XP", "quest");
-    showToast(" Tutte le Quest Mondo! +20 XP");
+    addHistory(" TUTTE LE QUEST MONDO ESTERNO COMPLETATE! +20 XP", "quest");
+    showToast(" Tutte le Quest Mondo Esterno! +20 XP");
   }
 }
 
@@ -393,8 +393,8 @@ function grantQuestReward(q, type) {
   // +50 denari
   state.world.denari += 50;
 
-  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP +50 ${COIN}`, "quest");
-  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP +50 ${COIN}`);
+  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP, +50 ${COIN}`, "quest");
+  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP, +50 ${COIN}`);
 }
 
 /* ── Aggiorna progresso quest mondo esterno ── */
