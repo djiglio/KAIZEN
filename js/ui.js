@@ -71,21 +71,25 @@ export function createParticles() {
  }
 }
 
-export function ensureHeroSparks() {
- const container = document.getElementById("hero-sparks");
+function populateSparkLayer(container, count) {
  if (!container || container.childElementCount > 0) return;
- for (let i = 0; i < 26; i++) {
+ for (let i = 0; i < count; i++) {
   const s = document.createElement("div");
   s.className = "hero-spark";
   s.style.left = (4 + Math.random() * 92).toFixed(2) + "%";
   s.style.setProperty("--spark-size", (2.2 + Math.random() * 3.0).toFixed(2) + "px");
-  s.style.setProperty("--spark-dur", (2.2 + Math.random() * 2.8).toFixed(2) + "s");
-  s.style.setProperty("--spark-delay", (-Math.random() * 5).toFixed(2) + "s");
+  s.style.setProperty("--spark-dur", (4.4 + Math.random() * 5.6).toFixed(2) + "s");
+  s.style.setProperty("--spark-delay", (-Math.random() * 10).toFixed(2) + "s");
   s.style.setProperty("--drift", ((Math.random() - 0.5) * 36).toFixed(1) + "px");
   s.style.setProperty("--spark-alpha", (0.65 + Math.random() * 0.35).toFixed(2));
   s.style.setProperty("--spark-rest-y", (12 + Math.random() * 76).toFixed(1) + "%");
   container.appendChild(s);
  }
+}
+
+export function ensureHeroSparks() {
+ populateSparkLayer(document.getElementById("hero-sparks"), 20);
+ populateSparkLayer(document.getElementById("hero-sparks-front"), 8);
 }
 
 /** Mostra/nasconde una modal generica */

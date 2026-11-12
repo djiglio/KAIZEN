@@ -203,7 +203,11 @@ body::before {
   translate: 0px 0px;
   scale: 1;
   will-change: translate, scale, opacity;
-  animation: heroSparkRise var(--spark-dur, 3.6s) linear var(--spark-delay, 0s) infinite;
+  animation: heroSparkRise var(--spark-dur, 7.2s) linear var(--spark-delay, 0s) infinite;
+}
+
+.hero-sparks--front {
+  z-index: 2;
 }
 
 #avatar-viewport-inner {
@@ -2048,6 +2052,7 @@ body::before {
     <div id="hero-avatar-stage" class="hero-avatar-stage">
       <div id="hero-sparks" class="hero-sparks" aria-hidden="true"></div>
       <div id="avatar-viewport-inner"></div>
+      <div id="hero-sparks-front" class="hero-sparks hero-sparks--front" aria-hidden="true"></div>
     </div>
   </div>
 
