@@ -502,16 +502,6 @@ function renderBacheca(state, w) {
 
   // ── Bestiario ──
   const seenIds = new Set([...Object.keys(w.nemiciIncontrati || {}), ...Object.keys(w.nemiciAbbattuti || {})]);
-  const nKills = Object.values(w.nemiciAbbattuti || {}).reduce((a, b) => a + b, 0);
-
-  const bestStatEl = document.getElementById("bestiary-stats");
-  if (bestStatEl) {
-    bestStatEl.innerHTML = `
-    <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Incontrati</div><div class="mk-vital-val">${seenIds.size}</div></div>
-    <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Abbattuti</div><div class="mk-vital-val">${nKills}</div></div>
-    <div class="mk-vital" style="--acc:#8b7b5c"><div class="mk-vital-cap">Ignoti</div><div class="mk-vital-val">${BESTIARY.length - seenIds.size}</div></div>
-    <div class="mk-vital" style="--acc:var(--gold-light)"><div class="mk-vital-cap">Divinità</div><div class="mk-vital-val">${(w.worldProgress?.deiSconfitti || []).length}<small>/10</small></div></div>`;
-  }
 
   const bestListEl = document.getElementById("bestiary-list");
   if (bestListEl) {
@@ -536,7 +526,9 @@ function renderBacheca(state, w) {
       </details>`;
     };
 
-    const sectionsHTML = WORLD_AREAS.map((area, idx) => {
+    const areeSbloccate = wpSafe2.areeSbloccate || ["foresta"];
+    const unlockedAreas = WORLD_AREAS.filter(area => areeSbloccate.includes(area.id));
+    const sectionsHTML = unlockedAreas.map((area, idx) => {
       if (area.id === "empireo") {
         let godsDefeated = 0;
         EMPIREO_GODS.forEach(g => { if (deiSconfitti.includes(g.id)) godsDefeated++; });
