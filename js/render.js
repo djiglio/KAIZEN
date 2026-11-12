@@ -716,9 +716,8 @@ function renderBacheca(state, w) {
   }
 
   // ── Armeria (Tutte le Armi e Armature) ──
-  const astatEl = document.getElementById("armory-stats");
   const alistEl = document.getElementById("armory-list");
-  if (astatEl && alistEl) {
+  if (alistEl) {
     const scopertiMap = state.equipment?.scoperti || {};
 
     // 1. Armi: tutte le armi a prescindere che siano primarie o secondarie (mano_dx oppure mano_sx senza scudo)
@@ -740,11 +739,6 @@ function renderBacheca(state, w) {
     const legsList = EQUIPMENT_POOL.filter(e => e.slot === "gambe")
       .sort((a, b) => (a.tier - b.tier) || a.id.localeCompare(b.id));
 
-    let totalUnlocked = 0;
-    EQUIPMENT_POOL.forEach(e => {
-      if (scopertiMap[e.id]) totalUnlocked++;
-    });
-
     const countFound = list => list.filter(e => scopertiMap[e.id]).length;
     const wFound = countFound(weaponsList);
     const sFound = countFound(shieldsList);
@@ -752,12 +746,6 @@ function renderBacheca(state, w) {
     const cFound = countFound(chestsList);
     const aFound = countFound(armsList);
     const lFound = countFound(legsList);
-    const armorFound = hFound + cFound + aFound + lFound;
-
-    astatEl.innerHTML = `
-      <div class="mk-vital" style="--acc:#e0533d"><div class="mk-vital-cap">Armi</div><div class="mk-vital-val">${wFound}<small>/68</small></div></div>
-      <div class="mk-vital" style="--acc:#4a70b0"><div class="mk-vital-cap">Scudi</div><div class="mk-vital-val">${sFound}<small>/32</small></div></div>
-      <div class="mk-vital" style="--acc:#4ecca3"><div class="mk-vital-cap">Armature</div><div class="mk-vital-val">${armorFound}<small>/200</small></div></div>`;
 
     const makeArmoryCard = (e) => {
       const unlocked = !!scopertiMap[e.id];
