@@ -666,7 +666,8 @@ function renderBacheca(state, w) {
 
     let sectionsHTML = makeTendina("generic", "I", "Tesori Generici", "reperti e monili diffusi in ogni terra", `${genFound}/${TREASURES.length}`, genCards);
 
-    const areasWithLoot = WORLD_AREAS.filter(area => AREA_LOOT_POOL[area.id] && AREA_LOOT_POOL[area.id].length > 0);
+    const areeSbloccateT = (w.worldProgress?.areeSbloccate) || ["foresta"];
+    const areasWithLoot = WORLD_AREAS.filter(area => areeSbloccateT.includes(area.id) && AREA_LOOT_POOL[area.id] && AREA_LOOT_POOL[area.id].length > 0);
     areasWithLoot.forEach((area, idx) => {
       const pool = [...(AREA_LOOT_POOL[area.id] || [])].sort((a, b) => (a.rarity - b.rarity) || (a.value - b.value));
       let areaFound = 0;
