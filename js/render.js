@@ -1168,7 +1168,6 @@ export function showRankDetail(title) {
   const rt = rankTitles[rankIdx];
   const isCurrent = rankIdx === currentTitleIdx;
   const metalCol = titleMetalColors[rt.t] || "var(--gold)";
-  const acc = isCurrent ? "var(--gold-light)" : "#4ecca3";
   const statusTxt = isCurrent ? "✦ Titolo Attuale" : "Rango Conquistato";
   const chipCls = isCurrent ? "mk-chip--gold" : "mk-chip--ok";
 
@@ -1183,24 +1182,13 @@ export function showRankDetail(title) {
     <div class="mk-modal-title" style="color:${isCurrent ? "var(--gold-light)" : metalCol};margin:2px 0 4px;">${rt.t}</div>
     <div class="mk-chip ${chipCls}" style="margin:2px auto 10px;">${statusTxt}</div>
 
-    <div style="margin:8px auto 16px;display:flex;justify-content:center;align-items:center;width:100%;max-width:320px;min-height:280px;">
-      <div class="hero-avatar-stage" data-spark-stage="rank-detail">
+    <div style="margin:4px auto 12px;display:flex;justify-content:center;align-items:center;width:100%;max-width:384px;min-height:336px;">
+      <div class="hero-avatar-stage hero-avatar-stage--rank" data-spark-stage="rank-detail">
         <div class="hero-sparks" data-spark-layer="back" aria-hidden="true"></div>
-        <div class="hero-avatar-viewport" style="width:100%;">
+        <div class="hero-avatar-viewport hero-avatar-viewport--rank">
           ${heroAvatarHTML(rt.t, "100%", "auto")}
         </div>
         <div class="hero-sparks hero-sparks--front" data-spark-layer="front" aria-hidden="true"></div>
-      </div>
-    </div>
-
-    <div class="mk-vitals" style="margin:12px 0;">
-      <div class="mk-vital" style="--acc:${acc}">
-        <div class="mk-vital-cap">Soglia Rango</div>
-        <div class="mk-vital-val" style="color:${metalCol}">Rango ${rt.r}</div>
-      </div>
-      <div class="mk-vital" style="--acc:#4ecca3">
-        <div class="mk-vital-cap">Stato</div>
-        <div class="mk-vital-val" style="color:#4ecca3">${isCurrent ? "In Carica" : "Conquistato"}</div>
       </div>
     </div>
 

@@ -130,6 +130,21 @@
   z-index: 1;
 }
 
+.hero-avatar-stage--rank {
+  max-width: 384px;
+}
+
+.hero-avatar-viewport--rank {
+  width: 100%;
+}
+
+@media (max-width: 440px) {
+  .hero-avatar-viewport--rank {
+    width: 115%;
+    margin-left: -7.5%;
+  }
+}
+
 @supports not (translate: 0px -100cqh) {
   @keyframes heroSparkRise {
     0% {
