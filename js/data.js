@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "7.21";
+export const APP_VERSION = "7.22";
 export const APP_RELEASE = "12/11/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -70,6 +70,36 @@ export const avatarPalettes = {
  "BARONE":"#a09070","VISCONTE":"#b8a0d0","CONTE":"#c0b080","MARCHESE":"#90a0b8",
  "DUCA":"#d8c090","ARCIDUCA":"#e8d080","PRINCIPE":"#f0d890","RE":"#f5e0a0",
  "IMPERATORE":"#f8ead0","SEMIDIO":"#e8f4f8","ASCESO":"#ffffff",
+};
+
+export const rankSparkColors = {
+ "MENDICANTE": "#787680",
+ "VAGABONDO":  "#8a735c",
+ "PASTORE":    "#7a9668",
+ "CONTADINO":  "#928858",
+ "FABBRO":     "#c86438",
+ "RECLUTA":    "#6e94b0",
+ "RAMINGO":    "#5c8498",
+ "MERCENARIO": "#c49a34",
+ "SCUDIERO":   "#82a4cc",
+ "SPADACCINO": "#c8a65a",
+ "GLADIATORE": "#df7438",
+ "VETERANO":   "#94a8b0",
+ "PALADINO":   "#dcd0b4",
+ "CAVALIERE":  "#b4cce4",
+ "CAMPIONE":   "#d8b028",
+ "GENERALE":   "#c88c38",
+ "BARONE":     "#a85c74",
+ "VISCONTE":   "#a478d4",
+ "CONTE":      "#54a474",
+ "MARCHESE":   "#6484c4",
+ "DUCA":       "#8878dc",
+ "ARCIDUCA":   "#c864b8",
+ "PRINCIPE":   "#dc4858",
+ "RE":         "#f0c848",
+ "IMPERATORE": "#ffe47a",
+ "SEMIDIO":    "#9ee0f8",
+ "ASCESO":     "#eef8ff",
 };
 
 export const nobleMantle = {

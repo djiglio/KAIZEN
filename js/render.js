@@ -10,12 +10,12 @@ import { HABITS, STAT_DEFS, rankTitles,
          BESTIARY, TREASURES, RELICS,
          EQUIPMENT_POOL, AREA_LOOT_POOL,
          QUEST_POOL_EVO, QUEST_POOL_WORLD,
-         titleMetalColors,
+         titleMetalColors, rankSparkColors,
          WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS, getEnemiesForArea } from "./data.js";
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
-import { formatDate, formatCoinHTML } from "./ui.js";
+import { formatDate, formatCoinHTML, ensureHeroSparks } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
 import { renderShop, renderEquipment, renderEquipIconHTML, SLOT_NAMES } from "./shop.js";
@@ -110,6 +110,14 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
 
 /* ── Pagina EROE ── */
 function renderHero(state, heroS, rank, title) {
+  const avStage = document.getElementById("hero-avatar-stage");
+  if (avStage) {
+    const sparkCol = rankSparkColors[title] || titleMetalColors[title] || "#d4a017";
+    avStage.style.setProperty("--spark-color", sparkCol);
+    avStage.style.setProperty("--spark-glow", `${sparkCol}88`);
+  }
+  ensureHeroSparks();
+
   const avViewport = document.getElementById("avatar-viewport-inner");
   if (avViewport) {
     avViewport.innerHTML = heroAvatarHTML(title, "100%", "auto");

@@ -149,6 +149,96 @@ body::before {
 }
 
 
+/* ── Scintille Avatar Eroe ── */
+@keyframes heroSparkRise {
+  0% {
+    opacity: 0;
+    translate: 0px 0px;
+    scale: 0.35;
+  }
+  15% {
+    opacity: var(--spark-alpha, 0.92);
+    scale: 1;
+  }
+  80% {
+    opacity: var(--spark-alpha, 0.85);
+  }
+  100% {
+    opacity: 0;
+    translate: var(--drift, 0px) -108cqh;
+    scale: 0.2;
+  }
+}
+
+.hero-avatar-stage {
+  --spark-color: #d4a017;
+  --spark-glow: rgba(212, 160, 23, 0.55);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero-sparks {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 14%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 14%, #000 84%, transparent 100%);
+}
+
+.hero-spark {
+  position: absolute;
+  bottom: -6%;
+  width: var(--spark-size, 3px);
+  height: calc(var(--spark-size, 3px) * 1.35);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, var(--spark-color) 55%, transparent 100%);
+  box-shadow: 0 0 6px 1px var(--spark-color), 0 0 14px 2px var(--spark-glow);
+  opacity: 0;
+  translate: 0px 0px;
+  scale: 1;
+  will-change: translate, scale, opacity;
+  animation: heroSparkRise var(--spark-dur, 3.6s) linear var(--spark-delay, 0s) infinite;
+}
+
+#avatar-viewport-inner {
+  position: relative;
+  z-index: 1;
+}
+
+@supports not (translate: 0px -100cqh) {
+  @keyframes heroSparkRise {
+    0% {
+      opacity: 0;
+      transform: translate(0px, 0px) scale(0.35);
+    }
+    15% {
+      opacity: var(--spark-alpha, 0.92);
+    }
+    80% {
+      opacity: var(--spark-alpha, 0.85);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--drift, 0px), -340px) scale(0.2);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-spark {
+    animation: none;
+    opacity: 0.35;
+    bottom: var(--spark-rest-y, 40%);
+  }
+}
+
+
 /* === layout.css === */
 /* ── Header ── */
 .header {
@@ -1955,7 +2045,10 @@ body::before {
 
   <!-- Avatar eroe: immagine PNG rango corrente -->
   <div style="display:flex;justify-content:center;margin-top:8px">
-    <div id="avatar-viewport-inner"></div>
+    <div id="hero-avatar-stage" class="hero-avatar-stage">
+      <div id="hero-sparks" class="hero-sparks" aria-hidden="true"></div>
+      <div id="avatar-viewport-inner"></div>
+    </div>
   </div>
 
   <div style="text-align:center;margin-top:16px">
