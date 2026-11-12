@@ -542,7 +542,7 @@ function renderBacheca(state, w) {
         const godCards = EMPIREO_GODS.map(g => {
           const sconfitto = deiSconfitti.includes(g.id);
           const portrait2 = empireoUnlocked
-            ? `<div style="margin:4px auto 6px;">${enemyImgCard(g, 58)}</div>`
+            ? `<div style="margin:4px auto 6px;">${enemyImgCard(g, 75)}</div>`
             : `<div class="mk-unknown-portrait">?</div>`;
           const nameStr = empireoUnlocked ? g.name : "Divinità Ignota";
           const subStr  = empireoUnlocked ? (sconfitto ? "✦ sconfitto" : "mai affrontato") : "avvolto nel mito";
@@ -577,7 +577,7 @@ function renderBacheca(state, w) {
         const acc = seen ? tierColors[tNum] : "rgba(255,255,255,.08)";
 
         const portrait = seen
-          ? `<div style="margin:4px auto 6px;">${enemyImgCard(e, 58)}</div>`
+          ? `<div style="margin:4px auto 6px;">${enemyImgCard(e, 75)}</div>`
           : `<div class="mk-unknown-portrait">?</div>`;
 
         return `
@@ -1013,7 +1013,7 @@ export function showBestiaryDetail(enemyId) {
     <div class="mk-modal-title" style="margin:2px 0 4px;">${enemy.name}</div>
     ${enemy.trait ? `<div class="mk-note" style="margin-bottom:6px;">${enemy.trait}</div>` : ""}
 
-    <div style="margin:4px auto 8px;display:flex;justify-content:center;width:100%;max-width:240px;">
+    <div style="margin:4px auto 8px;display:flex;justify-content:center;width:100%;max-width:312px;">
       ${enemyImgHTML(enemy, "100%", "auto")}
     </div>
 

@@ -1377,8 +1377,8 @@
   border-radius: 3px; color: #dfb395; font-family: "Cinzel", serif; font-size: 9.5px; font-weight: 700; letter-spacing: 2px;
   text-transform: uppercase; cursor: pointer; text-align: center; transition: all .2s; }
 .mk-wide-btn:active { background: rgba(180, 75, 38, .22); border-color: rgba(195, 85, 45, .6); color: #f6b088; }
-.mk-unknown-portrait { width: 52px; height: 52px; margin: 4px auto 6px; border: 1px dashed rgba(85, 74, 62, .45); border-radius: 3px;
-  display: flex; align-items: center; justify-content: center; font-family: "Cinzel", serif; font-size: 20px; font-weight: 700; color: #6f6656; background: rgba(0,0,0,.35); }
+.mk-unknown-portrait { width: 68px; height: 68px; margin: 4px auto 6px; border: 1px dashed rgba(85, 74, 62, .45); border-radius: 3px;
+  display: flex; align-items: center; justify-content: center; font-family: "Cinzel", serif; font-size: 26px; font-weight: 700; color: #6f6656; background: rgba(0,0,0,.35); }
 .mk-log-list { display: flex; flex-direction: column; gap: 6px; }
 .mk-log-row { --acc: #85442b; text-align: center; padding: 8px 10px; background: linear-gradient(180deg, #181510 0%, #0f0d0a 100%);
   border: 1px solid rgba(80, 70, 60, .38); border-top: 2px solid var(--acc); border-radius: 3px; }

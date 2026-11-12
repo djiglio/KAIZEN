@@ -119,7 +119,7 @@ export function enemyImgSmall(enemy, px = 48) {
   const ph = `<span style="font-size:${Math.round(px*0.4)}px;color:rgba(220,38,38,0.5)">${enemy.icon||'?'}</span>`;
   return wrap(enemyImgPath(enemy), px, px, ph);
 }
-export function enemyImgCard(enemy, px = 56) {
+export function enemyImgCard(enemy, px = 75) {
   const ph = `<span style="font-size:${Math.round(px*0.45)}px;opacity:0.4">${enemy.icon||'?'}</span>`;
   return wrap(enemyImgPath(enemy), px, px, ph, 'margin:0 auto 6px;');
 }
