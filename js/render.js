@@ -521,7 +521,7 @@ function renderBacheca(state, w) {
       return `
       <details class="mk-shop zaino-details" data-cat="${key}" ${isOpen ? "open" : ""}>
         <summary>
-          <span class="mk-shop-num">Zona ${num} · ${countBadge}</span>
+          <span class="mk-shop-num">Catalogo ${num} · ${countBadge}</span>
           <span class="mk-shop-name">${title}</span>
           <span class="mk-shop-tag">${subtitle}</span>
           <span class="mk-shop-toggle"></span>
@@ -601,8 +601,8 @@ function renderBacheca(state, w) {
 
     const toggleButtonsHTML = `
     <div class="mk-tabs mk-tabs--2" style="margin-top:0;margin-bottom:12px;">
-      <button class="mk-tab" onclick="window.__kaizen.toggleAllBestiary(true)">Apri tutte le zone</button>
-      <button class="mk-tab" onclick="window.__kaizen.toggleAllBestiary(false)">Chiudi tutte le zone</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllBestiary(true)">Apri tutti i cataloghi</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllBestiary(false)">Chiudi tutti i cataloghi</button>
     </div>`;
 
     bestListEl.innerHTML = `<div class="mk">${toggleButtonsHTML}${sectionsHTML}</div>`;
@@ -807,8 +807,8 @@ function renderBacheca(state, w) {
 
     const toggleButtonsHTML = `
     <div class="mk-tabs mk-tabs--2" style="margin-top:0;margin-bottom:12px;">
-      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(true)">Apri tutte le sezioni</button>
-      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(false)">Chiudi tutte le sezioni</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(true)">Apri tutti i cataloghi</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllArmory(false)">Chiudi tutti i cataloghi</button>
     </div>`;
 
     alistEl.innerHTML = `<div class="mk">${toggleButtonsHTML}${sections}</div>`;
