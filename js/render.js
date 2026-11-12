@@ -15,7 +15,7 @@ import { HABITS, STAT_DEFS, rankTitles,
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
-import { formatDate, formatCoinHTML, ensureHeroSparks } from "./ui.js";
+import { formatDate, formatCoinHTML, setupHeroSparkStage } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
 import { renderShop, renderEquipment, renderEquipIconHTML, SLOT_NAMES } from "./shop.js";
@@ -109,14 +109,12 @@ function renderHabits(state, rank = getHeroRank(), title = getRankTitle(rank)) {
 }
 
 /* ── Pagina EROE ── */
+function sparkColorForTitle(title) {
+  return rankSparkColors[title] || titleMetalColors[title] || "#d4a017";
+}
+
 function renderHero(state, heroS, rank, title) {
-  const avStage = document.getElementById("hero-avatar-stage");
-  if (avStage) {
-    const sparkCol = rankSparkColors[title] || titleMetalColors[title] || "#d4a017";
-    avStage.style.setProperty("--spark-color", sparkCol);
-    avStage.style.setProperty("--spark-glow", `${sparkCol}88`);
-  }
-  ensureHeroSparks();
+  setupHeroSparkStage(document.getElementById("hero-avatar-stage"), sparkColorForTitle(title));
 
   const avViewport = document.getElementById("avatar-viewport-inner");
   if (avViewport) {
@@ -1186,7 +1184,13 @@ export function showRankDetail(title) {
     <div class="mk-chip ${chipCls}" style="margin:2px auto 10px;">${statusTxt}</div>
 
     <div style="margin:8px auto 16px;display:flex;justify-content:center;align-items:center;width:100%;max-width:320px;min-height:280px;">
-      ${heroAvatarHTML(rt.t, "100%", "auto")}
+      <div class="hero-avatar-stage" data-spark-stage="rank-detail">
+        <div class="hero-sparks" data-spark-layer="back" aria-hidden="true"></div>
+        <div class="hero-avatar-viewport" style="width:100%;">
+          ${heroAvatarHTML(rt.t, "100%", "auto")}
+        </div>
+        <div class="hero-sparks hero-sparks--front" data-spark-layer="front" aria-hidden="true"></div>
+      </div>
     </div>
 
     <div class="mk-vitals" style="margin:12px 0;">
@@ -1202,6 +1206,7 @@ export function showRankDetail(title) {
 
     <button class="modal-close-btn" style="margin-top:6px;padding:10px;min-height:38px;" onclick="window.__kaizen.closeDetailModal()">CHIUDI</button>
   </div>`;
+  setupHeroSparkStage(box.querySelector('[data-spark-stage="rank-detail"]'), sparkColorForTitle(rt.t));
   resolveImgs();
 }
 

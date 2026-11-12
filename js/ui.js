@@ -87,9 +87,25 @@ function populateSparkLayer(container, count) {
  }
 }
 
+/**
+ * Inizializza le scintille (16 dietro, 12 davanti) e aggiorna i colori su uno stage avatar.
+ * @param {HTMLElement|null} stageEl
+ * @param {string} [sparkColor]
+ */
+export function setupHeroSparkStage(stageEl, sparkColor) {
+ if (!stageEl) return;
+ if (sparkColor) {
+  stageEl.style.setProperty("--spark-color", sparkColor);
+  stageEl.style.setProperty("--spark-glow", `${sparkColor}88`);
+ }
+ const backLayer = stageEl.querySelector('[data-spark-layer="back"]') || stageEl.querySelector("#hero-sparks");
+ const frontLayer = stageEl.querySelector('[data-spark-layer="front"]') || stageEl.querySelector("#hero-sparks-front");
+ populateSparkLayer(backLayer, 16);
+ populateSparkLayer(frontLayer, 12);
+}
+
 export function ensureHeroSparks() {
- populateSparkLayer(document.getElementById("hero-sparks"), 16);
- populateSparkLayer(document.getElementById("hero-sparks-front"), 12);
+ setupHeroSparkStage(document.getElementById("hero-avatar-stage"));
 }
 
 /** Mostra/nasconde una modal generica */
