@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "7.34";
+export const APP_VERSION = "7.35";
 export const APP_RELEASE = "12/11/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -198,9 +198,9 @@ export const QUEST_POOL_WORLD = [
  {id:"w23",text:"Cacciatore di Demoni",    desc:"Sconfiggi 2 demoni",                                  target:2,    type:"kills_tag", tag:"demone"},
  {id:"w24",text:"Piccolo Tesoro",          desc:'Guadagna 500 <span class="mk-coin"></span> dalle spedizioni',                target:500,  type:"denari_earned"},
  {id:"w25",text:"Grande Fortuna",          desc:'Guadagna 800 <span class="mk-coin"></span> dalle spedizioni',                target:800,  type:"denari_earned"},
- {id:"w26",text:"Nemici Potenti",          desc:"Sconfiggi 2 nemici di livello 50+",                   target:2,    type:"kills_lvl", minLvl:50},
- {id:"w27",text:"Coraggioso",              desc:"Sconfiggi 1 nemico di livello 80+",                   target:1,    type:"kills_lvl", minLvl:80},
- {id:"w28",text:"Leggenda",                desc:"Sconfiggi 1 nemico di livello 100+",                  target:1,    type:"kills_lvl", minLvl:100},
+ {id:"w26",text:"Nemici Potenti",          desc:"Sconfiggi 2 nemici di Grado III o superiore",         target:2,    type:"kills_lvl", minLvl:41},
+ {id:"w27",text:"Coraggioso",              desc:"Sconfiggi 1 nemico di Grado IV o superiore",          target:1,    type:"kills_lvl", minLvl:81},
+ {id:"w28",text:"Leggenda",                desc:"Sconfiggi 2 nemici di Grado IV o superiore",          target:2,    type:"kills_lvl", minLvl:81},
  {id:"w29",text:"Predatore Seriale",       desc:"Sconfiggi 3 nemici umanoidi",                         target:3,    type:"kills_human"},
  {id:"w30",text:"Giustiziere",             desc:"Sconfiggi 5 nemici umanoidi",                         target:5,    type:"kills_human"},
  {id:"w31",text:"Razziatore",              desc:"Ottieni equipaggiamento da 3 nemici sconfitti",       target:3,    type:"equip_looted"},
@@ -222,7 +222,7 @@ export const QUEST_POOL_WORLD = [
  {id:"w47",text:"Ricchissimo",             desc:'Guadagna 1000 <span class="mk-coin"></span> dalle spedizioni',               target:1000, type:"denari_earned"},
  {id:"w48",text:"Terrore del Bestiario",   desc:"Uccidi 20 nemici",                                    target:20,   type:"kills_any"},
  {id:"w49",text:"Sterminatore Totale",     desc:"Sconfiggi 20 nemici qualsiasi",                       target:20,   type:"kills_any"},
- {id:"w50",text:"Grande Cacciatore",       desc:"Sconfiggi 1 nemico di livello 120+",                  target:1,    type:"kills_lvl", minLvl:120},
+ {id:"w50",text:"Grande Cacciatore",       desc:"Sconfiggi 1 nemico di Grado V o superiore",           target:1,    type:"kills_lvl", minLvl:121},
 ];
 
 /* ══════════════════════════════════════════════════════════

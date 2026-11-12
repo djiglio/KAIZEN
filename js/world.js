@@ -334,7 +334,7 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
 
  inner.innerHTML = `
  <div class="combat-header">${enemy.name}</div>
- <div class="combat-sub" style="margin-bottom:6px">LVL ${enemy.lvl} · ${enemy.trait || ""}</div>
+ <div class="combat-sub" style="margin-bottom:6px">${enemy.trait || ""}</div>
  ${equipStr}
 
  <!-- Immagine nemico -->
@@ -405,7 +405,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
 
  inner.innerHTML = `
  <div class="combat-header">${enemy.name}</div>
- <div class="combat-sub">LVL ${enemy.lvl} · ${enemy.trait||""}</div>
+ <div class="combat-sub">${enemy.trait || ""}</div>
  ${enemyEquipStr}
 
  <!-- Miniature dei combattenti affiancate con VS -->

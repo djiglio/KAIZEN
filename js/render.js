@@ -355,7 +355,7 @@ export function renderWorld() {
     <div class="mk-tabs mk-tabs--2">${areaTabs}</div>
 
     <div class="mk-purse" style="margin-top:12px;border-color:${areaCfg.color}40;">
-      <div class="mk-purse-cap">Livello ${areaCfg.lvlMin}–${areaCfg.lvlMax} · Incarichi ${doneQ}/${poolQ.length}</div>
+      <div class="mk-purse-cap">Incarichi ${doneQ}/${poolQ.length}</div>
       <div class="mk-purse-val" style="font-size:22px;letter-spacing:2px;color:${areaCfg.color};text-shadow:0 0 14px ${areaCfg.color}40;">${areaCfg.name}</div>
       <div class="mk-purse-sub">${areaCfg.desc || "Terre inesplorate oltre il confine"}</div>
     </div>
@@ -550,7 +550,7 @@ function renderBacheca(state, w) {
           <div class="mk-tile ${empireoUnlocked ? (sconfitto ? "is-active" : "") : "is-off"}"
                style="--acc:${sconfitto ? "#4ecca3" : "var(--gold-light)"};padding-bottom:12px;cursor:${sconfitto ? "pointer" : "default"};"
                onclick="${sconfitto ? `window.__kaizen.showBestiaryDetail('${g.id}')` : ""}">
-            <div class="mk-tile-cap">Livello ${g.lvl} · Divinità</div>
+            <div class="mk-tile-cap">Divinità</div>
             <div class="mk-tile-name" style="min-height:2.2em;color:var(--gold-light)">${nameStr}</div>
             ${portrait2}
             <div class="mk-tile-desc" style="margin-bottom:0;color:${sconfitto ? "#4ecca3" : "#8f8268"}">${subStr}</div>
@@ -583,7 +583,7 @@ function renderBacheca(state, w) {
         return `
         <div class="mk-tile ${seen ? "" : "is-off"}" style="--acc:${acc};padding-bottom:12px;cursor:${seen ? "pointer" : "default"};"
              onclick="${seen ? `window.__kaizen.showBestiaryDetail('${e.id}')` : ""}">
-          <div class="mk-tile-cap">Livello ${e.lvl} · Grado ${roman(tNum)}</div>
+          <div class="mk-tile-cap">Grado ${roman(tNum)}</div>
           <div class="mk-tile-name" style="min-height:2.2em">${seen ? e.name : "Creatura Ignota"}</div>
           ${portrait}
           <div class="mk-tile-desc" style="margin-bottom:0">${seen ? `${incontri} incontri · ${kills} uccisi` : "non ancora avvistato"}</div>
@@ -594,7 +594,7 @@ function renderBacheca(state, w) {
         area.id,
         roman(idx + 1),
         area.name,
-        area.desc || `Livelli ${area.lvlMin}–${area.lvlMax}`,
+        area.desc || "Regione del Mondo",
         `${areaSeen}/${areaEnemies.length} incontrati`,
         areaCards
       );
@@ -1009,7 +1009,7 @@ export function showBestiaryDetail(enemyId) {
   document.getElementById("detail-modal").classList.add("show");
   box.innerHTML = `
   <div class="mk mk-modal">
-    <div class="mk-modal-cap">Bestiario · Livello ${enemy.lvl}</div>
+    <div class="mk-modal-cap">Bestiario · ${enemy.lvl >= 181 ? "Divinità" : `Grado ${roman(enemy.lvl >= 121 ? 5 : enemy.lvl >= 81 ? 4 : enemy.lvl >= 41 ? 3 : enemy.lvl >= 11 ? 2 : 1)}`}</div>
     <div class="mk-modal-title" style="margin:2px 0 4px;">${enemy.name}</div>
     ${enemy.trait ? `<div class="mk-note" style="margin-bottom:6px;">${enemy.trait}</div>` : ""}
 
