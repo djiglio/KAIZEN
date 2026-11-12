@@ -11,7 +11,7 @@ import { HABITS, STAT_DEFS, rankTitles,
          EQUIPMENT_POOL, AREA_LOOT_POOL,
          QUEST_POOL_EVO, QUEST_POOL_WORLD,
          titleMetalColors,
-         WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS } from "./data.js";
+         WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS, getEnemiesForArea } from "./data.js";
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
          habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
@@ -431,6 +431,7 @@ export function renderWorld() {
   }
 }
 
+const bachecaBestiaryOpenCats = new Set();
 const bachecaOpenCats = new Set();
 const bachecaArmoryOpenCats = new Set();
 
@@ -515,53 +516,106 @@ function renderBacheca(state, w) {
   const bestListEl = document.getElementById("bestiary-list");
   if (bestListEl) {
     const tierColors = { 1:"#4a9060", 2:"#4a70b0", 3:"#9060b0", 4:"#c07830", 5:"#c03030" };
-    const normalCards = BESTIARY.map(e => {
-      const seen = seenIds.has(e.id);
-      const kills = w.nemiciAbbattuti?.[e.id] || 0;
-      const incontri = Math.max(w.nemiciIncontrati?.[e.id] || 0, kills);
-      const tNum = e.lvl >= 121 ? 5 : e.lvl >= 81 ? 4 : e.lvl >= 41 ? 3 : e.lvl >= 11 ? 2 : 1;
-      const acc = seen ? tierColors[tNum] : "rgba(255,255,255,.08)";
-
-      const portrait = seen
-        ? `<div style="margin:4px auto 6px;">${enemyImgCard(e, 58)}</div>`
-        : `<div class="mk-unknown-portrait">?</div>`;
-
-      return `
-      <div class="mk-tile ${seen ? "" : "is-off"}" style="--acc:${acc};padding-bottom:12px;cursor:${seen ? "pointer" : "default"};"
-           onclick="${seen ? `window.__kaizen.showBestiaryDetail('${e.id}')` : ""}">
-        <div class="mk-tile-cap">Livello ${e.lvl} · Grado ${roman(tNum)}</div>
-        <div class="mk-tile-name" style="min-height:2.2em">${seen ? e.name : "Creatura Ignota"}</div>
-        ${portrait}
-        <div class="mk-tile-desc" style="margin-bottom:0">${seen ? `${incontri} incontri · ${kills} uccisi` : "non ancora avvistato"}</div>
-      </div>`;
-    }).join("");
-
     const wpSafe2 = w.worldProgress || {};
     const deiSconfitti = wpSafe2.deiSconfitti || [];
     const empireoUnlocked = (wpSafe2.areeSbloccate || []).includes("empireo");
 
-    const godDivider = `<div class="mk-group" style="grid-column:1/-1;margin-top:20px;">Pantheon dell'Empireo</div>`;
-
-    const godCards = EMPIREO_GODS.map(g => {
-      const sconfitto = deiSconfitti.includes(g.id);
-      const portrait2 = empireoUnlocked
-        ? `<div style="margin:4px auto 6px;">${enemyImgCard(g, 58)}</div>`
-        : `<div class="mk-unknown-portrait">?</div>`;
-      const nameStr = empireoUnlocked ? g.name : "Divinità Ignota";
-      const subStr  = empireoUnlocked ? (sconfitto ? "✦ sconfitto" : "mai affrontato") : "avvolto nel mito";
+    const makeBestiaryTendina = (key, num, title, subtitle, countBadge, contentHTML) => {
+      const isOpen = bachecaBestiaryOpenCats.has(key);
       return `
-      <div class="mk-tile ${empireoUnlocked ? (sconfitto ? "is-active" : "") : "is-off"}"
-           style="--acc:${sconfitto ? "#4ecca3" : "var(--gold-light)"};padding-bottom:12px;cursor:${sconfitto ? "pointer" : "default"};"
-           onclick="${sconfitto ? `window.__kaizen.showBestiaryDetail('${g.id}')` : ""}">
-        <div class="mk-tile-cap">Livello ${g.lvl} · Divinità</div>
-        <div class="mk-tile-name" style="min-height:2.2em;color:var(--gold-light)">${nameStr}</div>
-        ${portrait2}
-        <div class="mk-tile-desc" style="margin-bottom:0;color:${sconfitto ? "#4ecca3" : "#8f8268"}">${subStr}</div>
-      </div>`;
+      <details class="mk-shop zaino-details" data-cat="${key}" ${isOpen ? "open" : ""}>
+        <summary>
+          <span class="mk-shop-num">Zona ${num} · ${countBadge}</span>
+          <span class="mk-shop-name">${title}</span>
+          <span class="mk-shop-tag">${subtitle}</span>
+          <span class="mk-shop-toggle"></span>
+        </summary>
+        <div class="mk-shop-body">
+          <div class="mk-grid" style="margin-top:12px;">${contentHTML}</div>
+        </div>
+      </details>`;
+    };
+
+    const sectionsHTML = WORLD_AREAS.map((area, idx) => {
+      if (area.id === "empireo") {
+        let godsDefeated = 0;
+        EMPIREO_GODS.forEach(g => { if (deiSconfitti.includes(g.id)) godsDefeated++; });
+        const godCards = EMPIREO_GODS.map(g => {
+          const sconfitto = deiSconfitti.includes(g.id);
+          const portrait2 = empireoUnlocked
+            ? `<div style="margin:4px auto 6px;">${enemyImgCard(g, 58)}</div>`
+            : `<div class="mk-unknown-portrait">?</div>`;
+          const nameStr = empireoUnlocked ? g.name : "Divinità Ignota";
+          const subStr  = empireoUnlocked ? (sconfitto ? "✦ sconfitto" : "mai affrontato") : "avvolto nel mito";
+          return `
+          <div class="mk-tile ${empireoUnlocked ? (sconfitto ? "is-active" : "") : "is-off"}"
+               style="--acc:${sconfitto ? "#4ecca3" : "var(--gold-light)"};padding-bottom:12px;cursor:${sconfitto ? "pointer" : "default"};"
+               onclick="${sconfitto ? `window.__kaizen.showBestiaryDetail('${g.id}')` : ""}">
+            <div class="mk-tile-cap">Livello ${g.lvl} · Divinità</div>
+            <div class="mk-tile-name" style="min-height:2.2em;color:var(--gold-light)">${nameStr}</div>
+            ${portrait2}
+            <div class="mk-tile-desc" style="margin-bottom:0;color:${sconfitto ? "#4ecca3" : "#8f8268"}">${subStr}</div>
+          </div>`;
+        }).join("");
+        return makeBestiaryTendina(
+          area.id,
+          roman(idx + 1),
+          area.name,
+          area.desc || "Pantheon dell'Empireo",
+          `${godsDefeated}/${EMPIREO_GODS.length} sconfitti`,
+          godCards
+        );
+      }
+
+      const areaEnemies = getEnemiesForArea(area.id);
+      let areaSeen = 0;
+      const areaCards = areaEnemies.map(e => {
+        const seen = seenIds.has(e.id);
+        if (seen) areaSeen++;
+        const kills = w.nemiciAbbattuti?.[e.id] || 0;
+        const incontri = Math.max(w.nemiciIncontrati?.[e.id] || 0, kills);
+        const tNum = e.lvl >= 121 ? 5 : e.lvl >= 81 ? 4 : e.lvl >= 41 ? 3 : e.lvl >= 11 ? 2 : 1;
+        const acc = seen ? tierColors[tNum] : "rgba(255,255,255,.08)";
+
+        const portrait = seen
+          ? `<div style="margin:4px auto 6px;">${enemyImgCard(e, 58)}</div>`
+          : `<div class="mk-unknown-portrait">?</div>`;
+
+        return `
+        <div class="mk-tile ${seen ? "" : "is-off"}" style="--acc:${acc};padding-bottom:12px;cursor:${seen ? "pointer" : "default"};"
+             onclick="${seen ? `window.__kaizen.showBestiaryDetail('${e.id}')` : ""}">
+          <div class="mk-tile-cap">Livello ${e.lvl} · Grado ${roman(tNum)}</div>
+          <div class="mk-tile-name" style="min-height:2.2em">${seen ? e.name : "Creatura Ignota"}</div>
+          ${portrait}
+          <div class="mk-tile-desc" style="margin-bottom:0">${seen ? `${incontri} incontri · ${kills} uccisi` : "non ancora avvistato"}</div>
+        </div>`;
+      }).join("");
+
+      return makeBestiaryTendina(
+        area.id,
+        roman(idx + 1),
+        area.name,
+        area.desc || `Livelli ${area.lvlMin}–${area.lvlMax}`,
+        `${areaSeen}/${areaEnemies.length} incontrati`,
+        areaCards
+      );
     }).join("");
 
-    bestListEl.innerHTML = normalCards + godDivider + godCards;
-    resolveImgs();
+    const toggleButtonsHTML = `
+    <div class="mk-tabs mk-tabs--2" style="margin-top:0;margin-bottom:12px;">
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllBestiary(true)">Apri tutte le zone</button>
+      <button class="mk-tab" onclick="window.__kaizen.toggleAllBestiary(false)">Chiudi tutte le zone</button>
+    </div>`;
+
+    bestListEl.innerHTML = `<div class="mk">${toggleButtonsHTML}${sectionsHTML}</div>`;
+
+    bestListEl.querySelectorAll(".zaino-details").forEach(d => {
+      d.addEventListener("toggle", () => {
+        if (d.open) bachecaBestiaryOpenCats.add(d.dataset.cat);
+        else bachecaBestiaryOpenCats.delete(d.dataset.cat);
+      });
+    });
+    resolveImgs(bestListEl);
   }
 
   // ── Tesori (accorpati: generici + specifici per area) ──
@@ -905,6 +959,16 @@ export function showArmoryDetail(equipId) {
   const unlocked = !!(state.equipment?.scoperti?.[equipId]);
   if (!unlocked) return;
   showEquipDetail(equipId);
+}
+
+export function toggleAllBestiary(open) {
+  const container = document.getElementById("bestiary-list");
+  if (!container) return;
+  container.querySelectorAll(".zaino-details").forEach(d => {
+    d.open = open;
+    if (open) bachecaBestiaryOpenCats.add(d.dataset.cat);
+    else bachecaBestiaryOpenCats.delete(d.dataset.cat);
+  });
 }
 
 export function toggleAllTreasures(open) {
