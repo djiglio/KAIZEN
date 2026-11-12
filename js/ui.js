@@ -88,8 +88,8 @@ function populateSparkLayer(container, count) {
 }
 
 export function ensureHeroSparks() {
- populateSparkLayer(document.getElementById("hero-sparks"), 20);
- populateSparkLayer(document.getElementById("hero-sparks-front"), 8);
+ populateSparkLayer(document.getElementById("hero-sparks"), 16);
+ populateSparkLayer(document.getElementById("hero-sparks-front"), 12);
 }
 
 /** Mostra/nasconde una modal generica */
