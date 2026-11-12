@@ -678,15 +678,7 @@ function grantAreaQuestReward(q, areaId) {
   }
 }
 
-/**
- * Punto centrale di aggiornamento missioni area.
- * Chiamata da world.js dopo ogni spedizione.
- *
- * events: array di oggetti { type, areaId, enemyName, godId, lootId, denari, lootCount }
- */
-export function updateAreaQuests(events) {
-  const state = store.state;
-  // Inizializza worldProgress se mancante (salvataggi precedenti)
+function ensureWorldProgress(state) {
   if (!state.world.worldProgress) {
     state.world.worldProgress = {
       areaCorrente: "foresta",
@@ -703,7 +695,6 @@ export function updateAreaQuests(events) {
     };
   }
   const wp = state.world.worldProgress;
-  // Inizializza sub-oggetti mancanti
   if (!wp.missioniPerArea)           wp.missioniPerArea = {};
   if (!wp.deniariPerArea)            wp.deniariPerArea = {};
   if (!wp.spedizioniPerArea)         wp.spedizioniPerArea = {};
@@ -712,6 +703,94 @@ export function updateAreaQuests(events) {
   if (!wp.deiSconfitti)              wp.deiSconfitti = [];
   if (!wp.bottiniDivini)             wp.bottiniDivini = [];
   if (!wp.trofeiEmpirei)             wp.trofeiEmpirei = [];
+  return wp;
+}
+
+function countDefeatedInArea(state, wp, areaId) {
+  const areaEnemies = getEnemiesForArea(areaId);
+  const abbattuti = state.world?.nemiciAbbattuti || {};
+  const byName = wp.uccisioniPerAreaEnemyName?.[areaId] || {};
+  let count = 0;
+  for (const e of areaEnemies) {
+    if ((abbattuti[e.id] || 0) > 0 || (byName[e.name] || 0) > 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+function setAreaQuestProgress(wp, areaId, q, value, grantReward = true) {
+  const missions = getAreaMissions(wp, areaId);
+  const t = missions[q.id];
+  if (!t || t.completed) return;
+  t.progress = Math.min(q.target, Math.max(0, value));
+  if (t.progress >= q.target) {
+    t.completed = true;
+    if (grantReward) grantAreaQuestReward(q, areaId);
+    checkAreaUnlock(wp, areaId);
+  }
+}
+
+/**
+ * Allinea le missioni di area alle definizioni correnti (v2) e sincronizza il bestiario.
+ */
+export function ensureAreaQuestsSynced() {
+  const state = store.state;
+  const wp = ensureWorldProgress(state);
+  let dirty = false;
+
+  if (wp.areaQuestsVersion !== 2) {
+    wp.areaQuestsVersion = 2;
+    for (const area of WORLD_AREAS) {
+      if (area.id === "empireo") continue;
+      const pool = AREA_QUESTS[area.id] || [];
+      const alreadyPassed = Boolean(area.sblocca && (wp.areeSbloccate || []).includes(area.sblocca));
+      wp.missioniPerArea[area.id] = {};
+      const missions = getAreaMissions(wp, area.id);
+      for (const q of pool) {
+        if (alreadyPassed) {
+          missions[q.id] = { progress: q.target, completed: true };
+          continue;
+        }
+        let val = 0;
+        if (q.type === "denari_area") val = wp.deniariPerArea[area.id] || 0;
+        else if (q.type === "loot_area") val = wp.lottiPerArea[area.id] || 0;
+        else if (q.type === "kills_name") val = wp.uccisioniPerAreaEnemyName[area.id]?.[q.enemy] || 0;
+        else if (q.type === "bestiary_area") val = countDefeatedInArea(state, wp, area.id);
+        setAreaQuestProgress(wp, area.id, q, val, false);
+      }
+    }
+    dirty = true;
+  } else {
+    for (const area of WORLD_AREAS) {
+      if (area.id === "empireo") continue;
+      const pool = AREA_QUESTS[area.id] || [];
+      const bQuest = pool.find(q => q.type === "bestiary_area");
+      if (!bQuest) continue;
+      const missions = getAreaMissions(wp, area.id);
+      const t = missions[bQuest.id];
+      if (!t || t.completed) continue;
+      const defeated = Math.min(bQuest.target, countDefeatedInArea(state, wp, area.id));
+      if (defeated > t.progress) {
+        setAreaQuestProgress(wp, area.id, bQuest, defeated, false);
+        dirty = true;
+      }
+    }
+  }
+
+  if (dirty) save();
+  return wp;
+}
+
+/**
+ * Punto centrale di aggiornamento missioni area.
+ * Chiamata da world.js dopo ogni spedizione.
+ *
+ * events: array di oggetti { type, areaId, enemyName, godId, lootId, denari, lootCount }
+ */
+export function updateAreaQuests(events) {
+  const state = store.state;
+  const wp = ensureAreaQuestsSynced();
 
   for (const ev of events) {
     const aid = ev.areaId;
@@ -751,14 +830,7 @@ export function updateAreaQuests(events) {
       switch (q.type) {
         case "spedizioni":
           if (ev.type === "spedizione") {
-            // Usa il valore cumulativo
-            const cumSped = wp.spedizioniPerArea[aid] || 0;
-            missions[q.id].progress = Math.min(q.target, cumSped);
-            if (missions[q.id].progress >= q.target) {
-              missions[q.id].completed = true;
-              grantAreaQuestReward(q, aid);
-              checkAreaUnlock(wp, aid);
-            }
+            setAreaQuestProgress(wp, aid, q, wp.spedizioniPerArea[aid] || 0);
           }
           break;
 
@@ -777,56 +849,39 @@ export function updateAreaQuests(events) {
           if (inc > 0) tickAreaQuest(wp, aid, q.id, inc);
           break;
 
+        case "bestiary_area":
+          if (ev.type === "kill") {
+            setAreaQuestProgress(wp, aid, q, countDefeatedInArea(state, wp, aid));
+          }
+          break;
+
         case "loot_area":
           if (ev.type === "loot") {
-            const cumLoot = wp.lottiPerArea[aid] || 0;
-            missions[q.id].progress = Math.min(q.target, cumLoot);
-            if (missions[q.id].progress >= q.target) {
-              missions[q.id].completed = true;
-              grantAreaQuestReward(q, aid);
-              checkAreaUnlock(wp, aid);
-            }
+            setAreaQuestProgress(wp, aid, q, wp.lottiPerArea[aid] || 0);
           }
           break;
 
         case "denari_area":
           if (ev.type === "loot") {
-            const cumDen = wp.deniariPerArea[aid] || 0;
-            missions[q.id].progress = Math.min(q.target, cumDen);
-            if (missions[q.id].progress >= q.target) {
-              missions[q.id].completed = true;
-              grantAreaQuestReward(q, aid);
-              checkAreaUnlock(wp, aid);
-            }
+            setAreaQuestProgress(wp, aid, q, wp.deniariPerArea[aid] || 0);
           }
           break;
 
         case "kills_god":
           if (ev.type === "kill_god" && ev.godId === q.godId) {
-            missions[q.id].progress = 1;
-            missions[q.id].completed = true;
-            grantAreaQuestReward(q, aid);
-            checkAreaUnlock(wp, aid);
+            setAreaQuestProgress(wp, aid, q, 1);
           }
           break;
 
         case "kills_all_gods":
           if (ev.type === "kill_god") {
-            missions[q.id].progress = Math.min(q.target, wp.deiSconfitti.length);
-            if (missions[q.id].progress >= q.target) {
-              missions[q.id].completed = true;
-              grantAreaQuestReward(q, aid);
-              checkAreaUnlock(wp, aid);
-            }
+            setAreaQuestProgress(wp, aid, q, wp.deiSconfitti.length);
           }
           break;
 
         case "loot_god":
           if (ev.type === "loot_god" && ev.lootId === q.lootId) {
-            missions[q.id].progress = 1;
-            missions[q.id].completed = true;
-            grantAreaQuestReward(q, aid);
-            checkAreaUnlock(wp, aid);
+            setAreaQuestProgress(wp, aid, q, 1);
           }
           break;
       }

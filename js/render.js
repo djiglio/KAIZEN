@@ -14,7 +14,8 @@ import { HABITS, STAT_DEFS, rankTitles,
          WORLD_AREAS, AREA_QUESTS, EMPIREO_GODS, getEnemiesForArea } from "./data.js";
 import { isDone, getHeroStats, getHeroRank,
          getRankTitle, habitLevel,
-         habitXpInLevel, isDisciplinaFailedToday } from "./engine.js";
+         habitXpInLevel, isDisciplinaFailedToday,
+         ensureAreaQuestsSynced } from "./engine.js";
 import { formatDate, formatCoinHTML, setupHeroSparkStage } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
@@ -237,7 +238,7 @@ export function renderWorld() {
       deiSconfitti: [], bottiniDivini: [], trofeiEmpirei: [], gameCompleted: false,
     };
   }
-  const wpSafe = w.worldProgress;
+  const wpSafe = ensureAreaQuestsSynced();
   const areaSbloccate = wpSafe.areeSbloccate || ["foresta"];
   let areaId  = wpSafe.areaCorrente || "foresta";
   if (!areaSbloccate.includes(areaId)) {
@@ -1186,8 +1187,7 @@ export function closeDetailModal() {
  showAllAreaQuests — Modal con tutte le missioni dell'area
 ══════════════════════════════════════════════════════════ */
 export function showAllAreaQuests() {
-  const w   = store.state.world;
-  const wp  = w.worldProgress || {};
+  const wp  = ensureAreaQuestsSynced();
   const areaId  = wp.areaCorrente || "foresta";
   const areaCfg = WORLD_AREAS.find(a => a.id === areaId) || WORLD_AREAS[0];
   const poolQ   = AREA_QUESTS[areaId] || [];
