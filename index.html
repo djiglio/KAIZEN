@@ -1114,6 +1114,17 @@ body::before {
   margin-left: auto;
   flex-wrap: wrap;
 }
+/* Testata specchiata quando attacca il nemico */
+.combat-line.enemy .combat-line-head,
+.combat-line.dodge.dodge-enemy .combat-line-head {
+  flex-direction: row-reverse;
+}
+.combat-line.enemy .combat-head-right,
+.combat-line.dodge.dodge-enemy .combat-head-right {
+  margin-left: 0;
+  margin-right: auto;
+  flex-direction: row-reverse;
+}
 .combat-tag {
   display: inline-block;
   font-family: "JetBrains Mono", monospace;
@@ -1182,7 +1193,7 @@ body::before {
   box-shadow: 0 0 8px rgba(239,68,68,0.3);
 }
 
-/* Corpo narrativo e footer micro-HP */
+/* Corpo narrativo e footer difesa */
 .combat-line-body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   font-size: 12.5px;
@@ -1203,32 +1214,6 @@ body::before {
   gap: 6px;
 }
 .combat-def-row { display: flex; align-items: center; }
-.combat-micro-hp {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.combat-micro-bar-bg {
-  flex: 1;
-  height: 4px;
-  background: rgba(255,255,255,0.07);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.combat-micro-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-.combat-micro-bar-fill.hero-fill  { background: linear-gradient(90deg, #16a34a, #4ecca3); }
-.combat-micro-bar-fill.enemy-fill { background: linear-gradient(90deg, #991b1b, #ef4444); }
-.combat-hp-inline {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 8.5px;
-  color: #94a3b8;
-  flex-shrink: 0;
-}
-.combat-hp-inline strong { color: #cbd5e1; }
 
 /* Risultati finali (Vittoria, Sconfitta, Fuga) */
 .combat-line.result-win {

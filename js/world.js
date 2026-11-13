@@ -567,6 +567,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  updateBars(turn);
 
  const tNum = i + 1;
+ const buildDefFooter = txt => `<div class="combat-line-footer"><div class="combat-def-row"><span class="combat-def">${txt}</span></div></div>`;
  let line = "";
  if (turn.who === "hero") {
  if (turn.dodged) {
@@ -585,8 +586,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  const critTag = turn.isCrit ? `<span class="combat-tag tag-crit">CRITICO</span>` : "";
  const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">RAPIDO</span>` : "";
  const dmgBadge = `<span class="combat-dmg-badge dmg-hero ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
- const defTag = turn.deflected > 0 ? `<div class="combat-def-row"><span class="combat-def">${narrator.enemyDeflect(turn)}</span></div>` : "";
- const enePct = Math.max(0, Math.min(100, (turn.enemyHP / es.costituzione) * 100));
+ const defFooter = turn.deflected > 0 ? buildDefFooter(narrator.enemyDeflect(turn)) : "";
  const cls = turn.isCrit ? "combat-line hero critical" : "combat-line hero";
  line = `
  <div class="${cls}">
@@ -595,15 +595,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
      <div class="combat-head-right">${dblTag}${critTag}${dmgBadge}</div>
    </div>
    <div class="combat-line-body">${narrator.heroHit(turn)}</div>
-   <div class="combat-line-footer">
-     ${defTag}
-     <div class="combat-micro-hp">
-       <div class="combat-micro-bar-bg">
-         <div class="combat-micro-bar-fill enemy-fill" style="width:${enePct}%"></div>
-       </div>
-       <span class="combat-hp-inline">${enemy.name}: <strong>${turn.enemyHP}</strong>/${es.costituzione} PV</span>
-     </div>
-   </div>
+   ${defFooter}
  </div>`;
  }
  } else {
@@ -623,8 +615,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  const critTag = turn.isCrit ? `<span class="combat-tag tag-crit-enemy">CRITICO NEMICO</span>` : "";
  const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">RAPIDO</span>` : "";
  const dmgBadge = `<span class="combat-dmg-badge dmg-enemy ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
- const defTag = turn.deflected > 0 ? `<div class="combat-def-row"><span class="combat-def">${narrator.heroDeflect(turn)}</span></div>` : "";
- const heroPct = Math.max(0, Math.min(100, (turn.heroHP / pvMax) * 100));
+ const defFooter = turn.deflected > 0 ? buildDefFooter(narrator.heroDeflect(turn)) : "";
  const cls = turn.isCrit ? "combat-line enemy critical" : "combat-line enemy";
  line = `
  <div class="${cls}">
@@ -633,15 +624,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
      <div class="combat-head-right">${dblTag}${critTag}${dmgBadge}</div>
    </div>
    <div class="combat-line-body">${narrator.enemyHit(turn)}</div>
-   <div class="combat-line-footer">
-     ${defTag}
-     <div class="combat-micro-hp">
-       <div class="combat-micro-bar-bg">
-         <div class="combat-micro-bar-fill hero-fill" style="width:${heroPct}%"></div>
-       </div>
-       <span class="combat-hp-inline">Tuoi PV: <strong>${turn.heroHP}</strong>/${pvMax}</span>
-     </div>
-   </div>
+   ${defFooter}
  </div>`;
  }
  }
