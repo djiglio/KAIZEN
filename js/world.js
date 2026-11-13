@@ -333,6 +333,7 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
  }
 
  inner.innerHTML = `
+ <div class="combat-pre-wrap">
  <div class="combat-header">${enemy.name}</div>
  <div class="combat-sub">${enemy.trait || ""}</div>
 
@@ -376,6 +377,7 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
  <div class="flee-btns">
  <button class="flee-btn fight" id="btn-fight">COMBATTI</button>
  <button class="flee-btn flee" id="btn-flee">FUGGI (${fleeChance}%)</button>
+ </div>
  </div>
  </div>
  `;
