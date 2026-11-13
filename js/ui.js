@@ -107,7 +107,8 @@ function ensureSmokeLayer(stageEl) {
   frontSmoke.setAttribute("aria-hidden", "true");
   frontSmoke.innerHTML =
    '<div class="hero-smoke-wisp hero-smoke-wisp--f1"></div>' +
-   '<div class="hero-smoke-wisp hero-smoke-wisp--f2"></div>';
+   '<div class="hero-smoke-wisp hero-smoke-wisp--f2"></div>' +
+   '<div class="hero-smoke-wisp hero-smoke-wisp--f3"></div>';
   stageEl.appendChild(frontSmoke);
  }
 }
