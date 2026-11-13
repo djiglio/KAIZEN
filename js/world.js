@@ -334,47 +334,48 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
 
  inner.innerHTML = `
  <div class="combat-header">${enemy.name}</div>
- <div class="combat-sub" style="margin-bottom:6px">${enemy.trait || ""}</div>
- ${equipStr}
+ <div class="combat-sub">${enemy.trait || ""}</div>
 
  <!-- Immagine nemico -->
- <div style="display:flex;justify-content:center;padding:4px 0 6px;width:100%;max-width:270px;margin:0 auto;">
- ${enemyImgHTML(enemy, '100%', 'auto')}
+ <div class="combat-pre-portrait">
+ ${enemyImgHTML(enemy, '100%', '100%')}
  </div>
 
  <!-- Statistiche nemico -->
  <div class="detail-stat-grid" style="margin:6px 0 8px">
  <div class="detail-stat-box">
- <div class="detail-stat-val" style="color:#dc2626">${eneS.forza}</div>
+ <div class="detail-stat-val" style="color:var(--stone-text)">${eneS.forza}</div>
  <div class="detail-stat-lbl">FORZA</div>
  </div>
  <div class="detail-stat-box">
- <div class="detail-stat-val" style="color:#0ea5e9">${eneS.velocita}</div>
+ <div class="detail-stat-val" style="color:var(--stone-text)">${eneS.velocita}</div>
  <div class="detail-stat-lbl">VELOCITÀ</div>
  </div>
  <div class="detail-stat-box">
- <div class="detail-stat-val" style="color:#10b981">${eneS.destrezza}%</div>
+ <div class="detail-stat-val" style="color:var(--stone-text)">${eneS.destrezza}%</div>
  <div class="detail-stat-lbl">DESTREZZA</div>
  </div>
  <div class="detail-stat-box">
- <div class="detail-stat-val" style="color:#f97316">${eneS.critico}%</div>
+ <div class="detail-stat-val" style="color:var(--stone-text)">${eneS.critico}%</div>
  <div class="detail-stat-lbl">CRITICO</div>
  </div>
  <div class="detail-stat-box" style="grid-column:1/-1">
- <div class="detail-stat-val" style="color:#dc2626">${eneS.costituzione}</div>
+ <div class="detail-stat-val" style="color:var(--danger)">${eneS.costituzione}</div>
  <div class="detail-stat-lbl">PUNTI VITA</div>
  </div>
  </div>
 
- <div class="flee-panel" style="padding:11px 12px;margin-bottom:0">
- <div class="flee-title" style="margin-bottom:4px">[!] Nemico in vista!</div>
- <div class="flee-text" style="margin-bottom:10px;font-size:13px;line-height:1.3">
+ ${equipStr}
+
+ <div class="flee-panel">
+ <div class="flee-title">Incontro ostile</div>
+ <div class="flee-text">
  Furtività: <strong style="color:var(--primary)">${heroS.furtivita}%</strong> probabilità di fuga riuscita.<br>
- Se combatti e vinci, ottieni bottino e ${COIN}.
+ Sconfiggendo il nemico otterrai bottino e ${COIN}.
  </div>
  <div class="flee-btns">
- <button class="flee-btn fight" id="btn-fight" style="padding:9px;min-height:38px">COMBATTI</button>
- <button class="flee-btn flee" id="btn-flee" style="padding:9px;min-height:38px">FUGGI (${fleeChance}%)</button>
+ <button class="flee-btn fight" id="btn-fight">COMBATTI</button>
+ <button class="flee-btn flee" id="btn-flee">FUGGI (${fleeChance}%)</button>
  </div>
  </div>
  `;
@@ -561,65 +562,40 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
 
  const tNum = i + 1;
  const buildDefFooter = txt => `<div class="combat-line-footer"><div class="combat-def-row"><span class="combat-def">${txt}</span></div></div>`;
+ const buildTurnCard = (cardCls, metaCls, actor, rightHtml, bodyHtml, footerHtml = "") => `
+ <div class="combat-line ${cardCls}">
+   <div class="combat-line-head">
+     <span class="combat-turn-meta ${metaCls}">
+       <span class="combat-turn-num">TURNO ${tNum}</span>
+       <span class="combat-turn-actor">${actor}</span>
+     </span>
+     <div class="combat-head-right">${rightHtml}</div>
+   </div>
+   <div class="combat-line-body">${bodyHtml}</div>
+   ${footerHtml}
+ </div>`;
+
+ const isHero = turn.who === "hero";
+ const metaCls = isHero ? "hero-meta" : "enemy-meta";
+ const actorName = isHero ? "EROE" : enemy.name;
  let line = "";
- if (turn.who === "hero") {
  if (turn.dodged) {
- const dodgeTxt = narrator.enemyDodge();
- line = `
- <div class="combat-line dodge dodge-hero">
-   <div class="combat-line-head">
-     <span class="combat-turn-pill hero-pill"><span class="combat-turn-num">T${tNum}</span> · EROE</span>
-     <div class="combat-head-right">
-       <span class="combat-tag tag-dodge">SCHIVATO</span>
-     </div>
-   </div>
-   <div class="combat-line-body">${dodgeTxt}</div>
- </div>`;
+ const cls = isHero ? "dodge dodge-hero" : "dodge dodge-enemy";
+ const dodgeLbl = isHero ? "SCHIVATO" : "SCHIVATA";
+ const dodgeTxt = isHero ? narrator.enemyDodge() : narrator.heroDodge();
+ line = buildTurnCard(cls, metaCls, actorName, `<span class="combat-tag tag-dodge">${dodgeLbl}</span>`, dodgeTxt);
  } else {
- const critTag = turn.isCrit ? `<span class="combat-tag tag-crit">CRITICO</span>` : "";
+ const critCls = isHero ? "tag-crit" : "tag-crit-enemy";
+ const critLbl = isHero ? "CRITICO" : "CRITICO NEMICO";
+ const critTag = turn.isCrit ? `<span class="combat-tag ${critCls}">${critLbl}</span>` : "";
  const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">RAPIDO</span>` : "";
- const dmgBadge = `<span class="combat-dmg-badge dmg-hero ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
- const defFooter = turn.deflected > 0 ? buildDefFooter(narrator.enemyDeflect(turn)) : "";
- const cls = turn.isCrit ? "combat-line hero critical" : "combat-line hero";
- line = `
- <div class="${cls}">
-   <div class="combat-line-head">
-     <span class="combat-turn-pill hero-pill"><span class="combat-turn-num">T${tNum}</span> · EROE</span>
-     <div class="combat-head-right">${dblTag}${critTag}${dmgBadge}</div>
-   </div>
-   <div class="combat-line-body">${narrator.heroHit(turn)}</div>
-   ${defFooter}
- </div>`;
- }
- } else {
- if (turn.dodged) {
- const dodgeTxt = narrator.heroDodge();
- line = `
- <div class="combat-line dodge dodge-enemy">
-   <div class="combat-line-head">
-     <span class="combat-turn-pill enemy-pill"><span class="combat-turn-num">T${tNum}</span> · ${enemy.name}</span>
-     <div class="combat-head-right">
-       <span class="combat-tag tag-dodge">SCHIVATA</span>
-     </div>
-   </div>
-   <div class="combat-line-body">${dodgeTxt}</div>
- </div>`;
- } else {
- const critTag = turn.isCrit ? `<span class="combat-tag tag-crit-enemy">CRITICO NEMICO</span>` : "";
- const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">RAPIDO</span>` : "";
- const dmgBadge = `<span class="combat-dmg-badge dmg-enemy ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
- const defFooter = turn.deflected > 0 ? buildDefFooter(narrator.heroDeflect(turn)) : "";
- const cls = turn.isCrit ? "combat-line enemy critical" : "combat-line enemy";
- line = `
- <div class="${cls}">
-   <div class="combat-line-head">
-     <span class="combat-turn-pill enemy-pill"><span class="combat-turn-num">T${tNum}</span> · ${enemy.name}</span>
-     <div class="combat-head-right">${dblTag}${critTag}${dmgBadge}</div>
-   </div>
-   <div class="combat-line-body">${narrator.enemyHit(turn)}</div>
-   ${defFooter}
- </div>`;
- }
+ const dmgCls = (isHero ? "dmg-hero" : "dmg-enemy") + (turn.isCrit ? " is-crit" : "");
+ const dmgVal = `<span class="combat-dmg-val ${dmgCls}">-${turn.dmg} <small>PV</small></span>`;
+ const bodyTxt = isHero ? narrator.heroHit(turn) : narrator.enemyHit(turn);
+ const defTxt = turn.deflected > 0 ? (isHero ? narrator.enemyDeflect(turn) : narrator.heroDeflect(turn)) : "";
+ const defFooter = defTxt ? buildDefFooter(defTxt) : "";
+ const cls = (isHero ? "hero" : "enemy") + (turn.isCrit ? " critical" : "");
+ line = buildTurnCard(cls, metaCls, actorName, `${dblTag}${critTag}${dmgVal}`, bodyTxt, defFooter);
  }
  logEl.innerHTML += line;
  logEl.scrollTop = logEl.scrollHeight;
@@ -789,9 +765,9 @@ function executeFlee(enemy, fleeChance) {
     w.wq.current_streak = 0;
     updateWorldQuests("win_streak", { count: 0, reset: true });
     inner.innerHTML = `
-    <div class="combat-header"> FUGA RIUSCITA</div>
-    <div style="text-align:center;font-size:48px;padding:20px"></div>
-    <div class="combat-line result-fled">Sei riuscito a fuggire da ${enemy.name}!</div>
+    <div class="combat-header">FUGA RIUSCITA</div>
+    <div class="combat-sub">Ritirata sul sentiero</div>
+    <div class="combat-line result-fled">Sei riuscito a fuggire da ${enemy.name}.</div>
     `;
     resolveImgs(inner);
     w.missioniLog.unshift({ tipo:"fled", nome:enemy.name, denari:0, t:Date.now() });
@@ -799,8 +775,8 @@ function executeFlee(enemy, fleeChance) {
     consumeRelicMissionCharge();
   } else {
     inner.innerHTML = `
-    <div class="combat-header"> FUGA FALLITA</div>
-    <div class="combat-sub">${enemy.name} ti blocca la via!</div>
+    <div class="combat-header">FUGA FALLITA</div>
+    <div class="combat-sub">${enemy.name} ti blocca la via.</div>
     `;
     resolveImgs(inner);
     setTimeout(() => {
