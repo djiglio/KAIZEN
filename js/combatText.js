@@ -806,19 +806,19 @@ export function createCombatNarrator({ enemy, enemyEquip, heroEquip, heroWeapon,
     // Danno assorbito dall'equipaggiamento nemico
     enemyDeflect(turn) {
       const n = turn.deflected;
-      if (eneShield) return `🛡️ ${eneShield} di ${enemy.name} para -${n}`;
-      if (ene.stance === "dual") return `⚔️ ${enemy.name} intercetta con ${ene.off.name} -${n}`;
-      if (eneArmor)  return `🛡️ ${eneArmor} di ${enemy.name} assorbe -${n}`;
-      return `🛡️ -${n} parati dall'armatura nemica`;
+      if (eneShield) return `${eneShield} di ${enemy.name} para -${n}`;
+      if (ene.stance === "dual") return `${enemy.name} intercetta con ${ene.off.name} -${n}`;
+      if (eneArmor)  return `${eneArmor} di ${enemy.name} assorbe -${n}`;
+      return `-${n} parati dall'armatura nemica`;
     },
 
     // Danno assorbito dall'equipaggiamento dell'eroe
     heroDeflect(turn) {
       const n = turn.deflected;
-      if (hero.shield) return `🛡️ ${hero.shield.name} para -${n}`;
-      if (hero.stance === "dual") return `⚔️ ${hero.off.name} intercetta -${n}`;
-      if (heroArmorName) return `🛡️ ${heroArmorName} assorbe -${n}`;
-      return `🛡️ -${n} assorbiti dalla tua difesa`;
+      if (hero.shield) return `${hero.shield.name} para -${n}`;
+      if (hero.stance === "dual") return `${hero.off.name} intercetta -${n}`;
+      if (heroArmorName) return `${heroArmorName} assorbe -${n}`;
+      return `-${n} assorbiti dalla tua difesa`;
     },
 
     victory() {

@@ -503,7 +503,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  if (introTxt) {
    logEl.innerHTML += `
    <div class="combat-line system">
-     <div class="combat-line-sys-cap">✦ CRONACA DI BATTAGLIA ✦</div>
+     <div class="combat-line-sys-cap">CRONACA DI BATTAGLIA</div>
      <div class="combat-line-sys-txt">${introTxt}</div>
    </div>`;
  }
@@ -532,7 +532,7 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
    rewardChips.push(`
      <div class="combat-reward-chip chip-area">
        <span class="combat-reward-lbl">SCOPERTA REGIONALE</span>
-       <span class="combat-reward-val">${areaLootObj.icon || "📦"} ${areaLootObj.name} <small>(+${areaLootObj.value} ${COIN})</small></span>
+       <span class="combat-reward-val">${areaLootObj.name} <small>(+${areaLootObj.value} ${COIN})</small></span>
      </div>
    `);
  }
@@ -541,20 +541,20 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
    rewardChips.push(`
      <div class="combat-reward-chip chip-razzia">
        <span class="combat-reward-lbl">EQUIPAGGIAMENTO RAZZIATO</span>
-       <span class="combat-reward-val">⚔️ ${razzia}</span>
+       <span class="combat-reward-val">${razzia}</span>
      </div>
    `);
  }
  logEl.innerHTML += `
  <div class="combat-line result-win">
-   <div class="combat-result-badge">✦ VITTORIA ✦</div>
+   <div class="combat-result-badge">VITTORIA</div>
    <div class="combat-result-text">${narrator.victory()}</div>
    <div class="combat-reward-grid">${rewardChips.join("")}</div>
  </div>`;
  } else {
  logEl.innerHTML += `
  <div class="combat-line result-lose">
-   <div class="combat-result-badge">✦ SCONFITTA ✦</div>
+   <div class="combat-result-badge">SCONFITTA</div>
    <div class="combat-result-text">${narrator.defeat()}</div>
  </div>`;
  }
@@ -576,14 +576,14 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
    <div class="combat-line-head">
      <span class="combat-turn-pill hero-pill"><span class="combat-turn-num">T${tNum}</span> · EROE</span>
      <div class="combat-head-right">
-       <span class="combat-tag tag-dodge">◈ SCHIVATO</span>
+       <span class="combat-tag tag-dodge">SCHIVATO</span>
      </div>
    </div>
    <div class="combat-line-body">${dodgeTxt}</div>
  </div>`;
  } else {
- const critTag = turn.isCrit ? `<span class="combat-tag tag-crit">✦ CRITICO</span>` : "";
- const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">⚡ RAPIDO</span>` : "";
+ const critTag = turn.isCrit ? `<span class="combat-tag tag-crit">CRITICO</span>` : "";
+ const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">RAPIDO</span>` : "";
  const dmgBadge = `<span class="combat-dmg-badge dmg-hero ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
  const defTag = turn.deflected > 0 ? `<div class="combat-def-row"><span class="combat-def">${narrator.enemyDeflect(turn)}</span></div>` : "";
  const enePct = Math.max(0, Math.min(100, (turn.enemyHP / es.costituzione) * 100));
@@ -614,14 +614,14 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
    <div class="combat-line-head">
      <span class="combat-turn-pill enemy-pill"><span class="combat-turn-num">T${tNum}</span> · ${enemy.name}</span>
      <div class="combat-head-right">
-       <span class="combat-tag tag-dodge">◈ SCHIVATA</span>
+       <span class="combat-tag tag-dodge">SCHIVATA</span>
      </div>
    </div>
    <div class="combat-line-body">${dodgeTxt}</div>
  </div>`;
  } else {
- const critTag = turn.isCrit ? `<span class="combat-tag tag-crit-enemy">✦ CRITICO NEMICO</span>` : "";
- const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">⚡ RAPIDO</span>` : "";
+ const critTag = turn.isCrit ? `<span class="combat-tag tag-crit-enemy">CRITICO NEMICO</span>` : "";
+ const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">RAPIDO</span>` : "";
  const dmgBadge = `<span class="combat-dmg-badge dmg-enemy ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
  const defTag = turn.deflected > 0 ? `<div class="combat-def-row"><span class="combat-def">${narrator.heroDeflect(turn)}</span></div>` : "";
  const heroPct = Math.max(0, Math.min(100, (turn.heroHP / pvMax) * 100));
@@ -815,7 +815,7 @@ function executeFlee(enemy, fleeChance) {
     inner.innerHTML = `
     <div class="combat-header"> FUGA RIUSCITA</div>
     <div style="text-align:center;font-size:48px;padding:20px"></div>
-    <div class="combat-line result-fled">✦ Sei riuscito a fuggire da ${enemy.name}!</div>
+    <div class="combat-line result-fled">Sei riuscito a fuggire da ${enemy.name}!</div>
     `;
     resolveImgs(inner);
     w.missioniLog.unshift({ tipo:"fled", nome:enemy.name, denari:0, t:Date.now() });
