@@ -1231,10 +1231,12 @@ body::before {
   margin-bottom: 4px;
 }
 .combat-line-sys-txt {
-  font-size: 11.5px;
+  font-family: var(--serif-it);
+  font-size: 14px;
   font-style: italic;
+  font-weight: 500;
   color: #d6c8ad;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 /* Header turno, pillole e tag */
@@ -1359,16 +1361,18 @@ body::before {
 
 /* Corpo narrativo e footer difesa */
 .combat-line-body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-family: var(--serif-it);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.45;
   color: #e5dec9;
   text-align: left;
   padding: 2px 0 9px;
-  letter-spacing: 0.1px;
+  letter-spacing: 0.15px;
 }
 .combat-line-body:last-child { padding-bottom: 2px; }
-.combat-line-body strong { color: #f8fafc; font-weight: 700; }
+.combat-line-body strong { color: #f8fafc; font-weight: 600; }
 .combat-line-footer {
   margin-top: 2px;
   padding-top: 7px;
