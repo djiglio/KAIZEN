@@ -403,66 +403,59 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  enemyEquipStr = `<div class="combat-enemy-equip">Equip: ${pcs}</div>`;
  }
 
+ const statsGridHTML = s => `
+ <div class="combat-stats-grid">
+   <div class="combat-stat-cell"><span>ATK</span><strong>${s.forza}</strong></div>
+   <div class="combat-stat-cell"><span>VEL</span><strong>${s.velocita}</strong></div>
+   <div class="combat-stat-cell"><span>DES</span><strong>${s.destrezza}%</strong></div>
+   <div class="combat-stat-cell"><span>CRI</span><strong>${s.critico}%</strong></div>
+ </div>`;
+
  inner.innerHTML = `
  <div class="combat-header">${enemy.name}</div>
  <div class="combat-sub">${enemy.trait || ""}</div>
+
+ <!-- Palco duello non incorniciato: miniature + VS + barre PV + stats 2x2 -->
+ <div class="combat-duel">
+   <div class="combat-fighters">
+     <div class="combat-fighter-slot combat-fighter-slot--hero">
+       ${heroAvatarHTML(heroTitle, "100%", "100%")}
+     </div>
+     <div class="combat-vs">VS</div>
+     <div class="combat-fighter-slot combat-fighter-slot--enemy">
+       ${enemyImgHTML(enemy, "100%", "100%")}
+     </div>
+   </div>
+
+   <div class="combat-hp-panel">
+     <!-- EROE: barra PV + griglia 2x2 -->
+     <div class="combat-hp-block">
+       <div class="combat-hp-label">
+         <span style="color:var(--primary)">EROE</span>
+         <span class="combat-hp-nums" id="hero-hp-nums">${initialHeroHP}/${pvMax}</span>
+       </div>
+       <div class="combat-hp-bar-bg">
+         <div class="combat-hp-bar hero-hp-bar" id="hero-hp-bar"
+           style="width:${Math.max(0,initialHeroHP/pvMax*100)}%"></div>
+       </div>
+       ${statsGridHTML(hs)}
+     </div>
+
+     <!-- NEMICO: barra PV specchiata + griglia 2x2 -->
+     <div class="combat-hp-block">
+       <div class="combat-hp-label" style="flex-direction:row-reverse">
+         <span style="color:var(--danger);font-size:9px;text-align:right">${enemy.name}</span>
+         <span class="combat-hp-nums" id="enemy-hp-nums">${es.costituzione}/${es.costituzione}</span>
+       </div>
+       <div class="combat-hp-bar-bg combat-hp-bar-bg--enemy">
+         <div class="combat-hp-bar enemy-hp-bar" id="enemy-hp-bar" style="width:100%"></div>
+       </div>
+       ${statsGridHTML(es)}
+     </div>
+   </div>
+ </div>
+
  ${enemyEquipStr}
-
- <!-- Miniature dei combattenti affiancate con VS -->
-  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin:15px 0; width:100%;">
-    <div style="flex:1;">
-      ${heroAvatarHTML(heroTitle, "100%", "auto")}
-    </div>
-    <div style="flex-shrink:0; text-align:center; width:40px;">
-      <span style="font-size:24px; font-weight:bold; color:var(--text-dim); font-family:'Cinzel', serif;">VS</span>
-    </div>
-    <div style="flex:1;">
-      ${enemyImgHTML(enemy, "100%", "auto")}
-    </div>
-  </div>
-
-  <!-- Pannello HP con avatar eroe e immagine nemico -->
-  <div class="combat-hp-panel">
-
- <!-- EROE: avatar + barra HP -->
- <div class="combat-hp-block">
- <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
- <div style="flex:1;min-width:0">
- <div class="combat-hp-label">
- <span style="color:var(--primary)">EROE</span>
- <span class="combat-hp-nums" id="hero-hp-nums">${initialHeroHP}/${pvMax}</span>
- </div>
- </div>
- </div>
- <div class="combat-hp-bar-bg">
- <div class="combat-hp-bar hero-hp-bar" id="hero-hp-bar"
- style="width:${Math.max(0,initialHeroHP/pvMax*100)}%"></div>
- </div>
- <div class="combat-hp-stats">ATK:${hs.forza} VEL:${hs.velocita} DES:${hs.destrezza}% CRI:${hs.critico}%</div>
- </div>
-
- <!-- VS centrale -->
- <div class="combat-hp-vs">
- <span class="combat-ini-odds" style="font-size:10px; margin-top:14px">${result.pHero}% INI</span>
- </div>
-
- <!-- NEMICO: immagine + barra HP -->
- <div class="combat-hp-block">
- <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-direction:row-reverse">
- <div style="flex:1;min-width:0;text-align:right">
- <div class="combat-hp-label" style="flex-direction:row-reverse">
- <span style="color:var(--danger);font-size:9px">${enemy.name}</span>
- <span class="combat-hp-nums" id="enemy-hp-nums">${es.costituzione}/${es.costituzione}</span>
- </div>
- </div>
- </div>
- <div class="combat-hp-bar-bg">
- <div class="combat-hp-bar enemy-hp-bar" id="enemy-hp-bar" style="width:100%"></div>
- </div>
- <div class="combat-hp-stats">ATK:${es.forza} VEL:${es.velocita} DES:${es.destrezza}% CRI:${es.critico}%</div>
- </div>
-
- </div>
 
  <div class="combat-log" id="combat-log-lines"></div>
  `;

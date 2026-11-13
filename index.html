@@ -1090,8 +1090,11 @@ body::before {
 .combat-overlay.show { display: flex; animation: fadeIn 0.25s ease; }
 .combat-inner { max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1; text-align: center; }
 
-.combat-header { font-family: "Cinzel", serif; font-size: 17px; font-weight: 900; color: #ede0cf; letter-spacing: 3px; text-align: center; margin-bottom: 3px; text-transform: uppercase; }
-.combat-sub    { font-family: "JetBrains Mono", monospace; font-size: 8px; color: var(--cap); text-align: center; letter-spacing: 2.5px; margin-bottom: 14px; text-transform: uppercase; }
+.combat-header { display: flex; align-items: center; gap: 10px; font-family: "Cinzel", serif; font-size: 16px; font-weight: 900; color: #ede0cf; letter-spacing: 3px; text-align: center; margin-bottom: 3px; text-transform: uppercase; }
+.combat-header::before,
+.combat-header::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(85, 74, 62, 0.55)); }
+.combat-header::after { background: linear-gradient(270deg, transparent, rgba(85, 74, 62, 0.55)); }
+.combat-sub    { font-family: var(--serif-it); font-style: italic; font-weight: 500; font-size: 14px; color: #9a8a68; text-align: center; letter-spacing: 0.2px; margin-bottom: 8px; }
 
 /* Pre-combat: flee panel */
 .flee-panel {
@@ -1132,23 +1135,32 @@ body::before {
 .flee-btn.flee:active { background: rgba(180, 75, 38, 0.22); border-color: rgba(195, 85, 45, 0.6); color: #f6b088; }
 .flee-btn:active { transform: scale(0.97); }
 
-/* HP bars */
-.combat-hp-panel { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
-.combat-hp-block { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; background: var(--ink); border: 1px solid rgba(85, 74, 62, 0.4); padding: 9px 10px; border-radius: 3px; }
+/* Palco duello e barre HP */
+.combat-duel { margin: 6px 0 10px; }
+.combat-fighters { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.combat-fighter-slot { flex: 1; min-width: 0; height: 128px; display: flex; align-items: flex-end; justify-content: center; position: relative; }
+.combat-fighter-slot::after { content: ""; position: absolute; left: 16%; right: 16%; bottom: 2px; height: 12px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, transparent 72%); pointer-events: none; z-index: 0; }
+.combat-fighter-slot img { max-height: 100%; width: auto !important; max-width: 100%; object-fit: contain; position: relative; z-index: 1; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.65)); }
+.combat-vs { flex-shrink: 0; align-self: center; font-family: "Cinzel", serif; font-size: 18px; font-weight: 900; letter-spacing: 2px; color: #9a8a68; padding: 0 2px; }
+
+.combat-hp-panel { display: flex; gap: 10px; align-items: stretch; }
+.combat-hp-block { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; background: var(--ink); border: 1px solid rgba(85, 74, 62, 0.42); padding: 9px 10px; border-radius: 3px; }
 .combat-hp-label { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font-family: "Cinzel", serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
 .combat-hp-nums  { font-family: "JetBrains Mono", monospace; font-size: 9px; color: #ece3cf; font-weight: 700; flex-shrink: 0; transition: color 0.2s; }
-.combat-hp-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.07); border-radius: 1px; overflow: hidden; }
+.combat-hp-bar-bg { width: 100%; height: 8px; background: #070604; border: 1px solid rgba(85, 74, 62, 0.45); border-radius: 2px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8); overflow: hidden; display: flex; }
+.combat-hp-bar-bg--enemy { justify-content: flex-end; }
 .combat-hp-bar { height: 100%; transition: width 0.45s cubic-bezier(0.4,0,0.2,1); }
 .hero-hp-bar   { background: #4ecca3; }
 .hero-hp-bar.mid { background: #e8a838; }
 .hero-hp-bar.low { background: #d65a5a; animation: hpCritical 0.8s ease-in-out infinite alternate; }
-.enemy-hp-bar { background: #c4675d; }
-.combat-hp-stats { font-family: "JetBrains Mono", monospace; font-size: 7.5px; color: var(--cap); letter-spacing: 0.5px; text-align: center; margin-top: 2px; }
-.combat-hp-vs    { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; color: var(--cap); padding-top: 8px; gap: 2px; }
-.combat-ini-odds { font-family: "JetBrains Mono", monospace; font-size: 8px; color: var(--cap); letter-spacing: 1px; }
+.enemy-hp-bar { background: #b8544a; }
+.combat-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px; }
+.combat-stat-cell { display: flex; justify-content: space-between; align-items: center; background: rgba(10, 9, 7, 0.6); border: 1px solid rgba(85, 74, 62, 0.28); border-radius: 2px; padding: 3px 6px; font-family: "JetBrains Mono", monospace; font-size: 8.5px; }
+.combat-stat-cell span { color: var(--cap); letter-spacing: 0.4px; }
+.combat-stat-cell strong { color: #d4c7b2; font-weight: 700; }
 
 /* Enemy equip */
-.combat-enemy-equip { font-family: var(--serif-it); font-style: italic; font-size: 13.5px; color: #7cc8f0; background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.2); border-radius: 3px; padding: 6px 10px; margin-bottom: 10px; line-height: 1.4; text-align: center; }
+.combat-enemy-equip { font-family: var(--serif-it); font-style: italic; font-size: 13.5px; color: #c9a87c; background: rgba(45, 34, 26, 0.42); border: 1px solid rgba(85, 74, 62, 0.38); border-radius: 3px; padding: 6px 10px; margin-bottom: 10px; line-height: 1.4; text-align: center; }
 
 /* Combat log (Arena Tattica) */
 .combat-log {
