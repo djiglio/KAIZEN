@@ -33,7 +33,22 @@
   padding: 0;
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iOS WebApp standalone: abbassa gli elementi sotto la sfocatura superiore di sistema */
+@media (display-mode: standalone) and (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    :root {
+      --sat: calc(max(20px, env(safe-area-inset-top, 0px)) + 20px);
+    }
+  }
+}
+html.is-ios-standalone {
+  --sat: calc(max(20px, env(safe-area-inset-top, 0px)) + 20px);
+}
 
 body {
   font-family: "Inter", sans-serif;

@@ -12,6 +12,14 @@
   <link rel="apple-touch-icon" href="img/icon.png?v=6.65"/>
   <title>KAIZEN v6.65</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet"/>
+  <script>
+    (function () {
+      var ua = navigator.userAgent || "";
+      var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      var isStandalone = window.navigator.standalone === true || (isIOS && window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+      if (isStandalone) document.documentElement.classList.add("is-ios-standalone");
+    })();
+  </script>
   <style>
 /* === base.css === */
 /* ============================================================
@@ -65,7 +73,22 @@
   padding: 0;
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iOS WebApp standalone: abbassa gli elementi sotto la sfocatura superiore di sistema */
+@media (display-mode: standalone) and (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    :root {
+      --sat: calc(max(20px, env(safe-area-inset-top, 0px)) + 20px);
+    }
+  }
+}
+html.is-ios-standalone {
+  --sat: calc(max(20px, env(safe-area-inset-top, 0px)) + 20px);
+}
 
 body {
   font-family: "Inter", sans-serif;
@@ -441,6 +464,20 @@ body::before {
   z-index: 1000;
   border-bottom: 1px solid rgba(85, 74, 62, 0.45);
 }
+@media (display-mode: standalone) and (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    .header {
+      background: #0c0a07;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+}
+html.is-ios-standalone .header {
+  background: #0c0a07;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 .header-logo {
   display: flex;
   align-items: center;
@@ -629,7 +666,7 @@ body::before {
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  padding: calc(var(--sat) + 18px) calc(18px + var(--sar)) calc(var(--sab) + 18px) calc(18px + var(--sal));
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -642,6 +679,7 @@ body::before {
   padding: 20px 16px 18px;
   width: 100%;
   max-width: 430px;
+  margin: auto;
   box-shadow: var(--shadow-heavy), inset 0 0 0 3px #0d0b08, inset 0 0 0 4px rgba(60, 50, 40, 0.2);
   position: relative;
   text-align: center;

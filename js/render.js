@@ -1217,8 +1217,8 @@ export function showAllAreaQuests() {
   const html = `
     <div id="all-quests-overlay" onclick="if(event.target===this)this.remove()"
       style="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;backdrop-filter:blur(6px);
-        display:flex;align-items:center;justify-content:center;padding:16px;">
-      <div class="modal-box mk mk-modal" style="max-width:440px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;border-color:${areaCfg.color}55;">
+        display:flex;align-items:center;justify-content:center;padding:calc(var(--sat) + 16px) calc(16px + var(--sar)) calc(var(--sab) + 16px) calc(16px + var(--sal));">
+      <div class="modal-box mk mk-modal" style="margin:auto;max-width:440px;max-height:calc(100dvh - var(--sat) - var(--sab) - 32px);display:flex;flex-direction:column;overflow:hidden;border-color:${areaCfg.color}55;">
         <div class="mk-modal-cap">Registro di Regione · ${doneCount}/${poolQ.length} Compiuti (${totalPct}%)</div>
         <div class="mk-modal-title" style="color:${areaCfg.color};text-shadow:0 0 12px ${areaCfg.color}44;">${areaCfg.name}</div>
         <div class="mk-vital-bar" style="--acc:${areaCfg.color};margin:4px 0 14px;"><i style="width:${totalPct}%;background:${areaCfg.color};"></i></div>
