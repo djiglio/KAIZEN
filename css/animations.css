@@ -106,25 +106,37 @@
 }
 
 .hero-smoke {
+  --smoke-bg: var(--bg, #0a0907);
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
-  -webkit-mask-image: radial-gradient(ellipse 90% 88% at 50% 60%, #000 32%, transparent 96%);
-  mask-image: radial-gradient(ellipse 90% 88% at 50% 60%, #000 32%, transparent 96%);
+  -webkit-mask-image: radial-gradient(ellipse 88% 82% at 50% 52%, #000 24%, transparent 94%);
+  mask-image: radial-gradient(ellipse 88% 82% at 50% 52%, #000 24%, transparent 94%);
+}
+
+.hero-smoke::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--smoke-bg) 0%, rgba(10, 9, 7, 0.72) 12%, transparent 32%);
+}
+
+.modal-box--rank .hero-smoke {
+  --smoke-bg: #0d0b08;
 }
 
 .hero-smoke-base {
   position: absolute;
   left: -12%;
   right: -12%;
-  bottom: -8%;
-  height: 54%;
+  bottom: -6%;
+  height: 50%;
   background:
-    radial-gradient(ellipse 65% 58% at 50% 78%, rgba(62, 60, 66, 0.42) 0%, rgba(30, 29, 34, 0.58) 46%, transparent 78%),
-    radial-gradient(ellipse 46% 52% at 28% 72%, rgba(74, 72, 78, 0.30) 0%, transparent 74%),
-    radial-gradient(ellipse 48% 50% at 72% 74%, rgba(56, 54, 60, 0.32) 0%, transparent 74%);
+    radial-gradient(ellipse 65% 56% at 50% 72%, rgba(32, 30, 29, 0.46) 0%, rgba(16, 15, 14, 0.62) 48%, transparent 78%),
+    radial-gradient(ellipse 46% 50% at 28% 66%, rgba(40, 38, 36, 0.30) 0%, transparent 74%),
+    radial-gradient(ellipse 48% 48% at 72% 68%, rgba(34, 32, 31, 0.32) 0%, transparent 74%);
   will-change: transform, opacity;
   animation: heroSmokeBase 15s ease-in-out infinite alternate;
 }
@@ -140,16 +152,16 @@
 .hero-smoke-plume--left {
   left: -8%;
   background:
-    radial-gradient(ellipse 56% 48% at 44% 58%, rgba(68, 66, 72, 0.34) 0%, rgba(34, 33, 38, 0.46) 44%, transparent 74%),
-    radial-gradient(ellipse 42% 46% at 62% 36%, rgba(84, 82, 88, 0.22) 0%, rgba(28, 27, 32, 0.36) 48%, transparent 76%);
+    radial-gradient(ellipse 56% 48% at 44% 58%, rgba(38, 36, 35, 0.34) 0%, rgba(20, 19, 18, 0.46) 44%, transparent 74%),
+    radial-gradient(ellipse 42% 46% at 62% 36%, rgba(48, 46, 44, 0.22) 0%, rgba(16, 15, 14, 0.36) 48%, transparent 76%);
   animation: heroSmokePlumeLeft 18s ease-in-out infinite;
 }
 
 .hero-smoke-plume--right {
   right: -8%;
   background:
-    radial-gradient(ellipse 54% 48% at 56% 58%, rgba(64, 62, 68, 0.32) 0%, rgba(32, 31, 36, 0.46) 44%, transparent 74%),
-    radial-gradient(ellipse 42% 46% at 38% 34%, rgba(82, 80, 86, 0.22) 0%, rgba(26, 25, 30, 0.34) 48%, transparent 76%);
+    radial-gradient(ellipse 54% 48% at 56% 58%, rgba(36, 34, 33, 0.32) 0%, rgba(19, 18, 17, 0.46) 44%, transparent 74%),
+    radial-gradient(ellipse 42% 46% at 38% 34%, rgba(46, 44, 42, 0.22) 0%, rgba(15, 14, 13, 0.34) 48%, transparent 76%);
   animation: heroSmokePlumeRight 22s ease-in-out -10s infinite;
 }
 
