@@ -78,8 +78,9 @@ function populateSparkLayer(container, count) {
   s.className = "hero-spark";
   s.style.left = (4 + Math.random() * 92).toFixed(2) + "%";
   s.style.setProperty("--spark-size", (2.2 + Math.random() * 3.0).toFixed(2) + "px");
-  s.style.setProperty("--spark-dur", (4.4 + Math.random() * 5.6).toFixed(2) + "s");
-  s.style.setProperty("--spark-delay", (-Math.random() * 10).toFixed(2) + "s");
+  // Rallentate del 30% rispetto a 4.4–10.0s (velocità 0.7x -> durata / 0.7)
+  s.style.setProperty("--spark-dur", ((4.4 + Math.random() * 5.6) / 0.7).toFixed(2) + "s");
+  s.style.setProperty("--spark-delay", (-Math.random() * (10 / 0.7)).toFixed(2) + "s");
   s.style.setProperty("--drift", ((Math.random() - 0.5) * 36).toFixed(1) + "px");
   s.style.setProperty("--spark-alpha", (0.65 + Math.random() * 0.35).toFixed(2));
   s.style.setProperty("--spark-rest-y", (12 + Math.random() * 76).toFixed(1) + "%");
