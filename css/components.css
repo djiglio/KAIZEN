@@ -701,8 +701,8 @@
 .combat-log {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
+  gap: 10px;
+  padding: 12px;
   margin-bottom: 14px;
   flex: 1;
   border-radius: 10px;
@@ -712,53 +712,56 @@
   box-shadow: inset 0 2px 16px rgba(0,0,0,0.7);
 }
 .combat-line {
-  font-size: 11px;
-  padding: 9px 11px;
-  border-radius: 7px;
-  line-height: 1.45;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  line-height: 1.5;
   animation: combatLine 0.25s ease;
   text-align: left;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Fazioni e direzionalità */
+/* Fazioni e direzionalità: Eroe -> bordo sinistro verde | Nemico -> bordo destro rosso */
 .combat-line.hero {
-  background: linear-gradient(90deg, rgba(16,185,129,0.11) 0%, rgba(16,185,129,0.03) 100%);
-  border-left: 3px solid #10b981;
-  margin-right: 8px;
+  background: linear-gradient(90deg, rgba(78,204,163,0.12) 0%, rgba(16,185,129,0.03) 100%);
+  border-color: rgba(78,204,163,0.2);
+  border-left: 4px solid #4ecca3;
+  margin-right: 14px;
   color: #d1fae5;
 }
 .combat-line.enemy {
-  background: linear-gradient(270deg, rgba(239,68,68,0.11) 0%, rgba(239,68,68,0.03) 100%);
-  border-right: 3px solid #ef4444;
-  margin-left: 8px;
+  background: linear-gradient(270deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.03) 100%);
+  border-color: rgba(239,68,68,0.22);
+  border-right: 4px solid #ef4444;
+  margin-left: 14px;
   color: #fee2e2;
 }
 .combat-line.hero.critical {
-  background: linear-gradient(90deg, rgba(245,158,11,0.16) 0%, rgba(16,185,129,0.05) 100%);
-  border-left: 3px solid #f59e0b;
-  border-color: rgba(245,158,11,0.28);
-  box-shadow: 0 2px 12px rgba(245,158,11,0.12);
+  background: linear-gradient(90deg, rgba(78,204,163,0.14) 0%, rgba(245,158,11,0.08) 55%, rgba(16,185,129,0.03) 100%);
+  border-color: rgba(245,158,11,0.32);
+  border-left: 4px solid #4ecca3;
+  box-shadow: 0 2px 12px rgba(245,158,11,0.14);
 }
 .combat-line.enemy.critical {
-  background: linear-gradient(270deg, rgba(220,38,38,0.19) 0%, rgba(239,68,68,0.05) 100%);
-  border-right: 3px solid #ef4444;
-  border-color: rgba(239,68,68,0.32);
-  box-shadow: 0 2px 12px rgba(220,38,38,0.16);
+  background: linear-gradient(270deg, rgba(220,38,38,0.22) 0%, rgba(239,68,68,0.05) 100%);
+  border-color: rgba(239,68,68,0.38);
+  border-right: 4px solid #ef4444;
+  box-shadow: 0 2px 12px rgba(220,38,38,0.18);
 }
 .combat-line.dodge {
   background: linear-gradient(90deg, rgba(99,102,241,0.09) 0%, rgba(99,102,241,0.02) 100%);
-  border-left: 3px solid #6366f1;
+  border-color: rgba(129,140,248,0.24);
   color: #c7d2fe;
+}
+.combat-line.dodge.dodge-hero {
+  border-left: 4px solid #4ecca3;
+  margin-right: 14px;
 }
 .combat-line.dodge.dodge-enemy {
   background: linear-gradient(270deg, rgba(99,102,241,0.09) 0%, rgba(99,102,241,0.02) 100%);
-  border-left: 1px solid rgba(255,255,255,0.05);
-  border-right: 3px solid #6366f1;
-  margin-left: 8px;
-}
-.combat-line.dodge.dodge-hero {
-  margin-right: 8px;
+  border-right: 4px solid #ef4444;
+  margin-left: 14px;
 }
 .combat-line.system {
   background: rgba(212,160,23,0.05);
@@ -787,7 +790,9 @@
   justify-content: space-between;
   align-items: center;
   gap: 6px;
-  margin-bottom: 5px;
+  padding-bottom: 7px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
   flex-wrap: wrap;
 }
 .combat-turn-pill {
@@ -890,19 +895,23 @@
 
 /* Corpo narrativo e footer micro-HP */
 .combat-line-body {
-  font-size: 11.5px;
-  line-height: 1.45;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.55;
   color: #e5dec9;
   text-align: left;
+  padding: 2px 0 9px;
+  letter-spacing: 0.1px;
 }
+.combat-line-body:last-child { padding-bottom: 2px; }
 .combat-line-body strong { color: #f8fafc; font-weight: 700; }
 .combat-line-footer {
-  margin-top: 6px;
-  padding-top: 5px;
+  margin-top: 2px;
+  padding-top: 7px;
   border-top: 1px dashed rgba(255,255,255,0.08);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .combat-def-row { display: flex; align-items: center; }
 .combat-micro-hp {
