@@ -84,85 +84,142 @@
   }
 }
 
-/* ── Fumo cenere/carbone dietro alle scintille ── */
-@keyframes heroSmokeBase {
-  0%   { transform: translate3d(-3%, 3%, 0) scale(0.97, 0.94); opacity: 0.78; }
-  50%  { transform: translate3d(2%, -3%, 0) scale(1.05, 1.04); opacity: 0.96; }
-  100% { transform: translate3d(4%, 2%, 0) scale(1.01, 0.97); opacity: 0.82; }
+/* ── Fumo cenere/carbone (dietro le scintille + veli trasparenti davanti all'avatar) ── */
+@keyframes heroSmokeDrift1 {
+  0%   { opacity: 0;    transform: translate3d(-14%, 22%, 0) scale(0.85, 0.82) rotate(-10deg); }
+  20%  { opacity: 0.90; }
+  55%  { opacity: 0.95; transform: translate3d(4%, -4%, 0) scale(1.08, 1.06) rotate(2deg); }
+  82%  { opacity: 0.65; }
+  100% { opacity: 0;    transform: translate3d(16%, -28%, 0) scale(1.26, 1.22) rotate(12deg); }
 }
 
-@keyframes heroSmokePlumeLeft {
-  0%   { opacity: 0;    transform: translate3d(-10%, 16%, 0) rotate(-14deg) scale(0.84, 0.88); }
-  24%  { opacity: 0.88; }
-  68%  { opacity: 0.72; }
-  100% { opacity: 0;    transform: translate3d(14%, -34%, 0) rotate(-4deg) scale(1.14, 1.24); }
+@keyframes heroSmokeDrift2 {
+  0%   { opacity: 0;    transform: translate3d(16%, 24%, 0) scale(0.86, 0.84) rotate(11deg); }
+  22%  { opacity: 0.88; }
+  58%  { opacity: 0.92; transform: translate3d(-5%, -2%, 0) scale(1.10, 1.08) rotate(-3deg); }
+  84%  { opacity: 0.60; }
+  100% { opacity: 0;    transform: translate3d(-16%, -26%, 0) scale(1.28, 1.24) rotate(-12deg); }
 }
 
-@keyframes heroSmokePlumeRight {
-  0%   { opacity: 0;    transform: translate3d(12%, 18%, 0) rotate(14deg) scale(0.86, 0.86); }
-  26%  { opacity: 0.84; }
-  70%  { opacity: 0.68; }
-  100% { opacity: 0;    transform: translate3d(-14%, -36%, 0) rotate(5deg) scale(1.16, 1.26); }
+@keyframes heroSmokeBreathe {
+  0%   { opacity: 0.72; transform: translate3d(-6%, 4%, 0) scale(0.96, 0.94) rotate(-4deg); }
+  50%  { opacity: 0.96; transform: translate3d(5%, -5%, 0) scale(1.08, 1.06) rotate(4deg); }
+  100% { opacity: 0.78; transform: translate3d(-2%, 2%, 0) scale(1.02, 0.98) rotate(-2deg); }
+}
+
+@keyframes heroSmokeFront1 {
+  0%   { opacity: 0;    transform: translate3d(-18%, 18%, 0) scale(0.88, 0.82) rotate(-8deg); }
+  25%  { opacity: 0.85; }
+  65%  { opacity: 0.75; transform: translate3d(6%, -6%, 0) scale(1.12, 1.06) rotate(4deg); }
+  100% { opacity: 0;    transform: translate3d(20%, -22%, 0) scale(1.26, 1.18) rotate(10deg); }
+}
+
+@keyframes heroSmokeFront2 {
+  0%   { opacity: 0;    transform: translate3d(18%, 20%, 0) scale(0.86, 0.84) rotate(9deg); }
+  28%  { opacity: 0.80; }
+  68%  { opacity: 0.70; transform: translate3d(-6%, -5%, 0) scale(1.10, 1.05) rotate(-4deg); }
+  100% { opacity: 0;    transform: translate3d(-18%, -24%, 0) scale(1.24, 1.16) rotate(-10deg); }
+}
+
+#p-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+#p-hero > :not(:nth-child(2)) {
+  position: relative;
+  z-index: 2;
+}
+
+.modal-box--rank {
+  overflow: hidden;
+}
+
+.modal-box--rank .mk-modal-cap,
+.modal-box--rank .mk-modal-title,
+.modal-box--rank .mk-chip,
+.modal-box--rank .modal-close-btn {
+  position: relative;
+  z-index: 2;
 }
 
 .hero-smoke {
-  --smoke-bg: var(--bg, #0a0907);
   position: absolute;
-  inset: 0;
+  inset: -95px -75px -160px -75px;
   pointer-events: none;
   z-index: 0;
-  overflow: hidden;
-  -webkit-mask-image: radial-gradient(ellipse 96% 90% at 50% 48%, #000 50%, rgba(0, 0, 0, 0.6) 74%, transparent 98%);
-  mask-image: radial-gradient(ellipse 96% 90% at 50% 48%, #000 50%, rgba(0, 0, 0, 0.6) 74%, transparent 98%);
+  overflow: visible;
+  -webkit-mask-image: radial-gradient(ellipse 68% 66% at 50% 48%, #000 18%, rgba(0, 0, 0, 0.72) 48%, rgba(0, 0, 0, 0.25) 72%, transparent 95%);
+  mask-image: radial-gradient(ellipse 68% 66% at 50% 48%, #000 18%, rgba(0, 0, 0, 0.72) 48%, rgba(0, 0, 0, 0.25) 72%, transparent 95%);
 }
 
-.hero-smoke::after {
-  content: "";
+.hero-smoke--front {
+  z-index: 3;
+  inset: -60px -55px -90px -55px;
+}
+
+.hero-smoke-wisp {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--smoke-bg) 0%, rgba(10, 9, 7, 0.72) 6%, transparent 18%);
-}
-
-.modal-box--rank .hero-smoke {
-  --smoke-bg: #0d0b08;
-}
-
-.hero-smoke-base {
-  position: absolute;
-  left: -12%;
-  right: -12%;
-  bottom: -2%;
-  height: 58%;
-  background:
-    radial-gradient(ellipse 68% 58% at 50% 62%, rgba(5, 5, 5, 0.88) 0%, rgba(72, 68, 64, 0.48) 46%, rgba(88, 83, 78, 0.22) 68%, transparent 86%),
-    radial-gradient(ellipse 44% 52% at 24% 56%, rgba(6, 6, 6, 0.75) 0%, rgba(78, 74, 70, 0.42) 48%, transparent 78%),
-    radial-gradient(ellipse 46% 50% at 76% 58%, rgba(6, 6, 6, 0.75) 0%, rgba(74, 70, 66, 0.42) 48%, transparent 78%);
+  border-radius: 50%;
+  filter: blur(22px);
   will-change: transform, opacity;
-  animation: heroSmokeBase 15s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
-.hero-smoke-plume {
-  position: absolute;
-  bottom: -4%;
+/* Pennacchi posteriori: pochissimo più chiari dello sfondo, super sfumati senza bordi netti */
+.hero-smoke-wisp--1 {
+  width: 86%;
+  height: 76%;
+  left: -4%;
+  bottom: 4%;
+  background: radial-gradient(ellipse 58% 54% at 48% 52%, rgba(50, 47, 44, 0.26) 0%, rgba(40, 37, 35, 0.16) 36%, rgba(28, 26, 24, 0.06) 58%, transparent 74%);
+  animation: heroSmokeDrift1 24s ease-in-out infinite;
+}
+
+.hero-smoke-wisp--2 {
+  width: 86%;
+  height: 78%;
+  right: -4%;
+  bottom: 6%;
+  background: radial-gradient(ellipse 58% 54% at 52% 52%, rgba(48, 45, 42, 0.25) 0%, rgba(38, 35, 33, 0.15) 36%, rgba(26, 24, 22, 0.06) 58%, transparent 74%);
+  animation: heroSmokeDrift2 29s ease-in-out -13s infinite;
+}
+
+.hero-smoke-wisp--3 {
+  width: 96%;
+  height: 72%;
+  left: 2%;
+  bottom: 10%;
+  background: radial-gradient(ellipse 62% 56% at 50% 54%, rgba(46, 43, 40, 0.22) 0%, rgba(36, 33, 31, 0.13) 38%, rgba(24, 22, 20, 0.05) 60%, transparent 76%);
+  animation: heroSmokeBreathe 19s ease-in-out infinite alternate;
+}
+
+.hero-smoke-wisp--4 {
   width: 82%;
-  height: 92%;
-  will-change: transform, opacity;
+  height: 74%;
+  left: 9%;
+  top: 8%;
+  background: radial-gradient(ellipse 56% 52% at 50% 50%, rgba(48, 45, 42, 0.20) 0%, rgba(36, 34, 32, 0.12) 36%, rgba(24, 22, 20, 0.04) 58%, transparent 74%);
+  animation: heroSmokeDrift1 31s ease-in-out -18s infinite;
 }
 
-.hero-smoke-plume--left {
-  left: -10%;
-  background:
-    radial-gradient(ellipse 52% 46% at 40% 58%, rgba(5, 5, 5, 0.90) 0%, rgba(76, 72, 68, 0.56) 44%, rgba(96, 91, 86, 0.28) 66%, transparent 84%),
-    radial-gradient(ellipse 44% 46% at 54% 34%, rgba(6, 6, 6, 0.82) 0%, rgba(84, 79, 75, 0.44) 46%, rgba(98, 93, 88, 0.18) 68%, transparent 86%);
-  animation: heroSmokePlumeLeft 18s ease-in-out infinite;
+/* Pennacchi anteriori (passano davanti all'avatar, molto trasparenti) */
+.hero-smoke-wisp--f1 {
+  width: 78%;
+  height: 64%;
+  left: 6%;
+  bottom: 12%;
+  background: radial-gradient(ellipse 56% 50% at 48% 52%, rgba(54, 50, 47, 0.16) 0%, rgba(42, 39, 36, 0.09) 38%, rgba(30, 28, 26, 0.03) 58%, transparent 74%);
+  animation: heroSmokeFront1 23s ease-in-out -5s infinite;
 }
 
-.hero-smoke-plume--right {
-  right: -10%;
-  background:
-    radial-gradient(ellipse 52% 46% at 60% 58%, rgba(5, 5, 5, 0.90) 0%, rgba(74, 70, 66, 0.54) 44%, rgba(92, 87, 82, 0.26) 66%, transparent 84%),
-    radial-gradient(ellipse 44% 46% at 46% 32%, rgba(6, 6, 6, 0.82) 0%, rgba(82, 77, 73, 0.42) 46%, rgba(94, 89, 84, 0.18) 68%, transparent 86%);
-  animation: heroSmokePlumeRight 22s ease-in-out -10s infinite;
+.hero-smoke-wisp--f2 {
+  width: 76%;
+  height: 62%;
+  right: 6%;
+  bottom: 18%;
+  background: radial-gradient(ellipse 56% 50% at 52% 50%, rgba(52, 48, 45, 0.14) 0%, rgba(40, 37, 35, 0.08) 38%, rgba(28, 26, 24, 0.03) 58%, transparent 74%);
+  animation: heroSmokeFront2 27s ease-in-out -16s infinite;
 }
 
 .hero-avatar-stage {
@@ -171,9 +228,10 @@
   --spark-color-alt: #f0c848;
   --spark-glow-alt: rgba(240, 200, 72, 0.55);
   position: relative;
+  z-index: 1;
   display: inline-block;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
 }
 
@@ -211,7 +269,7 @@
 }
 
 .hero-sparks--front {
-  z-index: 3;
+  z-index: 4;
 }
 
 #avatar-viewport-inner,
@@ -255,13 +313,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-smoke-base {
+  .hero-smoke-wisp {
     animation: none;
-    opacity: 0.55;
-  }
-  .hero-smoke-plume {
-    animation: none;
-    opacity: 0.28;
+    opacity: 0.35;
   }
   .hero-spark {
     animation: none;
@@ -269,4 +323,5 @@
     bottom: var(--spark-rest-y, 40%);
   }
 }
+
 

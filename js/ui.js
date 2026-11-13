@@ -89,15 +89,27 @@ function populateSparkLayer(container, count) {
 }
 
 function ensureSmokeLayer(stageEl) {
- if (!stageEl || stageEl.querySelector(".hero-smoke")) return;
- const smoke = document.createElement("div");
- smoke.className = "hero-smoke";
- smoke.setAttribute("aria-hidden", "true");
- smoke.innerHTML =
-  '<div class="hero-smoke-base"></div>' +
-  '<div class="hero-smoke-plume hero-smoke-plume--left"></div>' +
-  '<div class="hero-smoke-plume hero-smoke-plume--right"></div>';
- stageEl.prepend(smoke);
+ if (!stageEl) return;
+ if (!stageEl.querySelector(".hero-smoke:not(.hero-smoke--front)")) {
+  const backSmoke = document.createElement("div");
+  backSmoke.className = "hero-smoke";
+  backSmoke.setAttribute("aria-hidden", "true");
+  backSmoke.innerHTML =
+   '<div class="hero-smoke-wisp hero-smoke-wisp--1"></div>' +
+   '<div class="hero-smoke-wisp hero-smoke-wisp--2"></div>' +
+   '<div class="hero-smoke-wisp hero-smoke-wisp--3"></div>' +
+   '<div class="hero-smoke-wisp hero-smoke-wisp--4"></div>';
+  stageEl.prepend(backSmoke);
+ }
+ if (!stageEl.querySelector(".hero-smoke--front")) {
+  const frontSmoke = document.createElement("div");
+  frontSmoke.className = "hero-smoke hero-smoke--front";
+  frontSmoke.setAttribute("aria-hidden", "true");
+  frontSmoke.innerHTML =
+   '<div class="hero-smoke-wisp hero-smoke-wisp--f1"></div>' +
+   '<div class="hero-smoke-wisp hero-smoke-wisp--f2"></div>';
+  stageEl.appendChild(frontSmoke);
+ }
 }
 
 /**
