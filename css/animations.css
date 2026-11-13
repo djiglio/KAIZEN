@@ -84,6 +84,75 @@
   }
 }
 
+/* ── Fumo cenere/carbone dietro alle scintille ── */
+@keyframes heroSmokeBase {
+  0%   { transform: translate3d(-3%, 3%, 0) scale(0.97, 0.94); opacity: 0.78; }
+  50%  { transform: translate3d(2%, -3%, 0) scale(1.05, 1.04); opacity: 0.96; }
+  100% { transform: translate3d(4%, 2%, 0) scale(1.01, 0.97); opacity: 0.82; }
+}
+
+@keyframes heroSmokePlumeLeft {
+  0%   { opacity: 0;    transform: translate3d(-10%, 16%, 0) rotate(-14deg) scale(0.84, 0.88); }
+  24%  { opacity: 0.88; }
+  68%  { opacity: 0.72; }
+  100% { opacity: 0;    transform: translate3d(14%, -34%, 0) rotate(-4deg) scale(1.14, 1.24); }
+}
+
+@keyframes heroSmokePlumeRight {
+  0%   { opacity: 0;    transform: translate3d(12%, 18%, 0) rotate(14deg) scale(0.86, 0.86); }
+  26%  { opacity: 0.84; }
+  70%  { opacity: 0.68; }
+  100% { opacity: 0;    transform: translate3d(-14%, -36%, 0) rotate(5deg) scale(1.16, 1.26); }
+}
+
+.hero-smoke {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  -webkit-mask-image: radial-gradient(ellipse 90% 88% at 50% 60%, #000 32%, transparent 96%);
+  mask-image: radial-gradient(ellipse 90% 88% at 50% 60%, #000 32%, transparent 96%);
+}
+
+.hero-smoke-base {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  bottom: -8%;
+  height: 54%;
+  background:
+    radial-gradient(ellipse 65% 58% at 50% 78%, rgba(62, 60, 66, 0.42) 0%, rgba(30, 29, 34, 0.58) 46%, transparent 78%),
+    radial-gradient(ellipse 46% 52% at 28% 72%, rgba(74, 72, 78, 0.30) 0%, transparent 74%),
+    radial-gradient(ellipse 48% 50% at 72% 74%, rgba(56, 54, 60, 0.32) 0%, transparent 74%);
+  will-change: transform, opacity;
+  animation: heroSmokeBase 15s ease-in-out infinite alternate;
+}
+
+.hero-smoke-plume {
+  position: absolute;
+  bottom: -6%;
+  width: 78%;
+  height: 88%;
+  will-change: transform, opacity;
+}
+
+.hero-smoke-plume--left {
+  left: -8%;
+  background:
+    radial-gradient(ellipse 56% 48% at 44% 58%, rgba(68, 66, 72, 0.34) 0%, rgba(34, 33, 38, 0.46) 44%, transparent 74%),
+    radial-gradient(ellipse 42% 46% at 62% 36%, rgba(84, 82, 88, 0.22) 0%, rgba(28, 27, 32, 0.36) 48%, transparent 76%);
+  animation: heroSmokePlumeLeft 18s ease-in-out infinite;
+}
+
+.hero-smoke-plume--right {
+  right: -8%;
+  background:
+    radial-gradient(ellipse 54% 48% at 56% 58%, rgba(64, 62, 68, 0.32) 0%, rgba(32, 31, 36, 0.46) 44%, transparent 74%),
+    radial-gradient(ellipse 42% 46% at 38% 34%, rgba(82, 80, 86, 0.22) 0%, rgba(26, 25, 30, 0.34) 48%, transparent 76%);
+  animation: heroSmokePlumeRight 22s ease-in-out -10s infinite;
+}
+
 .hero-avatar-stage {
   --spark-color: #d4a017;
   --spark-glow: rgba(212, 160, 23, 0.55);
@@ -101,7 +170,7 @@
   inset: 0;
   container-type: size;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 14%, #000 84%, transparent 100%);
   mask-image: linear-gradient(to top, transparent 0%, #000 14%, #000 84%, transparent 100%);
@@ -130,13 +199,13 @@
 }
 
 .hero-sparks--front {
-  z-index: 2;
+  z-index: 3;
 }
 
 #avatar-viewport-inner,
 .hero-avatar-viewport {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .hero-avatar-stage--rank {
@@ -174,6 +243,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-smoke-base {
+    animation: none;
+    opacity: 0.55;
+  }
+  .hero-smoke-plume {
+    animation: none;
+    opacity: 0.28;
+  }
   .hero-spark {
     animation: none;
     opacity: 0.35;

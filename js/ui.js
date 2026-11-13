@@ -88,13 +88,26 @@ function populateSparkLayer(container, count) {
  }
 }
 
+function ensureSmokeLayer(stageEl) {
+ if (!stageEl || stageEl.querySelector(".hero-smoke")) return;
+ const smoke = document.createElement("div");
+ smoke.className = "hero-smoke";
+ smoke.setAttribute("aria-hidden", "true");
+ smoke.innerHTML =
+  '<div class="hero-smoke-base"></div>' +
+  '<div class="hero-smoke-plume hero-smoke-plume--left"></div>' +
+  '<div class="hero-smoke-plume hero-smoke-plume--right"></div>';
+ stageEl.prepend(smoke);
+}
+
 /**
- * Inizializza le scintille (16 dietro, 12 davanti) e aggiorna i colori su uno stage avatar.
+ * Inizializza il fumo di fondo, le scintille (16 dietro, 12 davanti) e i colori su uno stage avatar.
  * @param {HTMLElement|null} stageEl
  * @param {string|[string, string]} [sparkColor]
  */
 export function setupHeroSparkStage(stageEl, sparkColor) {
  if (!stageEl) return;
+ ensureSmokeLayer(stageEl);
  const primary = Array.isArray(sparkColor) ? sparkColor[0] : sparkColor;
  const secondary = Array.isArray(sparkColor) ? (sparkColor[1] || sparkColor[0]) : sparkColor;
  if (primary) {
