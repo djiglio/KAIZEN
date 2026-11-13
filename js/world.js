@@ -501,7 +501,11 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  // Riga introduttiva sugli stili di combattimento
  const introTxt = narrator.intro();
  if (introTxt) {
-   logEl.innerHTML += `<div class="combat-line" style="font-style:italic;opacity:.85;">${introTxt}</div>`;
+   logEl.innerHTML += `
+   <div class="combat-line system">
+     <div class="combat-line-sys-cap">✦ CRONACA DI BATTAGLIA ✦</div>
+     <div class="combat-line-sys-txt">${introTxt}</div>
+   </div>`;
  }
 
  let i = 0;
@@ -509,56 +513,135 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  if (i >= result.turns.length) {
  // Risultato finale
  if (result.victory) {
- let lootLine = "";
- if (loot) lootLine += `<br>Loot: <strong>${loot.name}</strong>`;
- if (areaLootObj) lootLine += `<br>Scoperto: <strong>${areaLootObj.icon || "📦"} ${areaLootObj.name} (+${areaLootObj.value} ${COIN})</strong>`;
- if (enemyEquip) {
- const razzia = Object.values(enemyEquip).map(p=>p.name).join(", ");
- lootLine += `<br>Razziato: <strong>${razzia}</strong>`;
+ const rewardChips = [];
+ rewardChips.push(`
+   <div class="combat-reward-chip chip-gold">
+     <span class="combat-reward-lbl">BOTTINO IN DENARI</span>
+     <span class="combat-reward-val">+${reward} ${COIN}</span>
+   </div>
+ `);
+ if (loot) {
+   rewardChips.push(`
+     <div class="combat-reward-chip chip-loot">
+       <span class="combat-reward-lbl">TESORO TROVATO</span>
+       <span class="combat-reward-val">${loot.name}</span>
+     </div>
+   `);
  }
- logEl.innerHTML += `<div class="combat-line result-win">
- ✦ VITTORIA<br><span class="combat-result-text">${narrator.victory()}</span><br>+${reward} ${COIN}${lootLine}
+ if (areaLootObj) {
+   rewardChips.push(`
+     <div class="combat-reward-chip chip-area">
+       <span class="combat-reward-lbl">SCOPERTA REGIONALE</span>
+       <span class="combat-reward-val">${areaLootObj.icon || "📦"} ${areaLootObj.name} <small>(+${areaLootObj.value} ${COIN})</small></span>
+     </div>
+   `);
+ }
+ if (enemyEquip) {
+   const razzia = Object.values(enemyEquip).map(p => p.name).join(", ");
+   rewardChips.push(`
+     <div class="combat-reward-chip chip-razzia">
+       <span class="combat-reward-lbl">EQUIPAGGIAMENTO RAZZIATO</span>
+       <span class="combat-reward-val">⚔️ ${razzia}</span>
+     </div>
+   `);
+ }
+ logEl.innerHTML += `
+ <div class="combat-line result-win">
+   <div class="combat-result-badge">✦ VITTORIA ✦</div>
+   <div class="combat-result-text">${narrator.victory()}</div>
+   <div class="combat-reward-grid">${rewardChips.join("")}</div>
  </div>`;
  } else {
- logEl.innerHTML += `<div class="combat-line result-lose">
- ✦ SCONFITTA<br><span class="combat-result-text">${narrator.defeat()}</span>
+ logEl.innerHTML += `
+ <div class="combat-line result-lose">
+   <div class="combat-result-badge">✦ SCONFITTA ✦</div>
+   <div class="combat-result-text">${narrator.defeat()}</div>
  </div>`;
  }
  appendCloseBtn();
+ logEl.scrollTop = logEl.scrollHeight;
  return;
  }
 
  const turn = result.turns[i];
  updateBars(turn);
 
- const tBadge = `<span class="combat-turn-num">T${i+1}</span>`;
+ const tNum = i + 1;
  let line = "";
  if (turn.who === "hero") {
  if (turn.dodged) {
  const dodgeTxt = narrator.enemyDodge();
- line = `<div class="combat-line dodge">${tBadge} ${dodgeTxt}</div>`;
+ line = `
+ <div class="combat-line dodge dodge-hero">
+   <div class="combat-line-head">
+     <span class="combat-turn-pill hero-pill"><span class="combat-turn-num">T${tNum}</span> · EROE</span>
+     <div class="combat-head-right">
+       <span class="combat-tag tag-dodge">◈ SCHIVATO</span>
+     </div>
+   </div>
+   <div class="combat-line-body">${dodgeTxt}</div>
+ </div>`;
  } else {
- const critTag = turn.isCrit ? `<span class="combat-crit">CRITICO</span>` : "";
- const dblTag = turn.isDouble ? `<span class="combat-double">ATTACCO RAPIDO</span>` : "";
- const defTag = turn.deflected > 0 ? `<span class="combat-def">${narrator.enemyDeflect(turn)}</span>` : "";
+ const critTag = turn.isCrit ? `<span class="combat-tag tag-crit">✦ CRITICO</span>` : "";
+ const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">⚡ RAPIDO</span>` : "";
+ const dmgBadge = `<span class="combat-dmg-badge dmg-hero ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
+ const defTag = turn.deflected > 0 ? `<div class="combat-def-row"><span class="combat-def">${narrator.enemyDeflect(turn)}</span></div>` : "";
+ const enePct = Math.max(0, Math.min(100, (turn.enemyHP / es.costituzione) * 100));
  const cls = turn.isCrit ? "combat-line hero critical" : "combat-line hero";
- line = `<div class="${cls}">
- <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${narrator.heroHit(turn)}</div>
- <div class="combat-line-meta">${defTag}<span class="combat-hp-inline">PV ${enemy.name}: ${turn.enemyHP}/${es.costituzione}</span></div>
+ line = `
+ <div class="${cls}">
+   <div class="combat-line-head">
+     <span class="combat-turn-pill hero-pill"><span class="combat-turn-num">T${tNum}</span> · EROE</span>
+     <div class="combat-head-right">${dblTag}${critTag}${dmgBadge}</div>
+   </div>
+   <div class="combat-line-body">${narrator.heroHit(turn)}</div>
+   <div class="combat-line-footer">
+     ${defTag}
+     <div class="combat-micro-hp">
+       <div class="combat-micro-bar-bg">
+         <div class="combat-micro-bar-fill enemy-fill" style="width:${enePct}%"></div>
+       </div>
+       <span class="combat-hp-inline">${enemy.name}: <strong>${turn.enemyHP}</strong>/${es.costituzione} PV</span>
+     </div>
+   </div>
  </div>`;
  }
  } else {
  if (turn.dodged) {
  const dodgeTxt = narrator.heroDodge();
- line = `<div class="combat-line dodge">${tBadge} ${dodgeTxt}</div>`;
+ line = `
+ <div class="combat-line dodge dodge-enemy">
+   <div class="combat-line-head">
+     <span class="combat-turn-pill enemy-pill"><span class="combat-turn-num">T${tNum}</span> · ${enemy.name}</span>
+     <div class="combat-head-right">
+       <span class="combat-tag tag-dodge">◈ SCHIVATA</span>
+     </div>
+   </div>
+   <div class="combat-line-body">${dodgeTxt}</div>
+ </div>`;
  } else {
- const critTag = turn.isCrit ? `<span class="combat-crit">CRITICO NEMICO</span>` : "";
- const dblTag = turn.isDouble ? `<span class="combat-double">ATTACCO RAPIDO</span>` : "";
- const defTag = turn.deflected > 0 ? `<span class="combat-def">${narrator.heroDeflect(turn)}</span>` : "";
+ const critTag = turn.isCrit ? `<span class="combat-tag tag-crit-enemy">✦ CRITICO NEMICO</span>` : "";
+ const dblTag = turn.isDouble ? `<span class="combat-tag tag-double">⚡ RAPIDO</span>` : "";
+ const dmgBadge = `<span class="combat-dmg-badge dmg-enemy ${turn.isCrit ? "is-crit" : ""}">-${turn.dmg} <small>PV</small></span>`;
+ const defTag = turn.deflected > 0 ? `<div class="combat-def-row"><span class="combat-def">${narrator.heroDeflect(turn)}</span></div>` : "";
+ const heroPct = Math.max(0, Math.min(100, (turn.heroHP / pvMax) * 100));
  const cls = turn.isCrit ? "combat-line enemy critical" : "combat-line enemy";
- line = `<div class="${cls}">
- <div class="combat-line-main">${tBadge} ${dblTag}${critTag}${narrator.enemyHit(turn)}</div>
- <div class="combat-line-meta">${defTag}<span class="combat-hp-inline">Tuoi PV: ${turn.heroHP}/${pvMax}</span></div>
+ line = `
+ <div class="${cls}">
+   <div class="combat-line-head">
+     <span class="combat-turn-pill enemy-pill"><span class="combat-turn-num">T${tNum}</span> · ${enemy.name}</span>
+     <div class="combat-head-right">${dblTag}${critTag}${dmgBadge}</div>
+   </div>
+   <div class="combat-line-body">${narrator.enemyHit(turn)}</div>
+   <div class="combat-line-footer">
+     ${defTag}
+     <div class="combat-micro-hp">
+       <div class="combat-micro-bar-bg">
+         <div class="combat-micro-bar-fill hero-fill" style="width:${heroPct}%"></div>
+       </div>
+       <span class="combat-hp-inline">Tuoi PV: <strong>${turn.heroHP}</strong>/${pvMax}</span>
+     </div>
+   </div>
  </div>`;
  }
  }
