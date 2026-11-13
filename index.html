@@ -173,6 +173,8 @@ body::before {
 .hero-avatar-stage {
   --spark-color: #d4a017;
   --spark-glow: rgba(212, 160, 23, 0.55);
+  --spark-color-alt: #f0c848;
+  --spark-glow-alt: rgba(240, 200, 72, 0.55);
   position: relative;
   display: inline-block;
   width: 100%;
@@ -204,6 +206,13 @@ body::before {
   scale: 1;
   will-change: translate, scale, opacity;
   animation: heroSparkRise var(--spark-dur, 10.29s) linear var(--spark-delay, 0s) infinite;
+}
+
+.hero-spark--alt {
+  width: calc(var(--spark-size, 3px) * 0.78);
+  height: calc(var(--spark-size, 3px) * 0.78 * 1.35);
+  background: radial-gradient(circle, #ffffff 0%, var(--spark-color-alt, var(--spark-color)) 55%, transparent 100%);
+  box-shadow: 0 0 5px 1px var(--spark-color-alt, var(--spark-color)), 0 0 12px 2px var(--spark-glow-alt, var(--spark-glow));
 }
 
 .hero-sparks--front {

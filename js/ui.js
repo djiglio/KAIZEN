@@ -75,7 +75,7 @@ function populateSparkLayer(container, count) {
  if (!container || container.childElementCount > 0) return;
  for (let i = 0; i < count; i++) {
   const s = document.createElement("div");
-  s.className = "hero-spark";
+  s.className = i % 2 === 1 ? "hero-spark hero-spark--alt" : "hero-spark";
   s.style.left = (4 + Math.random() * 92).toFixed(2) + "%";
   s.style.setProperty("--spark-size", (2.2 + Math.random() * 3.0).toFixed(2) + "px");
   // Rallentate del 30% rispetto a 4.4–10.0s (velocità 0.7x -> durata / 0.7)
@@ -91,13 +91,19 @@ function populateSparkLayer(container, count) {
 /**
  * Inizializza le scintille (16 dietro, 12 davanti) e aggiorna i colori su uno stage avatar.
  * @param {HTMLElement|null} stageEl
- * @param {string} [sparkColor]
+ * @param {string|[string, string]} [sparkColor]
  */
 export function setupHeroSparkStage(stageEl, sparkColor) {
  if (!stageEl) return;
- if (sparkColor) {
-  stageEl.style.setProperty("--spark-color", sparkColor);
-  stageEl.style.setProperty("--spark-glow", `${sparkColor}88`);
+ const primary = Array.isArray(sparkColor) ? sparkColor[0] : sparkColor;
+ const secondary = Array.isArray(sparkColor) ? (sparkColor[1] || sparkColor[0]) : sparkColor;
+ if (primary) {
+  stageEl.style.setProperty("--spark-color", primary);
+  stageEl.style.setProperty("--spark-glow", `${primary}88`);
+ }
+ if (secondary) {
+  stageEl.style.setProperty("--spark-color-alt", secondary);
+  stageEl.style.setProperty("--spark-glow-alt", `${secondary}88`);
  }
  const backLayer = stageEl.querySelector('[data-spark-layer="back"]') || stageEl.querySelector("#hero-sparks");
  const frontLayer = stageEl.querySelector('[data-spark-layer="front"]') || stageEl.querySelector("#hero-sparks-front");

@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "7.42";
+export const APP_VERSION = "7.43";
 export const APP_RELEASE = "13/11/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -73,33 +73,33 @@ export const avatarPalettes = {
 };
 
 export const rankSparkColors = {
- "MENDICANTE": "#787680",
- "VAGABONDO":  "#8a735c",
- "PASTORE":    "#7a9668",
- "CONTADINO":  "#928858",
- "FABBRO":     "#c86438",
- "RECLUTA":    "#6e94b0",
- "RAMINGO":    "#5c8498",
- "MERCENARIO": "#c49a34",
- "SCUDIERO":   "#82a4cc",
- "SPADACCINO": "#c8a65a",
- "GLADIATORE": "#df7438",
- "VETERANO":   "#94a8b0",
- "PALADINO":   "#dcd0b4",
- "CAVALIERE":  "#b4cce4",
- "CAMPIONE":   "#d8b028",
- "GENERALE":   "#c88c38",
- "BARONE":     "#a85c74",
- "VISCONTE":   "#a478d4",
- "CONTE":      "#54a474",
- "MARCHESE":   "#6484c4",
- "DUCA":       "#8878dc",
- "ARCIDUCA":   "#c864b8",
- "PRINCIPE":   "#dc4858",
- "RE":         "#f0c848",
- "IMPERATORE": "#ffe47a",
- "SEMIDIO":    "#9ee0f8",
- "ASCESO":     "#eef8ff",
+ "MENDICANTE": ["#787680", "#9c94a6"],
+ "VAGABONDO":  ["#8a735c", "#b08c68"],
+ "PASTORE":    ["#7a9668", "#a4b878"],
+ "CONTADINO":  ["#928858", "#b8a468"],
+ "FABBRO":     ["#c86438", "#f0a048"],
+ "RECLUTA":    ["#6e94b0", "#8cb8cc"],
+ "RAMINGO":    ["#5c8498", "#74a4a8"],
+ "MERCENARIO": ["#c49a34", "#df7838"],
+ "SCUDIERO":   ["#82a4cc", "#a8bce0"],
+ "SPADACCINO": ["#c8a65a", "#e4c878"],
+ "GLADIATORE": ["#df7438", "#f2a840"],
+ "VETERANO":   ["#94a8b0", "#bcc8c8"],
+ "PALADINO":   ["#dcd0b4", "#f4e2a0"],
+ "CAVALIERE":  ["#b4cce4", "#d8e4f4"],
+ "CAMPIONE":   ["#d8b028", "#f4d458"],
+ "GENERALE":   ["#c88c38", "#e8b454"],
+ "BARONE":     ["#a85c74", "#cc7c84"],
+ "VISCONTE":   ["#a478d4", "#7484e8"],
+ "CONTE":      ["#54a474", "#88d494"],
+ "MARCHESE":   ["#6484c4", "#78ace0"],
+ "DUCA":       ["#8878dc", "#b084e8"],
+ "ARCIDUCA":   ["#c864b8", "#e87c9c"],
+ "PRINCIPE":   ["#dc4858", "#f07c48"],
+ "RE":         ["#f0c848", "#e89624"],
+ "IMPERATORE": ["#ffe47a", "#f5a623"],
+ "SEMIDIO":    ["#9ee0f8", "#b4b8ff"],
+ "ASCESO":     ["#eef8ff", "#b8dcff"],
 };
 
 export const nobleMantle = {
