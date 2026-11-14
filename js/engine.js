@@ -49,26 +49,41 @@ export function getHeroStats() {
  stats[sd.id] = sd.formula(lvls[sd.habit] || 0);
  }
 
- // Bonus equipaggiamento
- const eqBonus = { attacco:0, difesa:0, velocita:0, destrezza:0, critico:0 }; const dxObj = eq.equipped.mano_dx; const dxPiece = dxObj ? EQUIPMENT_POOL.find(e => e.id === (typeof dxObj === "string" ? dxObj : dxObj.id)) : null; const isTwoHanded = dxPiece?.handType === "2h";
- for (const slot of ["testa","torace","braccia","mano_dx","mano_sx","gambe"]) { if (slot === "mano_sx" && isTwoHanded) continue;
+ // Bonus equipaggiamento (separando la quota attacco delle armi per calcolare la forza disarmata)
+ const eqBonus = { attacco:0, difesa:0, velocita:0, destrezza:0, critico:0 };
+ const weaponAtkBySlot = {};
+ let armorAtk = 0;
+ const dxObj = eq.equipped.mano_dx;
+ const dxPiece = dxObj ? EQUIPMENT_POOL.find(e => e.id === (typeof dxObj === "string" ? dxObj : dxObj.id)) : null;
+ const isTwoHanded = dxPiece?.handType === "2h";
+ for (const slot of ["testa","torace","braccia","mano_dx","mano_sx","gambe"]) {
+ if (slot === "mano_sx" && isTwoHanded) continue;
  const eqObj = eq.equipped[slot];
  if (!eqObj) continue;
  const id = typeof eqObj === "string" ? eqObj : eqObj.id;
  const dur = typeof eqObj === "string" ? 100 : (eqObj.dur !== undefined ? eqObj.dur : 100);
  const piece = EQUIPMENT_POOL.find(e => e.id === id);
  if (!piece) continue;
+ const isWeapon = piece.handType === "1h" || piece.handType === "2h";
+ let slotAtk = 0;
  for (const [k,v] of Object.entries(piece.bonus)) {
  const scaled = v >= 0 ? Math.ceil(v * (dur / 100)) : v;
  eqBonus[k] = (eqBonus[k] || 0) + scaled;
+ if (k === "attacco") slotAtk += scaled;
  }
  if (eqObj.rivestimento) {
  const cBonus = getCoatingBonus(eqObj.rivestimento, slot, piece);
  if (cBonus) {
  for (const [k, v] of Object.entries(cBonus)) {
  eqBonus[k] = (eqBonus[k] || 0) + v;
+ if (k === "attacco") slotAtk += v;
  }
  }
+ }
+ if (isWeapon) {
+ weaponAtkBySlot[slot] = slotAtk;
+ } else {
+ armorAtk += slotAtk;
  }
  }
 
@@ -82,6 +97,7 @@ export function getHeroStats() {
  }
 
  // Applica bonus equipaggiamento
+ let forzaDisarmato = Math.max(1, stats.forza + armorAtk);
  stats.forza = Math.max(1, stats.forza + (eqBonus.attacco || 0));
  stats.velocita = Math.max(1, stats.velocita + (eqBonus.velocita || 0)); stats.destrezza = Math.max(0, Math.min(75, stats.destrezza + (eqBonus.destrezza || 0)));
  stats.critico = Math.max(0, Math.min(80, stats.critico + (eqBonus.critico || 0)));
@@ -90,6 +106,9 @@ export function getHeroStats() {
   // Applica bonus reliquie
   for (const [stat, mult] of Object.entries(relBonus)) {
     if (stat === "difesa") { bonusDifesa = Math.floor(bonusDifesa * (1 + mult)); } else if (stats[stat] !== undefined) {
+      if (stat === "forza") {
+        forzaDisarmato = Math.floor(forzaDisarmato * (1 + mult));
+      }
       const newVal = stats[stat] * (1 + mult);
       if (stat === "destrezza" || stat === "critico") {
         stats[stat] = newVal; // I decimali verranno arrotondati dopo
@@ -108,6 +127,8 @@ export function getHeroStats() {
 
  return {
  ...stats,
+ forzaDisarmato,
+ weaponAtkBySlot,
  bonusDifesa,
  eqBonus,
  relBonus,

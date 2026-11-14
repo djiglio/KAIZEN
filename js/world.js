@@ -841,6 +841,81 @@ function pickAreaLoot(areaId, fortunaStat) {
   return pool[pool.length - 1];
 }
 
+const WEAR_PER_DMG_BY_TIER = [0, 0.35, 0.20, 0.11, 0.07, 0.045, 0.030, 0.022, 0.016, 0.012, 0.008]; // Indice = Tier (1..10)
+
+/**
+ * Applica l'usura all'equipaggiamento indossato in base all'esito del combattimento:
+ * - Armi (1h/2h): proporzionale ai danni inflitti per la sola quota attribuibile alle armi (escluso il danno disarmato).
+ * - Altri pezzi (armature e scudi): proporzionale ai danni assorbiti, divisi equamente tra tutti i pezzi non-arma indossati.
+ */
+export function applyEquipmentWear(equipped, turns, heroS, randFn = Math.random) {
+  if (!equipped || !Array.isArray(turns) || !heroS) return;
+
+  let totalHeroDmg = 0;
+  let totalAbsorbed = 0;
+  for (const t of turns) {
+    if (t.dodged) continue;
+    if (t.who === "hero") totalHeroDmg += (t.dmg || 0);
+    else if (t.who === "enemy") totalAbsorbed += (t.deflected || 0);
+  }
+
+  const dxObj = equipped.mano_dx;
+  const dxPiece = dxObj ? EQUIPMENT_POOL.find(e => e.id === (typeof dxObj === "string" ? dxObj : dxObj.id)) : null;
+  const isTwoHanded = dxPiece?.handType === "2h";
+
+  const weaponEntries = [];
+  const armorEntries = [];
+
+  for (const slot of ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"]) {
+    if (slot === "mano_sx" && isTwoHanded) continue;
+    let eqObj = equipped[slot];
+    if (!eqObj) continue;
+    if (typeof eqObj === "string") {
+      eqObj = { id: eqObj, dur: 100 };
+      equipped[slot] = eqObj;
+    }
+    const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
+    if (!piece) continue;
+
+    if (piece.handType === "1h" || piece.handType === "2h") {
+      const atkContrib = Math.max(0, heroS.weaponAtkBySlot?.[slot] || 0);
+      weaponEntries.push({ eqObj, piece, atkContrib });
+    } else {
+      armorEntries.push({ eqObj, piece });
+    }
+  }
+
+  const applyWear = (eqObj, piece, dmgShare) => {
+    if (dmgShare <= 0) return;
+    const baseRate = WEAR_PER_DMG_BY_TIER[piece.tier] || 0.008;
+    const res = eqObj.rivestimento ? getCoatingWearReduction(eqObj.rivestimento) : 0;
+    const effWear = dmgShare * baseRate * (1 - res);
+    let wearLoss = Math.floor(effWear);
+    if (randFn() < (effWear - wearLoss)) wearLoss++;
+    if (wearLoss > 0) {
+      eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - wearLoss);
+    }
+  };
+
+  // Quota di danno imputabile alle armi (escludendo la forza disarmata)
+  const weaponForzaGain = Math.max(0, (heroS.forza || 0) - (heroS.forzaDisarmato ?? heroS.forza ?? 0));
+  const totalWeaponDmg = heroS.forza > 0 ? totalHeroDmg * (weaponForzaGain / heroS.forza) : 0;
+  const totalWeaponAtk = weaponEntries.reduce((s, w) => s + w.atkContrib, 0);
+  if (totalWeaponDmg > 0 && totalWeaponAtk > 0) {
+    for (const { eqObj, piece, atkContrib } of weaponEntries) {
+      if (atkContrib > 0) applyWear(eqObj, piece, totalWeaponDmg * (atkContrib / totalWeaponAtk));
+    }
+  }
+
+  // Danni assorbiti divisi equamente tra tutti i pezzi indossati escluse le armi 1h/2h
+  if (totalAbsorbed > 0 && armorEntries.length > 0) {
+    const absorbedPerArmor = totalAbsorbed / armorEntries.length;
+    for (const { eqObj, piece } of armorEntries) {
+      applyWear(eqObj, piece, absorbedPerArmor);
+    }
+  }
+}
+
 /* ── Combattimento ── */
 function executeCombat(enemy, enemyEquip) {
   regenPV();
@@ -861,37 +936,7 @@ function executeCombat(enemy, enemyEquip) {
     }
   }
 
-  // Usura equipaggiamento proporzionale ai colpi:
-  // - Armi: in proporzione ai colpi dell'eroe andati a segno (esclusi quelli schivati dal nemico; normali = critici)
-  // - Armature/Scudi: in proporzione ai colpi subiti dall'eroe (esclusi quelli schivati dall'eroe)
-  const heroHits = result.turns.filter(t => t.who === "hero" && !t.dodged).length;
-  const enemyHits = result.turns.filter(t => t.who === "enemy" && !t.dodged).length;
-  const wearPerHitByTier = [0, 2.0, 1.8, 1.6, 1.4, 1.2, 1.0, 0.8, 0.8, 0.6, 0.4]; // Indice = Tier (1..10)
-
-  for (const slot of ["testa", "torace", "braccia", "mano_dx", "mano_sx", "gambe"]) {
-    let eqObj = state.equipment.equipped[slot];
-    if (!eqObj) continue;
-    if (typeof eqObj === "string") {
-      eqObj = { id: eqObj, dur: 100 };
-      state.equipment.equipped[slot] = eqObj;
-    }
-    const piece = EQUIPMENT_POOL.find(e => e.id === eqObj.id);
-    if (!piece) continue;
-
-    const isWeapon = slot === "mano_dx" || piece.handType === "1h" || piece.handType === "2h";
-    const hits = isWeapon ? heroHits : enemyHits;
-    if (hits <= 0) continue;
-
-    const basePerHit = wearPerHitByTier[piece.tier] || 0.4;
-    const res = eqObj.rivestimento ? getCoatingWearReduction(eqObj.rivestimento) : 0;
-    const effWear = hits * basePerHit * (1 - res);
-    let wearLoss = Math.floor(effWear);
-    if (Math.random() < (effWear - wearLoss)) wearLoss++;
-
-    if (wearLoss > 0) {
-      eqObj.dur = Math.max(0, (eqObj.dur !== undefined ? eqObj.dur : 100) - wearLoss);
-    }
-  }
+  applyEquipmentWear(state.equipment.equipped, result.turns, heroS);
 
   let reward = 0, loot = null, areaLootObj = null;
 
