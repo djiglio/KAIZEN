@@ -2286,6 +2286,18 @@ html.is-ios-standalone .header {
 }
 
 /* Riquadro reliquia attiva sopra Invia Spedizione */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
 .mk-expedition-relic {
   width: 100%;
   text-align: center;
@@ -2307,6 +2319,106 @@ html.is-ios-standalone .header {
   border: 1px solid rgba(167, 139, 250, .55);
   color: #ede0cf;
   box-shadow: 0 0 12px rgba(167, 139, 250, .15);
+}
+.mk-expedition-relic.is-selectable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-height: 36px;
+  appearance: none;
+  cursor: pointer;
+  border-color: rgba(167, 139, 250, .36);
+  color: #b7a896;
+}
+@media (hover: hover) {
+  .mk-expedition-relic.is-selectable:hover {
+    background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(167, 139, 250, .14), rgba(20, 16, 28, .75)), rgba(15, 13, 10, .82);
+    border-color: rgba(167, 139, 250, .62);
+    color: #ede0cf;
+  }
+}
+.mk-expedition-relic.is-selectable:active {
+  transform: translateY(1px);
+  border-color: rgba(167, 139, 250, .78);
+}
+.mk-expedition-relic.is-selectable:focus-visible,
+dialog.mk-dialog button:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+.mk-expedition-relic-hint {
+  color: #a78bfa;
+  font-weight: 700;
+}
+
+/* Dialogo nativo top-layer (selettore reliquie) */
+dialog.mk-dialog {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  width: min(430px, calc(100% - 36px - var(--sal) - var(--sar)));
+  max-width: 100%;
+  max-height: calc(100dvh - var(--sat) - var(--sab) - 36px);
+  margin: auto;
+  overflow: visible;
+}
+dialog.mk-dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog.mk-dialog[open] {
+  animation: fadeIn 0.22s ease;
+}
+dialog.mk-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.88);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.mk-dialog-box {
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--sat) - var(--sab) - 36px);
+  overflow: hidden;
+}
+.mk-dialog-list {
+  flex: 1;
+  min-height: 0;
+}
+.mk-relic-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mk-price--relic {
+  margin: 6px -12px 0;
+  width: calc(100% + 24px);
+  min-height: 36px;
+  color: #c4b5fd;
+  background: rgba(167, 139, 250, .10);
+  border-top-color: rgba(167, 139, 250, .35);
+}
+.mk-price--relic .mk-price-row {
+  font-family: "Cinzel", serif;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+@media (hover: hover) {
+  .mk-price--relic:hover {
+    background: rgba(167, 139, 250, .20);
+    color: #ede0cf;
+  }
+}
+.mk-price--relic:active:not([disabled]) {
+  background: rgba(167, 139, 250, .28);
+  color: #ede0cf;
 }
 
 /* Pulsante Spedizione / Largo */
@@ -2859,6 +2971,9 @@ html.is-ios-standalone .header {
      onclick="if(event.target===this)window.__kaizen.closeDetailModal()">
   <div class="modal-box" id="detail-modal-box"></div>
 </div>
+
+<!-- ══ RELIC PICKER DIALOG ══ -->
+<dialog id="relic-picker-dialog" class="mk-dialog" closedby="any" aria-labelledby="relic-picker-title"></dialog>
 
 <script type="module" src="js/main.js?v=7.21"></script>
 </body>

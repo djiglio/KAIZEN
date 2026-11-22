@@ -290,6 +290,117 @@ export function useRelic(target) {
   if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
 }
 
+const RELIC_STAT_ORDER = [
+  "forza", "difesa", "velocita", "destrezza", "critico", "costituzione",
+  "furtivita", "guarigione", "fortuna", "sopravvivenza", "pianificazione", "carisma"
+];
+
+/**
+ * Raggruppa e ordina le reliquie attualmente presenti nello zaino.
+ * @param {Array} [zaino]
+ * @returns {Array<{rel: object, count: number}>}
+ */
+export function getSortedBackpackRelics(zaino = store.state.equipment?.zaino) {
+  const relicMap = new Map();
+  for (const zItem of (zaino || [])) {
+    if (!zItem || zItem.type !== "relic") continue;
+    const rel = RELICS.find(r => r.id === zItem.id);
+    if (!rel) continue;
+    if (!relicMap.has(rel.id)) relicMap.set(rel.id, { rel, count: 1 });
+    else relicMap.get(rel.id).count++;
+  }
+  return Array.from(relicMap.values()).sort((a, b) => {
+    const orderA = RELIC_STAT_ORDER.indexOf(a.rel.stat);
+    const orderB = RELIC_STAT_ORDER.indexOf(b.rel.stat);
+    const statDiff = (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+    if (statDiff !== 0) return statDiff;
+    const bonusDiff = (b.rel.bonus || 0) - (a.rel.bonus || 0);
+    if (bonusDiff !== 0) return bonusDiff;
+    return a.rel.name.localeCompare(b.rel.name);
+  });
+}
+
+function initRelicPickerDialog(dialog) {
+  if (dialog.dataset.bound === "true") return;
+  dialog.dataset.bound = "true";
+
+  // Legge l'eventuale reliquia selezionata e azzera returnValue per chiusure future
+  dialog.addEventListener("close", () => {
+    const selectedRelicId = dialog.returnValue;
+    dialog.returnValue = "";
+    if (selectedRelicId) useRelic(selectedRelicId);
+  });
+
+  // Fallback light-dismiss per browser privi di supporto nativo a closedby="any" (es. Safari)
+  if (!("closedBy" in HTMLDialogElement.prototype)) {
+    const outside = (e) => {
+      const r = dialog.getBoundingClientRect();
+      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    };
+    let pressedOutside = false;
+    dialog.addEventListener("pointerdown", (e) => { pressedOutside = outside(e); });
+    dialog.addEventListener("pointerup", (e) => {
+      if (pressedOutside && outside(e)) dialog.close("");
+      pressedOutside = false;
+    });
+  }
+}
+
+/**
+ * Apre la scheda modale nativa per scegliere e attivare una reliquia dallo zaino.
+ */
+export function openRelicPickerModal() {
+  if (getActiveRelics(store.state.world).length > 0) {
+    showToast("⚠️ Puoi usare solo una reliquia alla volta! Abbandona quella in uso prima di attivarne un'altra.");
+    return;
+  }
+  if (!document?.body) return;
+
+  let dialog = document.getElementById("relic-picker-dialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "relic-picker-dialog";
+    dialog.className = "mk-dialog";
+    dialog.setAttribute("closedby", "any");
+    dialog.setAttribute("aria-labelledby", "relic-picker-title");
+    document.body.appendChild(dialog);
+  }
+  initRelicPickerDialog(dialog);
+
+  const sortedRelics = getSortedBackpackRelics(store.state.equipment?.zaino);
+  const totalRelicsCount = sortedRelics.reduce((sum, entry) => sum + entry.count, 0);
+
+  const listHTML = sortedRelics.length
+    ? `<ul class="mk-grid mk-grid--1 mk-relic-picker-list" role="list">
+        ${sortedRelics.map(({ rel, count }, idx) => `
+          <li class="mk-tile mk-tile--relic" style="--acc:#a78bfa">
+            <div class="mk-tile-row-head">
+              <span class="mk-tile-name">${rel.name}</span>
+              <span class="mk-tile-big">x${count}</span>
+            </div>
+            <div class="mk-tile-desc">${rel.desc}</div>
+            <button type="submit" value="${rel.id}" class="mk-price mk-price--relic"${idx === 0 ? " autofocus" : ""}>
+              <span class="mk-price-row">Attiva<span class="visually-hidden"> ${rel.name}</span></span>
+            </button>
+          </li>`).join("")}
+      </ul>`
+    : `<div class="mk-empty">Nessuna reliquia disponibile nello zaino.<br>Esplora il Mondo Esterno per trovarne.</div>`;
+
+  dialog.innerHTML = `
+    <form method="dialog" class="modal-box mk mk-modal mk-dialog-box">
+      <div class="mk-modal-cap">Zaino · ${totalRelicsCount} ${totalRelicsCount === 1 ? "reliquia" : "reliquie"}</div>
+      <h2 id="relic-picker-title" class="mk-modal-title">Reliquie Disponibili</h2>
+      <p class="mk-modal-warn">Puoi usare una sola reliquia alla volta (dura 5 missioni)</p>
+      <div class="mk-modal-list mk-dialog-list">${listHTML}</div>
+      <button type="submit" value="" class="modal-close-btn"${sortedRelics.length === 0 ? " autofocus" : ""}>CHIUDI</button>
+    </form>`;
+
+  dialog.returnValue = "";
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  }
+}
+
 /* ══════════════════════════════════════════════════════════
  TENDINE (condivise da Zaino e Mercato)
 ══════════════════════════════════════════════════════════ */
@@ -1044,7 +1155,6 @@ export function renderEquipment() {
     zainoHTML = `<div class="mk-empty">Lo zaino è vuoto. Esplora il Mondo Esterno per raccogliere bottino.</div>`;
   } else {
     const equipEntries = [];
-    const relicMap = new Map();
     const materialMap = new Map();
 
     zItems.forEach((zItem, idx) => {
@@ -1052,11 +1162,6 @@ export function renderEquipment() {
         const piece = EQUIPMENT_POOL.find(e => e.id === zItem.id);
         if (!piece) return;
         equipEntries.push({ zItem, idx, piece });
-      } else if (zItem.type === "relic") {
-        const rel = RELICS.find(r => r.id === zItem.id);
-        if (!rel) return;
-        if (!relicMap.has(rel.id)) relicMap.set(rel.id, { rel, count: 1 });
-        else relicMap.get(rel.id).count++;
       } else if (zItem.type === "material") {
         const mat = MATERIALS.find(m => m.id === zItem.id);
         if (!mat) return;
@@ -1117,20 +1222,7 @@ export function renderEquipment() {
       </div>`;
     });
 
-    const STAT_ORDER = [
-      "forza", "difesa", "velocita", "destrezza", "critico", "costituzione",
-      "furtivita", "guarigione", "fortuna", "sopravvivenza", "pianificazione", "carisma"
-    ];
-
-    const sortedRelics = Array.from(relicMap.values()).sort((a, b) => {
-      const orderA = STAT_ORDER.indexOf(a.rel.stat);
-      const orderB = STAT_ORDER.indexOf(b.rel.stat);
-      const statDiff = (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
-      if (statDiff !== 0) return statDiff;
-      const bonusDiff = (b.rel.bonus || 0) - (a.rel.bonus || 0);
-      if (bonusDiff !== 0) return bonusDiff;
-      return a.rel.name.localeCompare(b.rel.name);
-    });
+    const sortedRelics = getSortedBackpackRelics(zItems);
 
     let totalRelicsCount = 0;
     const relicHTMLs = sortedRelics.map(({ rel, count }) => {

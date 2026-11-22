@@ -40,6 +40,7 @@ import {
   abandonRelic,
   repairItem,
   openCoatingModal,
+  openRelicPickerModal,
   applyCoating
 } from "./shop.js";
 import { APP_VERSION, APP_RELEASE, BESTIARY, rankTitles } from "./data.js";
@@ -114,6 +115,7 @@ window.__kaizen = {
   abandonRelic,
   repairItem,
   openCoatingModal,
+  openRelicPickerModal,
   applyCoating,
   // Bacheca & Equip modals
   showBestiaryDetail,

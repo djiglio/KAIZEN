@@ -19,7 +19,7 @@ import { isDone, getHeroStats, getHeroRank,
 import { formatDate, formatCoinHTML, setupHeroSparkStage } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
-import { renderShop, renderEquipment, renderEquipIconHTML, SLOT_NAMES } from "./shop.js";
+import { renderShop, renderEquipment, renderEquipIconHTML, SLOT_NAMES, openRelicPickerModal, getSortedBackpackRelics } from "./shop.js";
 import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, treasureImgCard, treasureImgHTML, equipImgHTML, equipImgWrap, resolveImgs } from "./img.js";
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"];
@@ -349,6 +349,15 @@ export function renderWorld() {
     relicBoxText = `${relName}${bonusTag} - ${rem} ${rem === 1 ? "missione" : "missioni"}`;
   }
 
+  const backpackRelicCount = !hasActiveRelic
+    ? getSortedBackpackRelics(store.state.equipment?.zaino).reduce((sum, entry) => sum + entry.count, 0)
+    : 0;
+  const relicBarHTML = hasActiveRelic
+    ? `<div class="mk-expedition-relic is-active">${relicBoxText}</div>`
+    : `<button type="button" class="mk-expedition-relic is-selectable" id="world-relic-btn" aria-haspopup="dialog">
+         <span>nessuna reliquia attiva</span>${backpackRelicCount > 0 ? `<span class="mk-expedition-relic-hint"> · ${backpackRelicCount} ${backpackRelicCount === 1 ? "disponibile" : "disponibili"}</span>` : ""}
+       </button>`;
+
   elStatus.innerHTML = `
   <div class="mk">
     <div class="mk-group" style="margin-top:0">Atlante delle Regioni</div>
@@ -381,9 +390,7 @@ export function renderWorld() {
     ${empireoPanel}
 
     <div style="margin:14px 0 18px;">
-      <div class="mk-expedition-relic ${hasActiveRelic ? "is-active" : ""}">
-        ${relicBoxText}
-      </div>
+      ${relicBarHTML}
       <button class="mk-expedition" onclick="window.__kaizen.runMission()"
         style="background:${zoneExpStyle.bg};border-color:${zoneExpStyle.border};box-shadow:${zoneExpStyle.shadow};--zone-drgb:${zoneExpStyle.drgb};--zone-rgb:${zoneExpStyle.rgb};">
         <span class="mk-expedition-cap">Esplorazione · <span style="color:${areaCfg.color};font-weight:700;">${areaCfg.name}</span></span>
@@ -398,6 +405,8 @@ export function renderWorld() {
       Consulta il Registro Completo (${doneQ}/${poolQ.length})
     </button>
   </div>`;
+
+  document.getElementById("world-relic-btn")?.addEventListener("click", openRelicPickerModal);
 
   if (elBtnWrap) {
     elBtnWrap.innerHTML = "";
