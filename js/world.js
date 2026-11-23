@@ -225,7 +225,16 @@ function getEnemyStats(enemy, equip) {
  - Colpi critici basati su critico
  - Turno doppio per il più veloce
 ══════════════════════════════════════════════════════════ */
-function simulateCombat(enemy, enemyEquip) {
+const resolveStrike = (atk, critRate, def, targetHP) => {
+  const isCrit = Math.random() * 100 < critRate;
+  const rawDmg = rnd(Math.max(1, Math.floor(atk * 0.6)), atk);
+  const computedDmg = Math.max(1, isCrit ? rawDmg * 2 : rawDmg - def);
+  const dmg = Math.min(Math.max(0, targetHP), computedDmg);
+  const deflected = isCrit ? 0 : Math.max(0, rawDmg - computedDmg);
+  return { dmg, isCrit, deflected };
+};
+
+export function simulateCombat(enemy, enemyEquip) {
  const heroS = getHeroStats();
  const eneS = getEnemyStats(enemy, enemyEquip);
  const w = store.state.world;
@@ -235,6 +244,22 @@ function simulateCombat(enemy, enemyEquip) {
  const turns = [];
  const heroHPMax = heroS.pvMax;
  const enemyHPMax = eneS.costituzione;
+
+ const pushStrike = (who, isDouble = false) => {
+  if (who === "hero") {
+   const { dmg, isCrit, deflected } = resolveStrike(heroS.forza, heroS.critico, eneS.bonusDef, enemyHP);
+   enemyHP = Math.max(0, enemyHP - dmg);
+   const turn = { who: "hero", dmg, isCrit, deflected, heroHP, enemyHP, heroHPMax, enemyHPMax };
+   if (isDouble) turn.isDouble = true;
+   turns.push(turn);
+  } else {
+   const { dmg, isCrit, deflected } = resolveStrike(eneS.forza, eneS.critico, heroS.bonusDifesa, heroHP);
+   heroHP = Math.max(0, heroHP - dmg);
+   const turn = { who: "enemy", dmg, isCrit, deflected, heroHP, enemyHP, heroHPMax, enemyHPMax };
+   if (isDouble) turn.isDouble = true;
+   turns.push(turn);
+  }
+ };
 
  // Probabilità turno hero
  const totalI = heroS.velocita + eneS.velocita;
@@ -256,12 +281,7 @@ function simulateCombat(enemy, enemyEquip) {
  if (dodged) {
  turns.push({ who:"hero", dodged:true, heroHP, enemyHP, heroHPMax, enemyHPMax });
  } else {
- const isCrit = Math.random() * 100 < heroS.critico;
- const rawDmg = rnd(Math.max(1, Math.floor(heroS.forza * 0.6)), heroS.forza);
- const dmg = Math.max(1, isCrit ? rawDmg * 2 : rawDmg - eneS.bonusDef);
- enemyHP = Math.max(0, enemyHP - dmg);
- turns.push({ who:"hero", dmg, isCrit, deflected: isCrit ? 0 : Math.max(0, rawDmg - dmg),
- heroHP, enemyHP, heroHPMax, enemyHPMax });
+ pushStrike("hero", false);
  }
  } else {
  // Hero schiva?
@@ -269,35 +289,14 @@ function simulateCombat(enemy, enemyEquip) {
  if (dodged) {
  turns.push({ who:"enemy", dodged:true, heroHP, enemyHP, heroHPMax, enemyHPMax });
  } else {
- const isCrit = Math.random() * 100 < eneS.critico;
- const rawDmg = rnd(Math.max(1, Math.floor(eneS.forza * 0.6)), eneS.forza);
- const dmg = Math.max(1, isCrit ? rawDmg * 2 : rawDmg - heroS.bonusDifesa);
- heroHP = Math.max(0, heroHP - dmg);
- turns.push({ who:"enemy", dmg, isCrit, deflected: isCrit ? 0 : Math.max(0, rawDmg - dmg),
- heroHP, enemyHP, heroHPMax, enemyHPMax });
+ pushStrike("enemy", false);
  }
  }
  if (heroHP <= 0 || enemyHP <= 0) break;
 
  // Turno doppio (solo se chi ha appena attaccato è il più veloce)
  if (pDouble > 0 && attacker === fasterIs && Math.random() < pDouble) {
- if (fasterIs === "hero") {
- const isCrit = Math.random() * 100 < heroS.critico;
- const rawDmg = rnd(Math.max(1, Math.floor(heroS.forza * 0.6)), heroS.forza);
- const dmg = Math.max(1, isCrit ? rawDmg * 2 : rawDmg - eneS.bonusDef);
- enemyHP = Math.max(0, enemyHP - dmg);
- turns.push({ who:"hero", dmg, isCrit, isDouble:true,
- deflected: isCrit ? 0 : Math.max(0, rawDmg - dmg),
- heroHP, enemyHP, heroHPMax, enemyHPMax });
- } else {
- const isCrit = Math.random() * 100 < eneS.critico;
- const rawDmg = rnd(Math.max(1, Math.floor(eneS.forza * 0.6)), eneS.forza);
- const dmg = Math.max(1, isCrit ? rawDmg * 2 : rawDmg - heroS.bonusDifesa);
- heroHP = Math.max(0, heroHP - dmg);
- turns.push({ who:"enemy", dmg, isCrit, isDouble:true,
- deflected: isCrit ? 0 : Math.max(0, rawDmg - dmg),
- heroHP, enemyHP, heroHPMax, enemyHPMax });
- }
+ pushStrike(fasterIs, true);
  if (heroHP <= 0 || enemyHP <= 0) break;
  }
  }
