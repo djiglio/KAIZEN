@@ -20,7 +20,7 @@ import { formatDate, formatCoinHTML, setupHeroSparkStage } from "./ui.js";
 import { regenPV, regenPA,
          getMinsPerPV, getMinsPerPA } from "./world.js";
 import { renderShop, renderEquipment, renderEquipIconHTML, SLOT_NAMES, openRelicPickerModal, getSortedBackpackRelics } from "./shop.js";
-import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, treasureImgCard, treasureImgHTML, equipImgHTML, equipImgWrap, resolveImgs } from "./img.js";
+import { enemyImgCard, enemyImgHTML, enemyImgPath, heroAvatarHTML, treasureImgCard, treasureImgHTML, trophyImgCard, trophyImgHTML, equipImgHTML, equipImgWrap, resolveImgs } from "./img.js";
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"];
 const roman = n => ROMAN[n] || String(n);
@@ -494,6 +494,7 @@ function renderBacheca(state, w) {
         return `
         <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;" onclick="window.__kaizen.showTrophyDetail('${id}')">
           <div class="mk-tile-name">${q.text}</div>
+          ${trophyImgCard(id, 58)}
           <div class="mk-tile-big">×${count}</div>
           <div class="mk-tile-desc" style="margin-bottom:0">tocca per consultare</div>
         </div>`;
@@ -513,6 +514,7 @@ function renderBacheca(state, w) {
         <div class="mk-group" style="grid-column:1/-1;margin-top:20px;">Mondo Esterno (${worldList.length})</div>
         ${worldCardsHTML}
       `;
+      resolveImgs(trophyEl);
     }
   }
 
@@ -1127,6 +1129,9 @@ export function showTrophyDetail(questId) {
     <div class="mk-modal-cap">${cap}</div>
     <div class="mk-modal-title">${q.text}</div>
     <div class="mk-note">${formatCoinHTML(q.desc || "")}</div>
+    <div style="margin:4px auto 8px;display:flex;justify-content:center;width:100%;max-width:220px;">
+      ${trophyImgHTML(questId, "100%", "auto")}
+    </div>
 
     <div class="mk-vitals" style="margin:12px 0;">
       <div class="mk-vital" style="--acc:#df784b">

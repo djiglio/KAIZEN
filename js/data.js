@@ -5,7 +5,7 @@
  ============================================================ */
 
 /* ── App info ── */
-export const APP_VERSION = "7.60";
+export const APP_VERSION = "7.61";
 export const APP_RELEASE = "26/11/2026";
 export const APP_DEV = "djiglio.ai";
 
@@ -231,6 +231,7 @@ export const QUEST_POOL_WORLD = [
  img/enemies/<id>.png — una per nemico (e001…e190)
  img/equip/<id>.png — una per ogni arma, scudo e armatura (a11…g105, 300 file)
  img/treasures/<id>.png — una per ogni tesoro (t001…t100, al001…al180, gl01…gl10, r01…r20, mat_*)
+ img/trophies/<id>.png — una per ogni trofeo (day_perfect, e01…e50, w01…w50)
  Se un file manca, il codice mostra l'icona/simbolo di fallback.
 ══════════════════════════════════════════════════════════ */
 

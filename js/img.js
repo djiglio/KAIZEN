@@ -17,6 +17,10 @@ export function equipImgPath(piece) {
 export function treasureImgPath(item) {
   return item?.img || `img/treasures/${item.id}.png`;
 }
+export function trophyImgPath(id) {
+  const key = typeof id === "string" ? id : id?.id;
+  return `img/trophies/${key}.png`;
+}
 
 const _cache = {};
 
@@ -134,4 +138,10 @@ export function treasureImgCard(item, px = 58) {
 }
 export function treasureImgHTML(item, w = 200, h = w) {
   return wrap(treasureImgPath(item), w, h, '', 'margin:4px auto 8px;', { hideIfMissing: true });
+}
+export function trophyImgCard(id, px = 58) {
+  return wrap(trophyImgPath(id), px, px, '', 'margin:4px auto 6px;', { hideIfMissing: true });
+}
+export function trophyImgHTML(id, w = 200, h = w) {
+  return wrap(trophyImgPath(id), w, h, '', 'margin:4px auto 8px;', { hideIfMissing: true });
 }
