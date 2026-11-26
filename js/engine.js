@@ -228,6 +228,54 @@ export function checkEndOfDay() {
  save();
 }
 
+const QUEST_DIFFICULTY_ORDER = ["facile", "medio", "difficile"];
+export const QUEST_REWARD_BY_DIFFICULTY = {
+  facile:    { xp: 10, denari: 40 },
+  medio:     { xp: 15, denari: 75 },
+  difficile: { xp: 25, denari: 125 },
+};
+
+/**
+ * Verifica se una quest settimanale del Mondo Esterno è completabile nelle aree attualmente sbloccate.
+ */
+export function isWorldQuestEligibleForAreas(q, unlockedAreaIds = ["foresta"]) {
+  const areas = Array.isArray(unlockedAreaIds) && unlockedAreaIds.length ? unlockedAreaIds : ["foresta"];
+  const enemies = areas.flatMap(a => getEnemiesForArea(a));
+  if (q.type === "kills_tag") {
+    return enemies.some(e => {
+      const et = e.tags || [];
+      return (q.tag && et.includes(q.tag)) || (q.tags && q.tags.some(t => et.includes(t)));
+    });
+  }
+  if (q.type === "kills_lvl") {
+    return enemies.some(e => (e.lvl || 0) >= (q.minLvl || 0));
+  }
+  if (q.type === "kills_human") {
+    return enemies.some(e => !!e.human);
+  }
+  if (q.type === "unique_enemies") {
+    return new Set(enemies.map(e => e.id)).size >= (q.target || 1);
+  }
+  return true;
+}
+
+/**
+ * Estrae 3 quest settimanali in ordine fisso: 1 facile, 1 media, 1 difficile.
+ */
+export function pickWeeklyQuestsByDifficulty(pool, randFn = Math.random) {
+  const picked = [];
+  const usedIds = new Set();
+  for (const diff of QUEST_DIFFICULTY_ORDER) {
+    const candidates = pool.filter(q => q.difficulty === diff && !usedIds.has(q.id));
+    const source = candidates.length ? candidates : pool.filter(q => !usedIds.has(q.id));
+    if (!source.length) continue;
+    const chosen = source[Math.floor(randFn() * source.length)];
+    picked.push(chosen);
+    usedIds.add(chosen.id);
+  }
+  return picked;
+}
+
 /* ── Refresh missioni settimanali ── */
 export function refreshQuests() {
   const state = store.state;
@@ -278,16 +326,14 @@ export function refreshQuests() {
     state.world.wq.current_streak = 0;
   }
 
-  // Evoluzione: 3 casuali
-  state.activeQuestsEvo = [...QUEST_POOL_EVO]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 3)
+  // Evoluzione: 1 facile, 1 media, 1 difficile in quest'ordine
+  state.activeQuestsEvo = pickWeeklyQuestsByDifficulty(QUEST_POOL_EVO)
     .map(q => ({ ...q, progress: 0, completed: false, habitCounts: {} }));
 
-  // Mondo: 3 casuali
-  state.activeQuestsWorld = [...QUEST_POOL_WORLD]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 3)
+  // Mondo: filtrate sulle aree sbloccate, 1 facile, 1 media, 1 difficile in quest'ordine
+  const unlockedAreas = state.world?.worldProgress?.areeSbloccate || ["foresta"];
+  const eligibleWorldPool = QUEST_POOL_WORLD.filter(q => isWorldQuestEligibleForAreas(q, unlockedAreas));
+  state.activeQuestsWorld = pickWeeklyQuestsByDifficulty(eligibleWorldPool)
     .map(q => ({ ...q, progress: 0, completed: false, seenIds: [] }));
 
   state.lastQuestWeek = curWeek;
@@ -324,8 +370,8 @@ export function updateEvoQuests(habitId, count = 1) {
         q.progress = Math.min(q.target, (q.progress || 0) + count);
       }
       updated = true;
-    } else if (q.type === "all_once" || q.type === "all_twice" || q.type === "all_three") {
-      const cap = q.type === "all_once" ? 1 : (q.type === "all_twice" ? 2 : 3);
+    } else if (q.type === "all_once" || q.type === "all_twice" || q.type === "all_three" || q.type === "all_five") {
+      const cap = q.type === "all_once" ? 1 : (q.type === "all_twice" ? 2 : (q.type === "all_three" ? 3 : 5));
       q.habitCounts[habitId] = (q.habitCounts[habitId] || 0) + count;
       let sum = 0;
       for (const hd of HABITS) {
@@ -334,9 +380,14 @@ export function updateEvoQuests(habitId, count = 1) {
       q.progress = Math.min(q.target, sum);
       updated = true;
     } else if (q.type === "variety5") {
+      const minHabits = q.minHabits || 6;
+      const minEach = q.minEach || 3;
       q.habitCounts[habitId] = (q.habitCounts[habitId] || 0) + count;
-      const distinct = HABITS.filter(hd => (q.habitCounts[hd.id] || 0) >= 1).length;
-      q.progress = Math.min(q.target, distinct);
+      const topCounts = HABITS
+        .map(hd => Math.min(minEach, q.habitCounts[hd.id] || 0))
+        .sort((a, b) => b - a)
+        .slice(0, minHabits);
+      q.progress = Math.min(q.target, topCounts.reduce((s, v) => s + v, 0));
       updated = true;
     } else if (q.type === "perfect_day") {
       /* gestito separatamente in completePerfectDayQuests */
@@ -402,20 +453,21 @@ function grantQuestReward(q, type) {
   const newCount = (state.trophies[q.id] || 0) + 1;
   state.trophies[q.id] = newCount;
 
-  // Bonus trofeo: ogni volta che si conquista un trofeo (eccetto day_perfect)
-  // si guadagnano XP a tutte le abitudini pari al numero di volte conquistato (1 XP alla 1ª, 13 XP alla 13ª, ecc.)
+  // Ricompensa base scalata sulla difficoltà (non mostrata in UI) + bonus trofeo
+  const rewardCfg = QUEST_REWARD_BY_DIFFICULTY[q.difficulty] || QUEST_REWARD_BY_DIFFICULTY.medio;
   const trophyXpBonus = (q.id !== "day_perfect") ? newCount : 0;
-  const totalXpPerHabit = 15 + trophyXpBonus;
+  const totalXpPerHabit = rewardCfg.xp + trophyXpBonus;
+  const denariReward = rewardCfg.denari;
 
-  // +15 XP base + bonus trofeo a tutte le abitudini
+  // XP base + bonus trofeo a tutte le abitudini
   for (const hd of HABITS) {
     if (state.habits[hd.id]) state.habits[hd.id].xp += totalXpPerHabit;
   }
-  // +50 denari
-  state.world.denari += 50;
+  // Denari
+  state.world.denari += denariReward;
 
-  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP, +50 ${COIN}`, "quest");
-  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP, +50 ${COIN}`);
+  addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP, +${denariReward} ${COIN}`, "quest");
+  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP, +${denariReward} ${COIN}`);
 }
 
 /* ── Aggiorna progresso quest mondo esterno ── */
