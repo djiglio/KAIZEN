@@ -552,7 +552,7 @@ function renderBacheca(state, w) {
         const godCards = EMPIREO_GODS.map(g => {
           const sconfitto = deiSconfitti.includes(g.id);
           const portrait2 = empireoUnlocked
-            ? `<div style="margin:4px auto 6px;">${enemyImgCard(g, 75)}</div>`
+            ? `<div style="margin:6px auto 4px;">${enemyImgCard(g, 92)}</div>`
             : `<div class="mk-unknown-portrait">?</div>`;
           const nameStr = empireoUnlocked ? g.name : "Divinità Ignota";
           const subStr  = empireoUnlocked ? (sconfitto ? "✦ sconfitto" : "mai affrontato") : "avvolto nel mito";
@@ -587,16 +587,15 @@ function renderBacheca(state, w) {
         const acc = seen ? tierColors[tNum] : "rgba(255,255,255,.08)";
 
         const portrait = seen
-          ? `<div style="margin:4px auto 6px;">${enemyImgCard(e, 75)}</div>`
-          : `<div class="mk-unknown-portrait">?</div>`;
+          ? `<div style="margin:6px auto 2px;">${enemyImgCard(e, 92)}</div>`
+          : `<div class="mk-unknown-portrait" style="margin:6px auto 8px;">?</div>`;
 
         return `
         <div class="mk-tile ${seen ? "" : "is-off"}" style="--acc:${acc};padding-bottom:12px;cursor:${seen ? "pointer" : "default"};"
              onclick="${seen ? `window.__kaizen.showBestiaryDetail('${e.id}')` : ""}">
-          <div class="mk-tile-cap">Grado ${roman(tNum)}</div>
           <div class="mk-tile-name" style="min-height:2.2em">${seen ? e.name : "Creatura Ignota"}</div>
           ${portrait}
-          <div class="mk-tile-desc" style="margin-bottom:0">${seen ? `${incontri} incontri · ${kills} uccisi` : "non ancora avvistato"}</div>
+          ${seen ? "" : `<div class="mk-tile-desc" style="margin-bottom:0">non ancora avvistato</div>`}
         </div>`;
       }).join("");
 
