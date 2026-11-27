@@ -684,12 +684,12 @@ export function openLootPreviewModal(items) {
   dialog.innerHTML = `<div class="mk-loot-box">
     <section class="mk-loot-carousel${isMulti ? "" : " is-single"}" aria-roledescription="carousel" aria-label="Bottino ottenuto">
       ${controlsHTML}
-      <div class="mk-loot-track" tabindex="0" role="group" aria-label="Oggetti del bottino">
+      <div class="mk-loot-track"${isMulti ? ' tabindex="0"' : ""} role="group" aria-label="Oggetti del bottino">
         ${slidesHTML}
       </div>
       <p class="sr-only" role="status" aria-live="polite"></p>
     </section>
-    <button type="button" class="mk-loot-close-btn">CHIUDI</button>
+    <button type="button" class="mk-loot-close-btn" autofocus>CHIUDI</button>
   </div>`;
 
   resolveImgs(dialog);
