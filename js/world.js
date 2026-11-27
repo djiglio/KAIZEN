@@ -16,7 +16,7 @@ import { getHeroStats, addHistory,
          updateAreaQuests,
          getHeroRank, getRankTitle } from "./engine.js";
 import { enemyImgHTML, enemyImgSmall,
- heroAvatarSmall, heroAvatarHTML, resolveImgs } from "./img.js";
+ heroAvatarSmall, heroAvatarHTML, equipImgHTML, treasureImgHTML, resolveImgs } from "./img.js";
 import { createCombatNarrator } from "./combatText.js";
 
 /* ── Utility ── */
@@ -618,11 +618,225 @@ function appendCloseBtn() {
  inner.appendChild(btn);
 }
 
+let pendingLootPreview = null;
+
+function escapeLootHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderLootImgHTML(entry) {
+  if (entry.kind === "denari") {
+    return `<img src="img/coin.png" alt="Denari" class="mk-loot-coin-img" width="136" height="136">`;
+  }
+  if (entry.kind === "equip" && entry.item) {
+    return equipImgHTML(entry.item, 168, 168);
+  }
+  if (entry.item) {
+    return treasureImgHTML(entry.item, 168, 168);
+  }
+  return "";
+}
+
+function steelArrowSVG(direction) {
+  const gradId = direction === "previous" ? "steel-arrow-prev" : "steel-arrow-next";
+  const path = direction === "previous"
+    ? "M15.5 3.5L6.5 12l9 8.5-2.2 2L2.5 12 13.3 1.5z"
+    : "M8.5 3.5L17.5 12l-9 8.5 2.2 2L21.5 12 10.7 1.5z";
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f1f5f9"/>
+        <stop offset="45%" stop-color="#b4bec9"/>
+        <stop offset="60%" stop-color="#6e7986"/>
+        <stop offset="100%" stop-color="#dbe3ec"/>
+      </linearGradient>
+    </defs>
+    <path d="${path}" fill="url(#${gradId})" stroke="#1f252d" stroke-width="0.9" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+export function openLootPreviewModal(items) {
+  if (!Array.isArray(items) || items.length === 0) return;
+  const dialog = document.getElementById("loot-preview-dialog");
+  if (!dialog) return;
+
+  const isMulti = items.length > 1;
+  const slidesHTML = items.map((entry, idx) => {
+    const valStr = Number(entry.value || 0).toLocaleString("it-IT");
+    return `<div class="mk-loot-slide" role="group" aria-roledescription="slide" aria-label="${idx + 1} di ${items.length}">
+      <h2 class="mk-loot-name">${escapeLootHtml(entry.name)}</h2>
+      <div class="mk-loot-img">${renderLootImgHTML(entry)}</div>
+      <div class="mk-loot-val">${valStr} ${COIN}</div>
+    </div>`;
+  }).join("");
+
+  const controlsHTML = isMulti
+    ? `<div class="mk-loot-controls">
+        <button type="button" class="mk-loot-arrow" data-direction="previous" aria-label="Bottino precedente" disabled>${steelArrowSVG("previous")}</button>
+        <button type="button" class="mk-loot-arrow" data-direction="next" aria-label="Bottino successivo">${steelArrowSVG("next")}</button>
+      </div>`
+    : "";
+
+  dialog.innerHTML = `<div class="mk-loot-box">
+    <section class="mk-loot-carousel${isMulti ? "" : " is-single"}" aria-roledescription="carousel" aria-label="Bottino ottenuto">
+      ${controlsHTML}
+      <div class="mk-loot-track" tabindex="0" role="group" aria-label="Oggetti del bottino">
+        ${slidesHTML}
+      </div>
+      <p class="sr-only" role="status" aria-live="polite"></p>
+    </section>
+    <button type="button" class="mk-loot-close-btn">CHIUDI</button>
+  </div>`;
+
+  resolveImgs(dialog);
+
+  // Safari fallback per closedby="any" (backdrop light-dismiss)
+  if (!dialog.dataset.lootDismissBound) {
+    dialog.dataset.lootDismissBound = "1";
+    let downOutside = false;
+    const isOutside = (e) => {
+      const box = dialog.querySelector(".mk-loot-box");
+      if (!box) return e.target === dialog;
+      const r = box.getBoundingClientRect();
+      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    };
+    dialog.addEventListener("pointerdown", (e) => {
+      downOutside = e.target === dialog && isOutside(e);
+    });
+    dialog.addEventListener("pointerup", (e) => {
+      if (downOutside && e.target === dialog && isOutside(e) && !("closedBy" in dialog)) {
+        dialog.close();
+      }
+      downOutside = false;
+    });
+  }
+
+  const closeBtn = dialog.querySelector(".mk-loot-close-btn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      if (typeof dialog.close === "function") dialog.close();
+      else dialog.removeAttribute("open");
+    });
+  }
+
+  if (isMulti) {
+    const track = dialog.querySelector(".mk-loot-track");
+    const slides = Array.from(dialog.querySelectorAll(".mk-loot-slide"));
+    const prevBtn = dialog.querySelector('.mk-loot-arrow[data-direction="previous"]');
+    const nextBtn = dialog.querySelector('.mk-loot-arrow[data-direction="next"]');
+    const statusEl = dialog.querySelector('[role="status"]');
+
+    let settledIndex = 0;
+    let pendingTarget = null;
+    let pendingStartScroll = null;
+    let fallbackTimer = null;
+
+    const getNearestIndex = () => {
+      const trackCenter = track.scrollLeft + (track.clientWidth / 2);
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < slides.length; i++) {
+        const s = slides[i];
+        const center = s.offsetLeft + (s.offsetWidth / 2);
+        const dist = Math.abs(center - trackCenter);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i;
+        }
+      }
+      return bestIdx;
+    };
+
+    const syncButtons = (idx) => {
+      const active = document.activeElement;
+      const prevDisabled = idx <= 0;
+      const nextDisabled = idx >= slides.length - 1;
+      prevBtn.disabled = prevDisabled;
+      nextBtn.disabled = nextDisabled;
+      if (prevDisabled && active === prevBtn && !nextDisabled) {
+        nextBtn.focus();
+      } else if (nextDisabled && active === nextBtn && !prevDisabled) {
+        prevBtn.focus();
+      }
+    };
+
+    const onSettled = () => {
+      if (pendingTarget !== null && pendingStartScroll !== null && track.scrollLeft === pendingStartScroll) {
+        return;
+      }
+      const idx = pendingTarget !== null && track.clientWidth === 0 ? pendingTarget : getNearestIndex();
+      pendingTarget = null;
+      pendingStartScroll = null;
+      syncButtons(idx);
+      if (idx !== settledIndex) {
+        settledIndex = idx;
+        if (statusEl) {
+          statusEl.textContent = `Bottino ${idx + 1} di ${slides.length}: ${items[idx].name}`;
+        }
+      }
+    };
+
+    const scrollToIndex = (targetIdx) => {
+      const clamped = Math.max(0, Math.min(slides.length - 1, targetIdx));
+      const slide = slides[clamped];
+      if (!slide) return;
+      pendingTarget = clamped;
+      pendingStartScroll = track.scrollLeft;
+      const delta = (slide.offsetLeft + (slide.offsetWidth / 2)) - (track.scrollLeft + (track.clientWidth / 2));
+      if (typeof track.scrollBy === "function") {
+        track.scrollBy({ left: delta });
+      } else {
+        track.scrollLeft += delta;
+      }
+      syncButtons(clamped);
+    };
+
+    prevBtn.addEventListener("click", () => {
+      const base = pendingTarget !== null ? pendingTarget : getNearestIndex();
+      scrollToIndex(base - 1);
+    });
+    nextBtn.addEventListener("click", () => {
+      const base = pendingTarget !== null ? pendingTarget : getNearestIndex();
+      scrollToIndex(base + 1);
+    });
+
+    if ("onscrollend" in window) {
+      track.addEventListener("scrollend", onSettled);
+    } else {
+      track.addEventListener("scroll", () => {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = setTimeout(onSettled, 120);
+      }, { passive: true });
+    }
+
+    dialog.addEventListener("close", () => {
+      clearTimeout(fallbackTimer);
+    }, { once: true });
+
+    syncButtons(0);
+  }
+
+  if (typeof dialog.showModal === "function") {
+    if (!dialog.open) dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+  }
+}
+
 function closeCombatModal() {
  document.getElementById("combat-overlay").classList.remove("show");
  document.body.style.overflow = "";
  if (typeof window.__kaizen?.onAfterUpdate === "function") {
  window.__kaizen.onAfterUpdate();
+ }
+ if (pendingLootPreview && pendingLootPreview.length > 0) {
+  const items = pendingLootPreview;
+  pendingLootPreview = null;
+  openLootPreviewModal(items);
  }
 }
 window.__closeCombat = closeCombatModal;
@@ -938,6 +1152,7 @@ function executeCombat(enemy, enemyEquip) {
   applyEquipmentWear(state.equipment.equipped, result.turns, heroS);
 
   let reward = 0, loot = null, areaLootObj = null;
+  const combatLootItems = [];
 
   if (result.victory) {
     const lvl = enemy.lvl || 1;
@@ -945,6 +1160,9 @@ function executeCombat(enemy, enemyEquip) {
     reward = rnd(Math.max(4, Math.round(4 + lvl * 0.55)), Math.max(10, Math.round(8 + lvl * 0.80)));
     w.denari += reward;
     w.deniariTotaliGuadagnati += reward;
+    if (reward > 0) {
+      combatLootItems.push({ kind: "denari", name: "Denari", value: reward });
+    }
     w.nemiciAbbattuti[enemy.id] = (w.nemiciAbbattuti[enemy.id] || 0) + 1;
 
     updateWorldQuests("kill", { tags: enemy.tags || [], lvl: enemy.lvl, human: enemy.human });
@@ -958,6 +1176,7 @@ function executeCombat(enemy, enemyEquip) {
       for (const piece of enemyEquipPieces) {
         state.equipment.zaino.push({ id: piece.id, type: "equip", dur: 100 });
         unlockDiscoveredEquipment(piece.id, state);
+        combatLootItems.push({ kind: "equip", name: piece.name, item: piece, value: piece.prezzo || 0 });
         _areaLootItemsCount++;
         if (piece.prezzo) updateWorldQuests("loot", { value: piece.prezzo });
         if ((piece.tier || 0) >= 4 || piece.rarita !== "comune") updateWorldQuests("rare_find", {});
@@ -981,6 +1200,7 @@ function executeCombat(enemy, enemyEquip) {
       _areaLootDenari += val;
       _areaLootItemsCount++;
       onTreasureFound(store.state, areaLootObj);
+      combatLootItems.push({ kind: "treasure", name: areaLootObj.name, item: areaLootObj, value: val });
       updateWorldQuests("loot", { value: val });
       updateWorldQuests("denari", { value: val });
       if ((areaLootObj.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
@@ -1017,6 +1237,7 @@ function executeCombat(enemy, enemyEquip) {
         const _dl = EMPIREO_LOOT.find(l => l.godId === enemy.id);
         if (_dl && !(_wp.bottiniDivini || []).includes(_dl.id)) {
           _killEvts.push({ type: "loot_god", areaId: "empireo", lootId: _dl.id });
+          combatLootItems.push({ kind: "treasure", name: _dl.name, item: _dl, value: _dl.value || 0 });
           if (_dl.value) updateWorldQuests("loot", { value: _dl.value });
           updateWorldQuests("rare_find", {});
           updateWorldQuests("unique_find", { id: _dl.id });
@@ -1036,6 +1257,8 @@ function executeCombat(enemy, enemyEquip) {
     addHistory(` Sconfitto da ${enemy.name}`, "combat");
   }
 
+  pendingLootPreview = result.victory && combatLootItems.length > 0 ? combatLootItems : null;
+
   consumeRelicMissionCharge();
   if (state.history.length > 200) state.history = state.history.slice(0,200);
   if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
@@ -1051,6 +1274,7 @@ function executeDiscovery() {
   const heroS = getHeroStats();
   const tr = Math.random();
   const currentArea = w.worldProgress?.areaCorrente || "foresta";
+  const discoveryLootItems = [];
 
   updateWorldQuests("discovery", {});
   updateWorldQuests("no_damage", {});
@@ -1078,6 +1302,7 @@ function executeDiscovery() {
       w.denari += val;
       w.deniariTotaliGuadagnati += val;
       onTreasureFound(state, aLoot);
+      discoveryLootItems.push({ kind: "treasure", name: aLoot.name, item: aLoot, value: val });
       updateWorldQuests("loot", { value: val });
       updateWorldQuests("denari", { value: val });
       if ((aLoot.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
@@ -1090,7 +1315,8 @@ function executeDiscovery() {
       addHistory(`Trovato: ${aLoot.name} +${val} ${COIN}`, "world");
       showToast(`${aLoot.name} +${val} ${COIN}!`);
     } else {
-      pickTreasureReward();
+      const fallback = pickTreasureReward();
+      if (fallback) discoveryLootItems.push(fallback);
     }
   } else {
     // Materiali per il Fabbro e la Forgia (35%)
@@ -1101,6 +1327,7 @@ function executeDiscovery() {
       const mat = (Math.random() < rareChance) ? areaMats[1] : areaMats[0];
 
       state.equipment.zaino.push({ id: mat.id, type: "material" });
+      discoveryLootItems.push({ kind: "material", name: mat.name, item: mat, value: mat.value || 0 });
       updateWorldQuests("loot", { value: mat.value });
       if ((mat.rarity || 1) >= 4) updateWorldQuests("rare_find", {});
       if (!state.world.wq.unique_finds.includes(mat.id)) {
@@ -1112,7 +1339,8 @@ function executeDiscovery() {
       addHistory(`Materiale trovato: ${mat.name} (${mat.value} ${COIN}) → zaino`, "world");
       showToast(`Materiale trovato: ${mat.name} → zaino!`);
     } else {
-      pickTreasureReward();
+      const fallback = pickTreasureReward();
+      if (fallback) discoveryLootItems.push(fallback);
     }
   }
 
@@ -1121,6 +1349,9 @@ function executeDiscovery() {
   if (w.missioniLog.length > 5) w.missioniLog = w.missioniLog.slice(0,5);
   save();
   if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+  if (discoveryLootItems.length > 0) {
+    openLootPreviewModal(discoveryLootItems);
+  }
 }
 
 function pickTreasureReward() {
@@ -1148,4 +1379,5 @@ function pickTreasureReward() {
   w.missioniLog.unshift({ tipo:"treasure", nome:t.name, denari:v, t:Date.now() });
   addHistory(` ${t.name} +${v} ${COIN}`, "world");
   showToast(`${t.icon} ${t.name} +${v} ${COIN}!`);
+  return { kind: "treasure", name: t.name, item: t, value: v };
 }
