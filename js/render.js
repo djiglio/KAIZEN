@@ -667,9 +667,10 @@ function renderBacheca(state, w) {
       const locked = count === 0;
       const tierLabel = isArea ? `Rarità ${roman(item.rarity)}` : `Grado ${roman(item.tier)}`;
       const valHTML = isArea ? `${item.value} ${COIN}` : `${item.minV}–${item.maxV} ${COIN}`;
+      const meta = getTreasureCountMeta(count);
       const metaHTML = locked
         ? `${tierLabel} · ignoto`
-        : `${tierLabel} · <span style="display:inline-flex;align-items:center;gap:4px;color:var(--gold-light);font-style:normal;">${valHTML}</span>`;
+        : `${tierLabel} · <span style="display:inline-flex;align-items:center;gap:4px;color:var(--gold-light);font-style:normal;">${valHTML}</span> · <span class="${meta.cls}" style="font-style:normal;">×${count}</span>`;
       const imgHTML = locked
         ? `<div class="mk-unknown-portrait" style="margin:6px auto 8px;">?</div>`
         : treasureImgCard(item, 80);
