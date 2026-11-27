@@ -663,24 +663,31 @@ function renderBacheca(state, w) {
       </details>`;
     };
 
+    const makeTreasureCard = (item, isArea) => {
+      const count = (w.tesoriScoperti || {})[item.id] || 0;
+      const locked = count === 0;
+      const tierLabel = isArea ? `Rarità ${roman(item.rarity)}` : `Grado ${roman(item.tier)}`;
+      const valHTML = isArea ? `${item.value} ${COIN}` : `${item.minV}–${item.maxV} ${COIN}`;
+      const metaHTML = locked
+        ? `${tierLabel} · ignoto`
+        : `${tierLabel} · <span style="display:inline-flex;align-items:center;gap:4px;color:var(--gold-light);font-style:normal;">${valHTML}</span>`;
+      const imgHTML = locked
+        ? `<div class="mk-unknown-portrait" style="margin:6px auto 8px;">?</div>`
+        : treasureImgCard(item, 80);
+      return `
+      <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:#df784b;padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
+           onclick="${!locked ? `window.__kaizen.showTreasureDetail('${item.id}')` : ""}">
+        <div class="mk-tile-name">${locked ? (isArea ? "Reperto Ignoto" : "Tesoro Ignoto") : item.name}</div>
+        ${imgHTML}
+        <div class="mk-tile-desc" style="margin:2px 0 0;display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;">${metaHTML}</div>
+      </div>`;
+    };
+
     let genFound = 0;
     TREASURES.forEach(t => {
       if ((w.tesoriScoperti || {})[t.id]) genFound++;
     });
-    const genCards = TREASURES.map(t => {
-      const count = (w.tesoriScoperti || {})[t.id] || 0;
-      const locked = count === 0;
-      const meta = getTreasureCountMeta(count);
-      return `
-      <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:#df784b;padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
-           onclick="${!locked ? `window.__kaizen.showTreasureDetail('${t.id}')` : ""}">
-        <div class="mk-tile-cap">Grado ${roman(t.tier)}</div>
-        <div class="mk-tile-name">${locked ? "Tesoro Ignoto" : t.name}</div>
-        ${!locked ? treasureImgCard(t, 58) : ""}
-        ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
-        <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `${t.minV}–${t.maxV} ${COIN}`}</div>
-      </div>`;
-    }).join("");
+    const genCards = TREASURES.map(t => makeTreasureCard(t, false)).join("");
 
     let sectionsHTML = makeTendina("generic", "I", "Tesori Generici", "reperti e monili diffusi in ogni terra", `${genFound}/${TREASURES.length}`, genCards);
 
@@ -692,20 +699,7 @@ function renderBacheca(state, w) {
       pool.forEach(m => {
         if ((w.tesoriScoperti || {})[m.id]) areaFound++;
       });
-      const areaCards = pool.map(m => {
-        const count = (w.tesoriScoperti || {})[m.id] || 0;
-        const locked = count === 0;
-        const meta = getTreasureCountMeta(count);
-        return `
-        <div class="mk-tile ${locked ? "is-off" : ""}" style="--acc:#df784b;padding-bottom:12px;cursor:${locked ? "default" : "pointer"};"
-             onclick="${!locked ? `window.__kaizen.showTreasureDetail('${m.id}')` : ""}">
-          <div class="mk-tile-cap">Rarità ${roman(m.rarity)}</div>
-          <div class="mk-tile-name">${locked ? "Reperto Ignoto" : m.name}</div>
-          ${!locked ? treasureImgCard(m, 58) : ""}
-          ${!locked ? `<div class="mk-tile-big ${meta.cls}" style="font-size:20px;color:${meta.color};">×${count}</div>` : ""}
-          <div class="mk-tile-desc" style="margin-bottom:0">${locked ? "non ancora rinvenuto" : `valore ${m.value} ${COIN}`}</div>
-        </div>`;
-      }).join("");
+      const areaCards = pool.map(m => makeTreasureCard(m, true)).join("");
 
       sectionsHTML += makeTendina(area.id, roman(idx + 2), area.name, area.desc || "reperti esclusivi della regione", `${areaFound}/${pool.length}`, areaCards);
     });
