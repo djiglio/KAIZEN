@@ -492,11 +492,10 @@ function renderBacheca(state, w) {
         const { id, count, q, isWorld } = item;
         const acc = id === "day_perfect" ? "var(--gold-light)" : isWorld ? "#a78bfa" : "#df784b";
         return `
-        <div class="mk-tile" style="--acc:${acc};padding-bottom:12px;cursor:pointer;" onclick="window.__kaizen.showTrophyDetail('${id}')">
+        <div class="mk-tile" style="--acc:${acc};padding-bottom:14px;cursor:pointer;" onclick="window.__kaizen.showTrophyDetail('${id}')">
           <div class="mk-tile-name">${q.text}</div>
-          ${trophyImgCard(id, 58)}
-          <div class="mk-tile-big">×${count}</div>
-          <div class="mk-tile-desc" style="margin-bottom:0">tocca per consultare</div>
+          ${trophyImgCard(id, 76)}
+          <div class="mk-trophy-count">×${count}</div>
         </div>`;
       };
 
