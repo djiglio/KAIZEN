@@ -447,6 +447,18 @@ export function checkAllWorldComplete() {
   }
 }
 
+let _missionTrophyCollector = null;
+
+export function beginMissionTrophyCapture(targetArr) {
+  _missionTrophyCollector = targetArr;
+}
+
+export function endMissionTrophyCapture() {
+  const res = _missionTrophyCollector;
+  _missionTrophyCollector = null;
+  return res;
+}
+
 function grantQuestReward(q, type) {
   const state = store.state;
   // Incrementa contatore trofeo
@@ -467,7 +479,16 @@ function grantQuestReward(q, type) {
   state.world.denari += denariReward;
 
   addHistory(`🏆 Quest completata: ${q.text} — +${totalXpPerHabit} XP, +${denariReward} ${COIN}`, "quest");
-  showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP, +${denariReward} ${COIN}`);
+  if (_missionTrophyCollector) {
+    _missionTrophyCollector.push({
+      kind: "trophy",
+      id: q.id,
+      name: q.text,
+      value: denariReward
+    });
+  } else {
+    showToast(`🏆 ${q.text}! +${totalXpPerHabit} XP, +${denariReward} ${COIN}`);
+  }
 }
 
 /* ── Aggiorna progresso quest mondo esterno ── */

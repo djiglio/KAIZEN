@@ -14,9 +14,11 @@ import { getHeroStats, addHistory,
          updateWorldQuests,
          checkAllWorldComplete,
          updateAreaQuests,
+         beginMissionTrophyCapture,
+         endMissionTrophyCapture,
          getHeroRank, getRankTitle } from "./engine.js";
 import { enemyImgHTML, enemyImgSmall,
- heroAvatarSmall, heroAvatarHTML, equipImgHTML, treasureImgHTML, resolveImgs } from "./img.js";
+ heroAvatarSmall, heroAvatarHTML, equipImgHTML, treasureImgHTML, trophyImgHTML, resolveImgs } from "./img.js";
 import { createCombatNarrator } from "./combatText.js";
 
 /* ── Utility ── */
@@ -632,6 +634,9 @@ function renderLootImgHTML(entry) {
   if (entry.kind === "denari") {
     return `<img src="img/coin.png" alt="Denari" class="mk-loot-coin-img" width="136" height="136">`;
   }
+  if (entry.kind === "trophy" && entry.id) {
+    return trophyImgHTML(entry.id, 168, 168);
+  }
   if (entry.kind === "equip" && entry.item) {
     return equipImgHTML(entry.item, 168, 168);
   }
@@ -921,6 +926,8 @@ export function runMission() {
     w.ultimaSessionePA = Date.now();
   }
 
+  const activeMissionTrophies = [];
+  beginMissionTrophyCapture(activeMissionTrophies);
   updateAreaQuests([{ type: "spedizione", areaId }]);
   updateWorldQuests("mission", {});
 
@@ -929,8 +936,10 @@ export function runMission() {
     // COMBATTIMENTO
     const enemy = pickEnemyForArea(areaId);
     if (!enemy) {
+      const unlockedTrophies = endMissionTrophyCapture() || [];
       showToast("Non ci sono più nemici in questa zona!");
       save();
+      if (unlockedTrophies.length > 0) openLootPreviewModal(unlockedTrophies);
       return;
     }
     const enemyEquip = generateEnemyEquip(enemy);
@@ -956,6 +965,7 @@ export function runMission() {
   } else {
     // ZONA DESERTA
     updateWorldQuests("no_damage", {});
+    const unlockedTrophies = endMissionTrophyCapture() || [];
     w.missioniLog.unshift({ tipo:"empty", nome:"Zona deserta", denari:0, t:Date.now() });
     addHistory(" Zona deserta, risorse sprecate.", "world");
     consumeRelicMissionCharge();
@@ -963,6 +973,7 @@ export function runMission() {
     save();
     showToast(" Zona deserta...");
     if (typeof window.__kaizen?.onAfterUpdate === "function") window.__kaizen.onAfterUpdate();
+    if (unlockedTrophies.length > 0) openLootPreviewModal(unlockedTrophies);
   }
 }
 
@@ -977,6 +988,8 @@ function executeFlee(enemy, fleeChance) {
   if (success) {
     updateWorldQuests("fled", {});
     updateWorldQuests("no_damage", {});
+    const unlockedTrophies = endMissionTrophyCapture() || [];
+    pendingLootPreview = unlockedTrophies.length > 0 ? unlockedTrophies : null;
     w.wq.current_streak = 0;
     updateWorldQuests("win_streak", { count: 0, reset: true });
     inner.innerHTML = `
@@ -1242,7 +1255,6 @@ function executeCombat(enemy, enemyEquip) {
           updateWorldQuests("rare_find", {});
           updateWorldQuests("unique_find", { id: _dl.id });
           addHistory(`✨ Bottino divino: ${_dl.name}`, "world");
-          showToast(`✨ ${_dl.name}!`);
         }
       }
     }
@@ -1257,7 +1269,9 @@ function executeCombat(enemy, enemyEquip) {
     addHistory(` Sconfitto da ${enemy.name}`, "combat");
   }
 
-  pendingLootPreview = result.victory && combatLootItems.length > 0 ? combatLootItems : null;
+  const unlockedTrophies = endMissionTrophyCapture() || [];
+  if (unlockedTrophies.length > 0) combatLootItems.push(...unlockedTrophies);
+  pendingLootPreview = combatLootItems.length > 0 ? combatLootItems : null;
 
   consumeRelicMissionCharge();
   if (state.history.length > 200) state.history = state.history.slice(0,200);
@@ -1313,7 +1327,6 @@ function executeDiscovery() {
       updateWorldQuests("unique_find", { id: aLoot.id });
       w.missioniLog.unshift({ tipo: "treasure", nome: aLoot.name, denari: val, t: Date.now() });
       addHistory(`Trovato: ${aLoot.name} +${val} ${COIN}`, "world");
-      showToast(`${aLoot.name} +${val} ${COIN}!`);
     } else {
       const fallback = pickTreasureReward();
       if (fallback) discoveryLootItems.push(fallback);
@@ -1337,12 +1350,14 @@ function executeDiscovery() {
       updateAreaQuests([{ type: "loot", areaId: currentArea, lootCount: 1, denari: 0 }]);
       w.missioniLog.unshift({ tipo: "material", nome: mat.name, denari: 0, t: Date.now() });
       addHistory(`Materiale trovato: ${mat.name} (${mat.value} ${COIN}) → zaino`, "world");
-      showToast(`Materiale trovato: ${mat.name} → zaino!`);
     } else {
       const fallback = pickTreasureReward();
       if (fallback) discoveryLootItems.push(fallback);
     }
   }
+
+  const unlockedTrophies = endMissionTrophyCapture() || [];
+  if (unlockedTrophies.length > 0) discoveryLootItems.push(...unlockedTrophies);
 
   consumeRelicMissionCharge();
   if (state.history.length > 200) state.history = state.history.slice(0,200);
@@ -1378,6 +1393,5 @@ function pickTreasureReward() {
 
   w.missioniLog.unshift({ tipo:"treasure", nome:t.name, denari:v, t:Date.now() });
   addHistory(` ${t.name} +${v} ${COIN}`, "world");
-  showToast(`${t.icon} ${t.name} +${v} ${COIN}!`);
   return { kind: "treasure", name: t.name, item: t, value: v };
 }
