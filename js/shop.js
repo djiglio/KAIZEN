@@ -11,7 +11,7 @@ import {
   calculateCoatingCost, getCoatingBonus, getCoatingWearReduction
 } from "./data.js";
 import { showToast } from "./ui.js";
-import { equipImgWrap, resolveImgs } from "./img.js";
+import { equipImgWrap, treasureImgCard, resolveImgs } from "./img.js";
 import { getHeroStats } from "./engine.js";
 import { getMinsPerPV, getMinsPerPA } from "./world.js";
 
@@ -724,6 +724,7 @@ export function openCoatingModal(slot) {
     <div class="mk-tile ${stateCls}" style="--acc:#6cc4ef">
       <div class="mk-tile-cap">Rarità ${roman(m.rarity)}</div>
       <div class="mk-tile-name">${m.name}</div>
+      ${treasureImgCard(m, 52)}
       <div class="mk-coat">
         <div class="mk-coat-bonus">${bonusLine(getCoatingBonus(m.id, slot, piece))}</div>
         <div class="mk-coat-wear">usura −${Math.round((cfg.durabilityRes || 0) * 100)}%</div>
@@ -1258,6 +1259,7 @@ export function renderEquipment() {
           <span class="mk-tile-name">${mat.name}</span>
           <span class="mk-tile-big">x${count}</span>
         </div>
+        ${treasureImgCard(mat, 48)}
         <div class="mk-tile-desc">${mat.desc}</div>
         <button class="mk-price" onclick="window.__kaizen.discardItem('${mat.id}')">
           <span class="mk-price-row"><span class="mk-price-lbl">Vendi</span>${COIN}<b>${fmtDen(mat.value)}</b></span>
