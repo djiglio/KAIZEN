@@ -376,8 +376,8 @@ export function showPreCombat(enemy, enemyEquip, onFight, onFlee) {
  Sconfiggendo il nemico otterrai bottino e ${COIN}.
  </div>
  <div class="flee-btns">
- <button class="flee-btn fight" id="btn-fight">COMBATTI</button>
  <button class="flee-btn flee" id="btn-flee">FUGGI (${fleeChance}%)</button>
+ <button class="flee-btn fight" id="btn-fight">COMBATTI</button>
  </div>
  </div>
  </div>
