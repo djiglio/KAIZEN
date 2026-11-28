@@ -510,43 +510,10 @@ function showCombatModal(enemy, result, reward, loot, enemyEquip, areaLootObj, h
  if (i >= result.turns.length) {
  // Risultato finale
  if (result.victory) {
- const rewardChips = [];
- rewardChips.push(`
-   <div class="combat-reward-chip chip-gold">
-     <span class="combat-reward-lbl">BOTTINO IN DENARI</span>
-     <span class="combat-reward-val">+${reward} ${COIN}</span>
-   </div>
- `);
- if (loot) {
-   rewardChips.push(`
-     <div class="combat-reward-chip chip-loot">
-       <span class="combat-reward-lbl">TESORO TROVATO</span>
-       <span class="combat-reward-val">${loot.name}</span>
-     </div>
-   `);
- }
- if (areaLootObj) {
-   rewardChips.push(`
-     <div class="combat-reward-chip chip-area">
-       <span class="combat-reward-lbl">SCOPERTA REGIONALE</span>
-       <span class="combat-reward-val">${areaLootObj.name} <small>(+${areaLootObj.value} ${COIN})</small></span>
-     </div>
-   `);
- }
- if (enemyEquip) {
-   const razzia = Object.values(enemyEquip).map(p => p.name).join(", ");
-   rewardChips.push(`
-     <div class="combat-reward-chip chip-razzia">
-       <span class="combat-reward-lbl">EQUIPAGGIAMENTO RAZZIATO</span>
-       <span class="combat-reward-val">${razzia}</span>
-     </div>
-   `);
- }
  logEl.innerHTML += `
  <div class="combat-line result-win">
    <div class="combat-result-badge">VITTORIA</div>
    <div class="combat-result-text">${narrator.victory()}</div>
-   <div class="combat-reward-grid">${rewardChips.join("")}</div>
  </div>`;
  } else {
  logEl.innerHTML += `
