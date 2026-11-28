@@ -1190,14 +1190,16 @@ html.is-ios-standalone .header {
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.7));
 }
 .flee-panel {
-  background: linear-gradient(180deg, #181510 0%, #0f0d0a 100%);
-  border: 1px solid rgba(85, 74, 62, 0.45);
-  border-top: 2px solid rgba(195, 85, 45, 0.5);
-  border-radius: var(--card-r);
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(42, 48, 58, 0.16) 0%, rgba(16, 18, 22, 0.10) 55%, transparent 82%),
+    linear-gradient(170deg, #101114 0%, #08080a 55%, #0c0d0f 100%);
+  border: 10px solid transparent;
+  border-image: url("img/cornice_ferro.png") 105 / 16px round;
+  border-radius: 2px;
   padding: 13px 12px;
   margin-bottom: 0;
   text-align: center;
-  box-shadow: inset 0 0 0 3px #0f0d0a, inset 0 0 0 4px rgba(60, 50, 40, 0.18);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.78), 0 0 18px rgba(120, 134, 150, 0.06);
 }
 .flee-title { font-family: "Cinzel", serif; font-size: 12px; font-weight: 700; color: #ede0cf; letter-spacing: 2.5px; margin-bottom: 5px; text-transform: uppercase; }
 .flee-text  { font-family: var(--serif-it); font-style: italic; font-size: 13.5px; color: #b5a587; margin-bottom: 12px; line-height: 1.38; }
