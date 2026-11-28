@@ -646,22 +646,9 @@ function renderLootImgHTML(entry) {
   return "";
 }
 
-function steelArrowSVG(direction) {
-  const gradId = direction === "previous" ? "steel-arrow-prev" : "steel-arrow-next";
-  const path = direction === "previous"
-    ? "M15.5 3.5L6.5 12l9 8.5-2.2 2L2.5 12 13.3 1.5z"
-    : "M8.5 3.5L17.5 12l-9 8.5 2.2 2L21.5 12 10.7 1.5z";
-  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-    <defs>
-      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#f1f5f9"/>
-        <stop offset="45%" stop-color="#b4bec9"/>
-        <stop offset="60%" stop-color="#6e7986"/>
-        <stop offset="100%" stop-color="#dbe3ec"/>
-      </linearGradient>
-    </defs>
-    <path d="${path}" fill="url(#${gradId})" stroke="#1f252d" stroke-width="0.9" stroke-linejoin="round"/>
-  </svg>`;
+function steelArrowImg(direction) {
+  const src = direction === "previous" ? "img/freccia_sinistra.png" : "img/freccia_destra.png";
+  return `<img src="${src}" alt="" width="52" height="30" aria-hidden="true" draggable="false">`;
 }
 
 export function openLootPreviewModal(items) {
@@ -681,8 +668,8 @@ export function openLootPreviewModal(items) {
 
   const controlsHTML = isMulti
     ? `<div class="mk-loot-controls">
-        <button type="button" class="mk-loot-arrow" data-direction="previous" aria-label="Bottino precedente" disabled>${steelArrowSVG("previous")}</button>
-        <button type="button" class="mk-loot-arrow" data-direction="next" aria-label="Bottino successivo">${steelArrowSVG("next")}</button>
+        <button type="button" class="mk-loot-arrow" data-direction="previous" aria-label="Bottino precedente" disabled>${steelArrowImg("previous")}</button>
+        <button type="button" class="mk-loot-arrow" data-direction="next" aria-label="Bottino successivo">${steelArrowImg("next")}</button>
       </div>`
     : "";
 

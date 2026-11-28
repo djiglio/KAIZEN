@@ -2436,41 +2436,37 @@ dialog.mk-dialog:focus,
 }
 .mk-loot-arrow {
   pointer-events: auto;
-  width: 40px;
+  width: 54px;
   height: 44px;
   padding: 0;
+  border: 0;
   border-radius: 4px;
-  border: 1px solid rgba(196, 208, 220, 0.55);
-  background: linear-gradient(180deg, rgba(74, 84, 96, 0.94) 0%, rgba(38, 44, 52, 0.96) 52%, rgba(22, 26, 32, 0.97) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.65),
-    0 3px 10px rgba(0, 0, 0, 0.65);
-  color: #e2e8f0;
+  background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   touch-action: manipulation;
-  transition: filter 0.16s ease, opacity 0.16s ease, border-color 0.16s ease;
+  transition: filter 0.16s ease, opacity 0.16s ease, transform 0.12s ease;
 }
 .mk-loot-arrow:hover:not(:disabled) {
   filter: brightness(1.18);
-  border-color: rgba(236, 244, 252, 0.85);
 }
 .mk-loot-arrow:active:not(:disabled) {
   filter: brightness(0.92);
+  transform: scale(0.95);
 }
 .mk-loot-arrow:disabled {
-  opacity: 0.26;
+  opacity: 0.25;
   cursor: default;
-  filter: grayscale(0.4);
+  filter: grayscale(0.5);
 }
-.mk-loot-arrow svg {
-  width: 22px;
-  height: 22px;
+.mk-loot-arrow img {
+  width: 52px;
+  height: 30px;
+  object-fit: contain;
   display: block;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.85));
 }
 .mk-loot-track {
   display: flex;
@@ -2507,7 +2503,7 @@ dialog.mk-dialog:focus,
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 6px 46px 10px;
+  padding: 6px 52px 10px;
 }
 .mk-loot-carousel.is-single .mk-loot-slide {
   padding-inline: 12px;
